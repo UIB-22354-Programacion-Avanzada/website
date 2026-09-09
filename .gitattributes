@@ -1,0 +1,6 @@
+# ─── GitHub Linguist overrides ────────────────────────────────────────────────
+# Los archivos .qmd son fuente Quarto (Markdown extendido), no código ejecutable.
+*.qmd            linguist-language=Quarto
+
+# Los archivos de freeze generados automáticamente por Quarto no son código fuente.
+_freeze/**       linguist-generated

@@ -1,0 +1,59 @@
+---
+title: "Inicio"
+lang: es
+sidebar: barra-es
+toc: false
+---
+
+## Bienvenidos
+
+Este sitio recoge el material docente de la asignatura [**Programación Avanzada (22354) de la Universitat de les Illes Balears**](https://estudis.uib.es/estudis-de-grau/grau/PENDIENTE/22354/index.html){target="_blank" rel="noopener noreferrer"}. La asignatura profundiza en el diseño orientado a objetos, los algoritmos y estructuras de datos, la programación concurrente, la programación de red y las bases de datos, utilizando **Java** como lenguaje principal.
+
+---
+
+## Qué encontrarás en este sitio
+
+**Informaciones:**
+
+Documentos informativos del curso:
+
+- un resumen de la guía docente oficial,
+- el calendario y los horarios de clase.
+
+**Temas:**
+
+El contenido teórico-práctico del curso, organizado en 5 temas que van desde los principios de diseño orientado a objetos hasta las bases de datos relacionales y NoSQL.
+
+**Ejercicios:**
+
+Colección de ejercicios propuestos para cada tema, pensados para consolidar los conceptos trabajados en clase.
+
+**Práctica del Curso:**
+
+Elemento de evaluación complementaria: enunciado, plazo y entrega de la práctica del curso.
+
+**Recursos:**
+
+Material de apoyo complementario: exámenes de convocatorias anteriores y herramientas de software recomendadas.
+
+**Bibliografía:**
+
+Referencias bibliográficas del curso, divididas en bibliografía principal (lecturas esenciales) y complementaria (lecturas de ampliación).
+
+---
+
+::: {.callout-important}
+## **MUY IMPORTANTE**
+
+Este sitio es un complemento del [**Aula Digital de la asignatura**](https://ad.uib.es){target="_blank" rel="noopener noreferrer"}.
+
+El Aula Digital es la plataforma oficial de teleeducación y aprendizaje en línea de la UIB. Es el entorno centralizado donde los estudiantes pueden:
+
+- Acceder a los materiales y apuntes de cada asignatura.
+- Consultar el calendario académico y las fechas de exámenes.
+- Entregar trabajos, realizar cuestionarios y participar en foros.
+- Revisar las calificaciones y notas finales.
+
+El acceso se gestiona a través del [Portal del Alumnado](https://alu.uib.cat/){target="_blank" rel="noopener noreferrer"}.
+
+:::

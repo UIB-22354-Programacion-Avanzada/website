@@ -1,0 +1,31 @@
+---
+title: "Herramientas de software"
+lang: es
+sidebar: barra-es
+---
+
+## Entorno de desarrollo integrado (IDE)
+
+Un entorno de desarrollo integrado (IDE) es un software que proporciona un entorno completo para el desarrollo de aplicaciones, incluyendo un editor de código, un compilador, un depurador y otras herramientas útiles.
+
+Utilizaremos el IDE [**IntelliJ IDEA**](https://www.jetbrains.com/idea/){target="_blank" rel="noopener noreferrer"} (edición Community, gratuita) ampliamente utilizado en la industria del software Java.
+
+Como alternativa, [**Visual Studio Code (VS Code)**](https://code.visualstudio.com/){target="_blank" rel="noopener noreferrer"} con la extensión Java Extension Pack también es una opción válida.
+
+## GitHub Codespaces
+
+Un Codespace de GitHub es un entorno de desarrollo preconfigurado y alojado en la nube que permite escribir, ejecutar y depurar código directamente desde un navegador.
+
+**En este curso, se utilizan de forma primaria los servicios de GitHub Codespaces para ejecutar código Java, por lo que no es necesario instalar un IDE en tu ordenador.**
+
+Para más información sobre GitHub Codespaces, consulta [Quickstart for GitHub Codespaces](https://docs.github.com/en/codespaces/quickstart){target="_blank" rel="noopener noreferrer"}.
+
+## Instalación local de IntelliJ IDEA
+
+Si deseas instalar IntelliJ IDEA localmente con el mismo entorno que en GitHub Codespaces, sigue las instrucciones del [Dev Containers tutorial](https://code.visualstudio.com/docs/devcontainers/tutorial){target="_blank" rel="noopener noreferrer"} y asegúrate de tener instalados:
+
+- **IntelliJ IDEA Community** (o VS Code con Java Extension Pack)
+- **Docker Desktop** (Windows/macOS) o **Docker Engine** (Linux)
+- **Extensión "Dev Containers"** para VS Code
+- **Git**
+- **JDK 21** (si no usas devcontainer)

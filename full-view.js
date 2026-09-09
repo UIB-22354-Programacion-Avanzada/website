@@ -1,0 +1,85 @@
+/**
+ * full-view.js — Modo presentación sin sidebar ni TOC
+ *
+ * Activación:  añadir ?full=1 a cualquier URL del sitio
+ * Desactivar:  botón flotante "✕ Salir" o tecla Escape
+ */
+(function () {
+  function updateFullscreenLink() {
+    document.querySelectorAll('a').forEach(function (a) {
+      if (a.querySelector('i.bi-fullscreen, .bi-fullscreen')) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('full', '1');
+        a.href = url.toString();
+        a.title = 'Modo presentación (sin sidebar)';
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          window.location.href = a.href;
+        });
+      }
+    });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateFullscreenLink);
+  } else {
+    updateFullscreenLink();
+  }
+
+  if (new URLSearchParams(window.location.search).get('full') !== '1') return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    #quarto-sidebar, .sidebar.sidebar-navigation { display: none !important; }
+    body.nav-sidebar, body.nav-sidebar.docked { padding-left: 0 !important; }
+    #quarto-margin-sidebar, .margin-sidebar, #TOC { display: none !important; }
+    .quarto-secondary-nav, #quarto-search { display: none !important; }
+    footer.footer, .nav-footer, .page-navigation { display: none !important; }
+    #quarto-content, .quarto-container, .page-columns,
+    main#quarto-document-content, .content, .content.column-body,
+    #quarto-document-content > section, #quarto-document-content > div {
+      max-width: none !important; width: 100% !important;
+    }
+    #quarto-content, .quarto-container {
+      padding-left: 16px !important; padding-right: 16px !important;
+      box-sizing: border-box !important;
+    }
+    main#quarto-document-content, .content.column-body, .page-columns {
+      padding-left: 0 !important; padding-right: 0 !important;
+    }
+    :root {
+      --quarto-sidebar-width: 0px !important;
+      --quarto-sidebar-padding: 0px !important;
+      --quarto-body-padding: 0px !important;
+    }
+  `;
+  document.head.appendChild(style);
+
+  function exitFullView() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('full');
+    window.location.href = url.toString();
+  }
+
+  const btn = document.createElement('button');
+  btn.innerHTML = '✕ Salir';
+  btn.setAttribute('title', 'Salir del modo presentación (Escape)');
+  Object.assign(btn.style, {
+    position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: '99999',
+    background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none',
+    borderRadius: '6px', padding: '0.4rem 0.9rem', cursor: 'pointer',
+    fontSize: '0.8rem', opacity: '0.4', transition: 'opacity 0.2s', fontFamily: 'inherit',
+  });
+  btn.addEventListener('mouseenter', function () { btn.style.opacity = '1'; });
+  btn.addEventListener('mouseleave', function () { btn.style.opacity = '0.4'; });
+  btn.addEventListener('click', exitFullView);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function () { document.body.appendChild(btn); });
+  } else {
+    document.body.appendChild(btn);
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !e.target.matches('input, textarea, select, [contenteditable]')) {
+      exitFullView();
+    }
+  });
+})();

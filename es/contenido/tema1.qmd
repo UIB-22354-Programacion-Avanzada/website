@@ -1,0 +1,8 @@
+---
+title: "Tema 1: POO, Principios SOLID y Diseño"
+lang: es
+sidebar: barra-es
+bibliography: tema1.bib
+---
+
+*Contenido pendiente.*

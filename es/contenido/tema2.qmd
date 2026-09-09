@@ -1,0 +1,8 @@
+---
+title: "Tema 2: Algoritmos, Complejidad y Estructuras de Datos"
+lang: es
+sidebar: barra-es
+bibliography: tema2.bib
+---
+
+*Contenido pendiente.*

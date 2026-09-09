@@ -1,0 +1,8 @@
+---
+title: "Tema 3: Programación Concurrente"
+lang: es
+sidebar: barra-es
+bibliography: tema3.bib
+---
+
+*Contenido pendiente.*

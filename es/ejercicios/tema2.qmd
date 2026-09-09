@@ -1,0 +1,7 @@
+---
+title: "Ejercicios — Tema 2: Algoritmos, Complejidad y Estructuras de Datos"
+lang: es
+sidebar: barra-es
+---
+
+*Contenido pendiente.*

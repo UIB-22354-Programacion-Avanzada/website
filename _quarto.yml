@@ -1,0 +1,113 @@
+project:
+  type: website
+
+website:
+  page-navigation: false
+  title: "Programación Avanzada (22354)"
+  description: "Material docente de la asignatura Programación Avanzada (22354), UIB-EPS."
+  site-url: "https://PENDIENTE.github.io/website/"   # ← actualizar al publicar
+
+  open-graph: true
+
+  page-footer:
+    right: "Esta página está construida con [sta210-s22](https://github.com/sta210-s22) y [Quarto](https://quarto.org/)."
+    left: "&copy; Copyright 2026, Alejandro Mesejo, [UIB-EPS](https://eps.uib.es/)"
+    background: "#0060A8"
+
+  sidebar:
+    - id: barra-es
+      logo: "images/logo.png"
+      pinned: true
+      align: center
+      tools:
+        - icon: github
+          href: https://github.com/PENDIENTE-org   # ← actualizar
+          text: "GitHub Organization"
+        - icon: fullscreen
+          href: "#"
+          text: "Modo presentación"
+
+      style: "docked"
+      search: true
+      collapse-level: 1
+      contents:
+        - index.qmd
+
+        - section: "Informaciones"
+          contents:
+            - href: es/informaciones/guia-docente.qmd
+              text: "Guía docente"
+            - href: es/informaciones/horarios.qmd
+              text: "Calendario y Horario"
+
+        - section: "Temas"
+          contents:
+            - href: es/contenido/tema1.qmd
+              text: "1. POO, SOLID y Diseño"
+            - href: es/contenido/tema2.qmd
+              text: "2. Algoritmos y Estructuras de Datos"
+            - href: es/contenido/tema3.qmd
+              text: "3. Programación Concurrente"
+            - href: es/contenido/tema4.qmd
+              text: "4. Red y Servicios Distribuidos"
+            - href: es/contenido/tema5.qmd
+              text: "5. Bases de Datos: SQL, JDBC y NoSQL"
+
+        - section: "Ejercicios"
+          contents:
+            - href: es/ejercicios/tema1.qmd
+              text: "Ejercicios — Tema 1"
+            - href: es/ejercicios/tema2.qmd
+              text: "Ejercicios — Tema 2"
+            - href: es/ejercicios/tema3.qmd
+              text: "Ejercicios — Tema 3"
+            - href: es/ejercicios/tema4.qmd
+              text: "Ejercicios — Tema 4"
+            - href: es/ejercicios/tema5.qmd
+              text: "Ejercicios — Tema 5"
+
+        - section: "Recursos"
+          contents:
+            - href: es/recursos/examenes-anteriores.qmd
+              text: "Exámenes anteriores"
+            - href: es/recursos/herramientas-software.qmd
+              text: "Herramientas de software"
+
+        - section: "Bibliografía"
+          contents:
+            - href: es/bibliografia/principal.qmd
+              text: "Principal"
+            - href: es/bibliografia/complementaria.qmd
+              text: "Complementaria"
+
+language:
+  crossref-imp-title: "Concepto Clave"
+  crossref-imp-prefix: "concepto clave"
+  crossref-nte-title: "Ejemplo"
+  crossref-nte-prefix: "ejemplo"
+  crossref-cau-title: "Error Frecuente"
+  crossref-cau-prefix: "error frecuente"
+  crossref-wrn-title: "Técnica de Depuración"
+  crossref-wrn-prefix: "técnica de depuración"
+  crossref-tip-title: "Fundamento Teórico"
+  crossref-tip-prefix: "fundamento teórico"
+
+crossref:
+  chapters: true
+  ref-hyperlink: true
+
+format:
+  html:
+    theme:
+      light: [cosmo, theme.scss]
+      dark: [cosmo, theme-dark.scss]
+    css: styles.css
+    toc: true
+    callout-icon: false
+    include-after-body:
+      text: |
+        <script src="/logo-href.js"></script>
+        <script src="/full-view.js"></script>
+
+freeze: auto
+editor: source
