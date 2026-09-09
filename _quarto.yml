@@ -5,7 +5,7 @@ website:
   page-navigation: false
   title: "Programación Avanzada (22354)"
   description: "Material docente de la asignatura Programación Avanzada (22354), UIB-EPS."
-  site-url: "https://PENDIENTE.github.io/website/"   # ← actualizar al publicar
+  site-url: "https://uib-22354-programacion-avanzada.github.io/website/"
 
   open-graph: true
 
@@ -21,7 +21,7 @@ website:
       align: center
       tools:
         - icon: github
-          href: https://github.com/PENDIENTE-org   # ← actualizar
+          href: https://github.com/UIB-22354-Programacion-Avanzada   # ← actualizar
           text: "GitHub Organization"
         - icon: fullscreen
           href: "#"
