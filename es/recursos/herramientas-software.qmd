@@ -28,4 +28,4 @@ Si deseas instalar IntelliJ IDEA localmente con el mismo entorno que en GitHub C
 - **Docker Desktop** (Windows/macOS) o **Docker Engine** (Linux)
 - **Extensión "Dev Containers"** para VS Code
 - **Git**
-- **JDK 21** (si no usas devcontainer)
+- **JDK 25** (si no usas devcontainer)
