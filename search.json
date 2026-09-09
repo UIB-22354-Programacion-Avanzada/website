@@ -1,181 +1,5 @@
 [
   {
-    "objectID": "es/recursos/herramientas-software.html",
-    "href": "es/recursos/herramientas-software.html",
-    "title": "Herramientas de software",
-    "section": "",
-    "text": "Un entorno de desarrollo integrado (IDE) es un software que proporciona un entorno completo para el desarrollo de aplicaciones, incluyendo un editor de código, un compilador, un depurador y otras herramientas útiles.\nUtilizaremos el IDE IntelliJ IDEA (edición Community, gratuita) ampliamente utilizado en la industria del software Java.\nComo alternativa, Visual Studio Code (VS Code) con la extensión Java Extension Pack también es una opción válida.",
-    "crumbs": [
-      "Recursos",
-      "Herramientas de software"
-    ]
-  },
-  {
-    "objectID": "es/recursos/herramientas-software.html#entorno-de-desarrollo-integrado-ide",
-    "href": "es/recursos/herramientas-software.html#entorno-de-desarrollo-integrado-ide",
-    "title": "Herramientas de software",
-    "section": "",
-    "text": "Un entorno de desarrollo integrado (IDE) es un software que proporciona un entorno completo para el desarrollo de aplicaciones, incluyendo un editor de código, un compilador, un depurador y otras herramientas útiles.\nUtilizaremos el IDE IntelliJ IDEA (edición Community, gratuita) ampliamente utilizado en la industria del software Java.\nComo alternativa, Visual Studio Code (VS Code) con la extensión Java Extension Pack también es una opción válida.",
-    "crumbs": [
-      "Recursos",
-      "Herramientas de software"
-    ]
-  },
-  {
-    "objectID": "es/recursos/herramientas-software.html#github-codespaces",
-    "href": "es/recursos/herramientas-software.html#github-codespaces",
-    "title": "Herramientas de software",
-    "section": "GitHub Codespaces",
-    "text": "GitHub Codespaces\nUn Codespace de GitHub es un entorno de desarrollo preconfigurado y alojado en la nube que permite escribir, ejecutar y depurar código directamente desde un navegador.\nEn este curso, se utilizan de forma primaria los servicios de GitHub Codespaces para ejecutar código Java, por lo que no es necesario instalar un IDE en tu ordenador.\nPara más información sobre GitHub Codespaces, consulta Quickstart for GitHub Codespaces.",
-    "crumbs": [
-      "Recursos",
-      "Herramientas de software"
-    ]
-  },
-  {
-    "objectID": "es/recursos/herramientas-software.html#instalación-local-de-intellij-idea",
-    "href": "es/recursos/herramientas-software.html#instalación-local-de-intellij-idea",
-    "title": "Herramientas de software",
-    "section": "Instalación local de IntelliJ IDEA",
-    "text": "Instalación local de IntelliJ IDEA\nSi deseas instalar IntelliJ IDEA localmente con el mismo entorno que en GitHub Codespaces, sigue las instrucciones del Dev Containers tutorial y asegúrate de tener instalados:\n\nIntelliJ IDEA Community (o VS Code con Java Extension Pack)\nDocker Desktop (Windows/macOS) o Docker Engine (Linux)\nExtensión “Dev Containers” para VS Code\nGit\nJDK 21 (si no usas devcontainer)",
-    "crumbs": [
-      "Recursos",
-      "Herramientas de software"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html",
-    "href": "es/informaciones/horarios.html",
-    "title": "Calendario y Horario",
-    "section": "",
-    "text": "El calendario académico de la Escuela Politécnica Superior (EPS) de la Universidad de las Islas Baleares (UIB) para el curso académico 2026-2027 se puede consultar en el siguiente enlace: https://eps.uib.es/curs-2026-27/.",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html#calendario-de-la-eps",
-    "href": "es/informaciones/horarios.html#calendario-de-la-eps",
-    "title": "Calendario y Horario",
-    "section": "",
-    "text": "El calendario académico de la Escuela Politécnica Superior (EPS) de la Universidad de las Islas Baleares (UIB) para el curso académico 2026-2027 se puede consultar en el siguiente enlace: https://eps.uib.es/curs-2026-27/.",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html#horario-de-clases",
-    "href": "es/informaciones/horarios.html#horario-de-clases",
-    "title": "Calendario y Horario",
-    "section": "Horario de clases",
-    "text": "Horario de clases",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html#horario-de-tutorías",
-    "href": "es/informaciones/horarios.html#horario-de-tutorías",
-    "title": "Calendario y Horario",
-    "section": "Horario de tutorías",
-    "text": "Horario de tutorías\nSolicitar por correo electrónico a través del servicio de correo del Aula Digital.",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html#calendario-por-temas",
-    "href": "es/informaciones/horarios.html#calendario-por-temas",
-    "title": "Calendario y Horario",
-    "section": "Calendario por temas",
-    "text": "Calendario por temas",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/informaciones/horarios.html#actividades-de-evaluación",
-    "href": "es/informaciones/horarios.html#actividades-de-evaluación",
-    "title": "Calendario y Horario",
-    "section": "Actividades de evaluación",
-    "text": "Actividades de evaluación\n\n\n\nActividad\nGrupo\nFecha\nPeso (%)\nNota de validación\n\n\n\n\nPrimer Taller\nG4\n30/09/2026\n10%\n-\n\n\nExamen Parcial\nG4\n11/11/2026\n40%\n5\n\n\nSegundo Taller\nG4\n08/12/2026\n10%\n-\n\n\nExamen Global\nG4\nEnero 2027\n40%\n5",
-    "crumbs": [
-      "Informaciones",
-      "Calendario y Horario"
-    ]
-  },
-  {
-    "objectID": "es/ejercicios/tema5.html",
-    "href": "es/ejercicios/tema5.html",
-    "title": "Ejercicios — Tema 5: Bases de Datos: SQL, JDBC y Panorámica NoSQL",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Ejercicios",
-      "Ejercicios — Tema 5"
-    ]
-  },
-  {
-    "objectID": "es/ejercicios/tema3.html",
-    "href": "es/ejercicios/tema3.html",
-    "title": "Ejercicios — Tema 3: Programación Concurrente",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Ejercicios",
-      "Ejercicios — Tema 3"
-    ]
-  },
-  {
-    "objectID": "es/ejercicios/tema1.html",
-    "href": "es/ejercicios/tema1.html",
-    "title": "Ejercicios — Tema 1: POO, Principios SOLID y Diseño",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Ejercicios",
-      "Ejercicios — Tema 1"
-    ]
-  },
-  {
-    "objectID": "es/contenido/tema4.html",
-    "href": "es/contenido/tema4.html",
-    "title": "Tema 4: Programación de Red y Servicios Distribuidos",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Temas",
-      "4. Red y Servicios Distribuidos"
-    ]
-  },
-  {
-    "objectID": "es/contenido/tema2.html",
-    "href": "es/contenido/tema2.html",
-    "title": "Tema 2: Algoritmos, Complejidad y Estructuras de Datos",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Temas",
-      "2. Algoritmos y Estructuras de Datos"
-    ]
-  },
-  {
-    "objectID": "es/bibliografia/principal.html",
-    "href": "es/bibliografia/principal.html",
-    "title": "Bibliografía principal",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Bibliografía",
-      "Principal"
-    ]
-  },
-  {
     "objectID": "index.html",
     "href": "index.html",
     "title": "Inicio",
@@ -206,69 +30,14 @@
     ]
   },
   {
-    "objectID": "es/bibliografia/complementaria.html",
-    "href": "es/bibliografia/complementaria.html",
-    "title": "Bibliografía complementaria",
+    "objectID": "es/recursos/examenes-anteriores.html",
+    "href": "es/recursos/examenes-anteriores.html",
+    "title": "Exámenes anteriores",
     "section": "",
     "text": "Contenido pendiente.",
     "crumbs": [
-      "Bibliografía",
-      "Complementaria"
-    ]
-  },
-  {
-    "objectID": "es/contenido/tema1.html",
-    "href": "es/contenido/tema1.html",
-    "title": "Tema 1: POO, Principios SOLID y Diseño",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Temas",
-      "1. POO, SOLID y Diseño"
-    ]
-  },
-  {
-    "objectID": "es/contenido/tema3.html",
-    "href": "es/contenido/tema3.html",
-    "title": "Tema 3: Programación Concurrente",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Temas",
-      "3. Programación Concurrente"
-    ]
-  },
-  {
-    "objectID": "es/contenido/tema5.html",
-    "href": "es/contenido/tema5.html",
-    "title": "Tema 5: Bases de Datos: SQL, JDBC y Panorámica NoSQL",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Temas",
-      "5. Bases de Datos: SQL, JDBC y NoSQL"
-    ]
-  },
-  {
-    "objectID": "es/ejercicios/tema2.html",
-    "href": "es/ejercicios/tema2.html",
-    "title": "Ejercicios — Tema 2: Algoritmos, Complejidad y Estructuras de Datos",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Ejercicios",
-      "Ejercicios — Tema 2"
-    ]
-  },
-  {
-    "objectID": "es/ejercicios/tema4.html",
-    "href": "es/ejercicios/tema4.html",
-    "title": "Ejercicios — Tema 4: Programación de Red y Servicios Distribuidos",
-    "section": "",
-    "text": "Contenido pendiente.",
-    "crumbs": [
-      "Ejercicios",
-      "Ejercicios — Tema 4"
+      "Recursos",
+      "Exámenes anteriores"
     ]
   },
   {
@@ -371,14 +140,245 @@
     ]
   },
   {
-    "objectID": "es/recursos/examenes-anteriores.html",
-    "href": "es/recursos/examenes-anteriores.html",
-    "title": "Exámenes anteriores",
+    "objectID": "es/ejercicios/tema4.html",
+    "href": "es/ejercicios/tema4.html",
+    "title": "Ejercicios — Tema 4: Programación de Red y Servicios Distribuidos",
     "section": "",
     "text": "Contenido pendiente.",
     "crumbs": [
+      "Ejercicios",
+      "Ejercicios — Tema 4"
+    ]
+  },
+  {
+    "objectID": "es/ejercicios/tema2.html",
+    "href": "es/ejercicios/tema2.html",
+    "title": "Ejercicios — Tema 2: Algoritmos, Complejidad y Estructuras de Datos",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Ejercicios",
+      "Ejercicios — Tema 2"
+    ]
+  },
+  {
+    "objectID": "es/contenido/tema5.html",
+    "href": "es/contenido/tema5.html",
+    "title": "Tema 5: Bases de Datos: SQL, JDBC y Panorámica NoSQL",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Temas",
+      "5. Bases de Datos: SQL, JDBC y NoSQL"
+    ]
+  },
+  {
+    "objectID": "es/contenido/tema3.html",
+    "href": "es/contenido/tema3.html",
+    "title": "Tema 3: Programación Concurrente",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Temas",
+      "3. Programación Concurrente"
+    ]
+  },
+  {
+    "objectID": "es/contenido/tema1.html",
+    "href": "es/contenido/tema1.html",
+    "title": "Tema 1: POO, Principios SOLID y Diseño",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Temas",
+      "1. POO, SOLID y Diseño"
+    ]
+  },
+  {
+    "objectID": "es/bibliografia/complementaria.html",
+    "href": "es/bibliografia/complementaria.html",
+    "title": "Bibliografía complementaria",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Bibliografía",
+      "Complementaria"
+    ]
+  },
+  {
+    "objectID": "es/bibliografia/principal.html",
+    "href": "es/bibliografia/principal.html",
+    "title": "Bibliografía principal",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Bibliografía",
+      "Principal"
+    ]
+  },
+  {
+    "objectID": "es/contenido/tema2.html",
+    "href": "es/contenido/tema2.html",
+    "title": "Tema 2: Algoritmos, Complejidad y Estructuras de Datos",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Temas",
+      "2. Algoritmos y Estructuras de Datos"
+    ]
+  },
+  {
+    "objectID": "es/contenido/tema4.html",
+    "href": "es/contenido/tema4.html",
+    "title": "Tema 4: Programación de Red y Servicios Distribuidos",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Temas",
+      "4. Red y Servicios Distribuidos"
+    ]
+  },
+  {
+    "objectID": "es/ejercicios/tema1.html",
+    "href": "es/ejercicios/tema1.html",
+    "title": "Ejercicios — Tema 1: POO, Principios SOLID y Diseño",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Ejercicios",
+      "Ejercicios — Tema 1"
+    ]
+  },
+  {
+    "objectID": "es/ejercicios/tema3.html",
+    "href": "es/ejercicios/tema3.html",
+    "title": "Ejercicios — Tema 3: Programación Concurrente",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Ejercicios",
+      "Ejercicios — Tema 3"
+    ]
+  },
+  {
+    "objectID": "es/ejercicios/tema5.html",
+    "href": "es/ejercicios/tema5.html",
+    "title": "Ejercicios — Tema 5: Bases de Datos: SQL, JDBC y Panorámica NoSQL",
+    "section": "",
+    "text": "Contenido pendiente.",
+    "crumbs": [
+      "Ejercicios",
+      "Ejercicios — Tema 5"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html",
+    "href": "es/informaciones/horarios.html",
+    "title": "Calendario y Horario",
+    "section": "",
+    "text": "El calendario académico de la Escuela Politécnica Superior (EPS) de la Universidad de las Islas Baleares (UIB) para el curso académico 2026-2027 se puede consultar en el siguiente enlace: https://eps.uib.es/curs-2026-27/.",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html#calendario-de-la-eps",
+    "href": "es/informaciones/horarios.html#calendario-de-la-eps",
+    "title": "Calendario y Horario",
+    "section": "",
+    "text": "El calendario académico de la Escuela Politécnica Superior (EPS) de la Universidad de las Islas Baleares (UIB) para el curso académico 2026-2027 se puede consultar en el siguiente enlace: https://eps.uib.es/curs-2026-27/.",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html#horario-de-clases",
+    "href": "es/informaciones/horarios.html#horario-de-clases",
+    "title": "Calendario y Horario",
+    "section": "Horario de clases",
+    "text": "Horario de clases",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html#horario-de-tutorías",
+    "href": "es/informaciones/horarios.html#horario-de-tutorías",
+    "title": "Calendario y Horario",
+    "section": "Horario de tutorías",
+    "text": "Horario de tutorías\nSolicitar por correo electrónico a través del servicio de correo del Aula Digital.",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html#calendario-por-temas",
+    "href": "es/informaciones/horarios.html#calendario-por-temas",
+    "title": "Calendario y Horario",
+    "section": "Calendario por temas",
+    "text": "Calendario por temas",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/informaciones/horarios.html#actividades-de-evaluación",
+    "href": "es/informaciones/horarios.html#actividades-de-evaluación",
+    "title": "Calendario y Horario",
+    "section": "Actividades de evaluación",
+    "text": "Actividades de evaluación\n\n\n\nActividad\nGrupo\nFecha\nPeso (%)\nNota de validación\n\n\n\n\nPrimer Taller\nG4\n30/09/2026\n10%\n-\n\n\nExamen Parcial\nG4\n11/11/2026\n40%\n5\n\n\nSegundo Taller\nG4\n08/12/2026\n10%\n-\n\n\nExamen Global\nG4\nEnero 2027\n40%\n5",
+    "crumbs": [
+      "Informaciones",
+      "Calendario y Horario"
+    ]
+  },
+  {
+    "objectID": "es/recursos/herramientas-software.html",
+    "href": "es/recursos/herramientas-software.html",
+    "title": "Herramientas de software",
+    "section": "",
+    "text": "Un entorno de desarrollo integrado (IDE) es un software que proporciona un entorno completo para el desarrollo de aplicaciones, incluyendo un editor de código, un compilador, un depurador y otras herramientas útiles.\nUtilizaremos el IDE IntelliJ IDEA (edición Community, gratuita) ampliamente utilizado en la industria del software Java.\nComo alternativa, Visual Studio Code (VS Code) con la extensión Java Extension Pack también es una opción válida.",
+    "crumbs": [
       "Recursos",
-      "Exámenes anteriores"
+      "Herramientas de software"
+    ]
+  },
+  {
+    "objectID": "es/recursos/herramientas-software.html#entorno-de-desarrollo-integrado-ide",
+    "href": "es/recursos/herramientas-software.html#entorno-de-desarrollo-integrado-ide",
+    "title": "Herramientas de software",
+    "section": "",
+    "text": "Un entorno de desarrollo integrado (IDE) es un software que proporciona un entorno completo para el desarrollo de aplicaciones, incluyendo un editor de código, un compilador, un depurador y otras herramientas útiles.\nUtilizaremos el IDE IntelliJ IDEA (edición Community, gratuita) ampliamente utilizado en la industria del software Java.\nComo alternativa, Visual Studio Code (VS Code) con la extensión Java Extension Pack también es una opción válida.",
+    "crumbs": [
+      "Recursos",
+      "Herramientas de software"
+    ]
+  },
+  {
+    "objectID": "es/recursos/herramientas-software.html#github-codespaces",
+    "href": "es/recursos/herramientas-software.html#github-codespaces",
+    "title": "Herramientas de software",
+    "section": "GitHub Codespaces",
+    "text": "GitHub Codespaces\nUn Codespace de GitHub es un entorno de desarrollo preconfigurado y alojado en la nube que permite escribir, ejecutar y depurar código directamente desde un navegador.\nEn este curso, se utilizan de forma primaria los servicios de GitHub Codespaces para ejecutar código Java, por lo que no es necesario instalar un IDE en tu ordenador.\nPara más información sobre GitHub Codespaces, consulta Quickstart for GitHub Codespaces.",
+    "crumbs": [
+      "Recursos",
+      "Herramientas de software"
+    ]
+  },
+  {
+    "objectID": "es/recursos/herramientas-software.html#instalación-local-de-intellij-idea",
+    "href": "es/recursos/herramientas-software.html#instalación-local-de-intellij-idea",
+    "title": "Herramientas de software",
+    "section": "Instalación local de IntelliJ IDEA",
+    "text": "Instalación local de IntelliJ IDEA\nSi deseas instalar IntelliJ IDEA localmente con el mismo entorno que en GitHub Codespaces, sigue las instrucciones del Dev Containers tutorial y asegúrate de tener instalados:\n\nIntelliJ IDEA Community (o VS Code con Java Extension Pack)\nDocker Desktop (Windows/macOS) o Docker Engine (Linux)\nExtensión “Dev Containers” para VS Code\nGit\nJDK 21 (si no usas devcontainer)",
+    "crumbs": [
+      "Recursos",
+      "Herramientas de software"
     ]
   }
 ]
