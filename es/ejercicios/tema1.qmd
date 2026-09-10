@@ -26,14 +26,20 @@ completas el código. El flujo de trabajo es el habitual: crea tu copia con **Us
 abre un Codespace, ejecuta `mvn test`, y ve resolviendo ejercicios hasta que la construcción pase
 en verde. Las soluciones no se publican; en clase se comentan las que más dudas generen.
 
-Salvo que el enunciado diga otra cosa, todas las clases nuevas van en el paquete
-`es.uib.prgava.tema1.ejercicios`, y puedes importar libremente las del monitor y las de los
-paquetes `poo` y `genericos` de `t1-ejemplos`, que también están en la plantilla.
+Sobre los paquetes: las clases que **implementan una interfaz del monitor** (`FallosEnVentana`,
+`NotificadorFichero`, `SondaConRegistro`, `ServicioPing`) viven en `es.uib.prgava.tema1.monitor`,
+junto a sus compañeras; todas las demás, en `es.uib.prgava.tema1.ejercicios`. El esqueleto ya trae
+cada fichero en su sitio, así que basta con que respetes el que te encuentres.
+
+Dos ejercicios de la sección 1.4 consisten en escribir las pruebas de clases que ya has construido
+antes (1.4.1 las de `FallosEnVentana`, 1.4.2 las de `DireccionIpv4`). Para que no te quedes sin
+comprobación mientras tanto, la plantilla incluye un puñado de pruebas mínimas de esas dos clases,
+en `FallosEnVentanaBasicoTest` y `DireccionIpv4BasicoTest`. No las repitas en las tuyas.
 
 ::: {.callout-tip appearance="simple"}
 Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la
 solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión
-de diseño, no solo que el código funcione.
+de diseño, no que el código funcione.
 :::
 
 ## 1.1. Conceptos fundamentales de la POO en Java
@@ -215,8 +221,11 @@ estadísticas sobre ellas y además las exporta a un fichero CSV.
 2. Sepárala en dos clases con una única responsabilidad cada una:
    - `EstadisticasSensor`, que solo calcula (media, máximo, mínimo, número de lecturas) y no toca
      el sistema de ficheros;
-   - `ExportadorCsv`, que solo escribe, y que recibe lo que tiene que escribir; no debe conocer la
-     lógica de cálculo.
+   - `ExportadorCsv`, con un único método `escribir(Path destino, List<String> filas)`, que solo
+     escribe lo que recibe y no conoce la lógica de cálculo.
+
+   `EstadisticasSensor` ofrece además `List<String> comoFilas()`, que prepara las filas del CSV
+   empezando por la cabecera `metrica;valor`: así el exportador sigue sin saber nada de sensores.
 3. Escribe un `main` que las use juntas y produzca exactamente la misma salida que la clase
    original.
 4. Comprueba lo que has ganado: escribe **una** aserción sobre la media sin crear ningún fichero.
@@ -249,14 +258,16 @@ politica.debeAlertar(List.of(FALLO, OK, OK, OK, OK, OK));     // false (el fallo
 ::::
 
 :::: {.callout-note title="1.2.3 Diagnosticar y rediseñar `ListaSoloLectura` (principio L)" collapse="true"}
-La plantilla incluye `ListaSoloLectura extends ArrayList<String>`, que redefine `add` y `remove`
-para lanzar `UnsupportedOperationException`.
+La plantilla incluye `ListaSoloLecturaHeredada extends ArrayList<String>`, que redefine `add` y
+`remove` para lanzar `UnsupportedOperationException`. No la corrijas: úsala para el diagnóstico y
+escribe la versión buena en el esqueleto `ListaSoloLectura`.
 
 1. Escribe un método `static void rellenar(List<String> destino, int cuantos)` que añada elementos
-   a la lista recibida. Comprueba que funciona con un `ArrayList` y falla con `ListaSoloLectura`.
+   a la lista recibida. Comprueba que funciona con un `ArrayList` y falla con
+   `ListaSoloLecturaHeredada`.
 2. En un comentario, explica **qué parte del contrato** de `List` rompe la subclase y por qué eso
    viola el principio de sustitución de Liskov. Cita la precondición o la postcondición concreta.
-3. Rediseña la clase **con composición**: `ListaSoloLectura implements Iterable<String>`, con un
+3. Escribe la versión buena **con composición**: `ListaSoloLectura implements Iterable<String>`, con un
    `List<String>` interno recibido por constructor (copiado defensivamente), y solo los métodos de
    lectura que tenga sentido ofrecer (`obtener(int)`, `tamano()`, `contiene(Object)`, `iterator()`).
 4. Comprueba que ahora `rellenar` **ni siquiera compila** con la nueva clase, y explica por qué eso
@@ -269,10 +280,12 @@ La plantilla incluye una interfaz `GestorDispositivos` con ocho métodos que mez
 administración (`reiniciar`, `actualizarFirmware`, `restaurarValoresDeFabrica`).
 
 1. Divídela en tres interfaces por **rol**: `ConsultaDispositivos`, `AltaDispositivos` y
-   `AdministracionDispositivos`. Mantén una interfaz `GestorDispositivos` que las extienda a las
-   tres, para quien necesite todo.
-2. Implementa `CatalogoEnMemoria`, que implementa solo `ConsultaDispositivos` y `AltaDispositivos`
-   (un catálogo no reinicia nada).
+   `AdministracionDispositivos`. La plantilla te las da **vacías**, con un comentario indicando qué
+   métodos van en cada una; tú los trasladas desde `GestorDispositivos`, que debe quedar
+   extendiendo a las tres para quien necesite todo.
+2. Completa `CatalogoEnMemoria`, que implementa solo `ConsultaDispositivos` y `AltaDispositivos`
+   (un catálogo no reinicia nada). Cuando hayas movido los métodos a las interfaces, añade
+   `@Override` a los cinco: si alguno no compila, lo has colocado en la interfaz equivocada.
 3. Escribe un método `static String resumen(ConsultaDispositivos consulta)` y comprueba que puedes
    llamarlo con `CatalogoEnMemoria` sin que exista ningún método de administración.
 4. En un comentario, indica qué habría tenido que hacer `CatalogoEnMemoria` con los métodos de
@@ -281,13 +294,15 @@ administración (`reiniciar`, `actualizarFirmware`, `restaurarValoresDeFabrica`)
 ::::
 
 :::: {.callout-note title="1.2.5 Invertir las dependencias de `InformeDiario` (principio D)" collapse="true"}
-La plantilla incluye `InformeDiario`, que en su constructor hace `new RepositorioEnMemoria()` y
-escribe el informe con `System.out.println`.
+La plantilla incluye `InformeDiarioAcoplado`, que se fabrica su propio `RepositorioEnMemoria` y
+escribe el informe con `System.out.println`. No la modifiques: escribe la versión buena en el
+esqueleto `InformeDiario`.
 
 1. Explica en un comentario por qué esta clase es imposible de probar tal como está.
-2. Refactorízala para que reciba sus colaboradores **por el constructor**: un `LectorResultados`
-   (no un `RepositorioResultados`: solo lee, aplica también el principio I) y un
-   `Consumer<String>` como destino del texto.
+2. Escribe `InformeDiario` recibiendo sus colaboradores **por el constructor**: un
+   `LectorResultados` (no un `RepositorioResultados`: solo lee, aplica también el principio I) y un
+   `Consumer<String>` como destino del texto. Debe emitir una cabecera y una línea por servicio,
+   con la misma información que la versión acoplada.
 3. Deja el cableado en un `main`: `new InformeDiario(repositorio, System.out::println)`.
 4. Demuestra la ganancia: en un `main` de prueba, construye el informe con un repositorio de
    mentira y un `Consumer` que acumule las líneas en una lista, y comprueba el contenido sin
@@ -462,11 +477,13 @@ y no `Collection<T>`; (c) qué error de compilación aparecería si intentaras h
 ::::
 
 :::: {.callout-note title="1.3.4 Borrado de tipos y testigos de tipo" collapse="true"}
-La plantilla incluye la clase `Borrado` con cinco líneas comentadas que **no compilan**.
+La plantilla incluye la clase `Borrado` con cinco líneas comentadas que **no compilan**, más un
+par de sobrecargas que tampoco pueden coexistir.
 
 1. Descoméntalas de una en una y anota, junto a cada una, el mensaje del compilador y la razón en
-   términos de borrado de tipos (*type erasure*).
-2. Implementa
+   términos de borrado de tipos (*type erasure*). Vuelve a comentarlas al terminar, para que el
+   proyecto siga compilando.
+2. En la clase `TestigoDeTipo`, implementa
    `public static <T> List<T> filtrarPorTipo(List<?> lista, Class<T> tipo)`,
    que devuelva los elementos de la lista que son del tipo indicado, usando `tipo.isInstance` y
    `tipo.cast`. No debe producir ningún aviso del compilador ni contener ningún *cast* con
@@ -488,8 +505,9 @@ componer funciones. Ninguno de sus métodos debe tener un `if`.
 3. `public static final Comparator<Resultado> POR_SERVICIO_Y_LATENCIA`: ordena por nombre de
    servicio ascendente y, a igualdad de servicio, por latencia **descendente**. Usa
    `Comparator.comparing`, `thenComparing` y `reverseOrder`.
-4. `public static Function<Resultado, String> etiqueta()`, que produzca
-   `NOMBRE-SERVICIO (123 ms)` componiendo dos funciones con `andThen`.
+4. `public static Function<Resultado, String> etiqueta()`, que produzca el nombre del servicio en
+   mayúsculas seguido de la latencia, como `DNS:UIB.ES (123 ms)`, componiendo dos funciones con
+   `andThen`.
 5. `public static Sonda sondaConstante(Estado estado)`, que devuelva una **lambda** que implemente
    `Sonda` y responda siempre con ese estado.
 
@@ -531,7 +549,9 @@ Amplía `InformesEjercicio` con cuatro métodos más, cada uno construido con un
    excluyendo los fallos.
 4. `public static String tabla(List<Resultado> historial)`: una línea por servicio con nombre,
    disponibilidad en tanto por ciento y latencia media, construida con `joining` y
-   `String.format`, ordenada de peor a mejor disponibilidad.
+   `String.format`, ordenada de peor a mejor disponibilidad. Pasa `Locale.of("es", "ES")` como
+   primer argumento de `String.format`: sin él, el separador decimal depende de la configuración
+   regional de la máquina y la salida cambia entre tu ordenador y GitHub Actions.
 
 ::: {.callout-tip title="Formato esperado de `tabla`"}
 ```text
@@ -547,7 +567,8 @@ https://www.uib.es             86,0 %   latencia media   246 ms
    resultados de todos los servicios en una sola lista ordenada por instante, usando `flatMap`.
 2. Escribe `public static int rachaMaximaDeFallos(List<Resultado> historial)`, que devuelva la
    longitud de la mayor secuencia de fallos consecutivos. Impleméntalo **con un bucle**.
-3. Intenta ahora la misma función con `reduce` o con un colector. Consérvala aunque quede peor.
+3. Escribe `public static int rachaMaximaConReduce(List<Resultado> historial)` con `reduce` o con
+   un colector. Consérvala aunque quede peor: las dos deben dar el mismo resultado.
 4. En un comentario de cinco líneas, compara las dos versiones y justifica cuál pondrías en
    producción. Relaciónalo con lo que dice el tema en
    [1.3.7](../contenido/tema1.qmd#cuándo-no-usar-streams) sobre el estado entre iteraciones.
@@ -629,8 +650,8 @@ crea su propia `SondaSimulada` con una semilla aleatoria.
 
 1. Escribe en un comentario por qué no puedes escribir ni una sola prueba fiable sobre la clase tal
    como está, y qué principio SOLID se está incumpliendo.
-2. Refactorízala: inyecta por constructor un `java.time.Clock` y una `Sonda`. Sustituye
-   `Instant.now()` por `Instant.now(reloj)`.
+2. Refactorízala **en su propio fichero**: inyecta por constructor un `java.time.Clock` y una
+   `Sonda`, y sustituye `Instant.now()` por `Instant.now(reloj)`.
 3. Escribe `DetectorDeCaidasTest` usando `Clock.fixed(...)` y una `SondaProgramada` (del ejercicio
    1.4.3) para comprobar, de forma completamente determinista:
    - que un servicio que responde no se marca como caído;

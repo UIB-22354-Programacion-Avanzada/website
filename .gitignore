@@ -8,3 +8,6 @@
 
 # Proyecto Maven con el código de los ejemplos (se publica en un repositorio aparte)
 /_codigo/
+
+# Carpeta de trabajo de la app de escritorio de Claude
+/Claude outputs/
