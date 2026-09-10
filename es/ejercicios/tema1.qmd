@@ -6,7 +6,7 @@ sidebar: barra-es
 
 ## Cómo trabajar estos ejercicios
 
-Los 28 ejercicios de esta página acompañan al [contenido del Tema 1](https://uib-22354-programacion-avanzada.github.io/website/es/contenido/tema1.html){target="_blank", rel="noopener noreferrer"} y se
+Los 28 ejercicios de esta página acompañan al [contenido del Tema 1](https://uib-22354-programacion-avanzada.github.io/website/es/contenido/tema1.html) y se
 numeran `1.X.k`, donde `X` es el subapartado del tema al que corresponden. Cada enunciado indica
 con precisión qué clase escribir, en qué paquete, con qué firma y qué comportamiento debe tener:
 lo que se te pide es exactamente eso, ni más ni menos.
