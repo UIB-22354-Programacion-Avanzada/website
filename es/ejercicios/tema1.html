@@ -524,14 +524,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>, salvo en los ejercicios de la sección 1.4, donde las pruebas son precisamente lo que tienes que escribir.</li>
 </ul>
 <p>El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que completas el código. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde. Las soluciones no se publican; en clase se comentan las que más dudas generen.</p>
-<p>Salvo que el enunciado diga otra cosa, todas las clases nuevas van en el paquete <code>es.uib.prgava.tema1.ejercicios</code>, y puedes importar libremente las del monitor y las de los paquetes <code>poo</code> y <code>genericos</code> de <code>t1-ejemplos</code>, que también están en la plantilla.</p>
+<p>Sobre los paquetes: las clases que <strong>implementan una interfaz del monitor</strong> (<code>FallosEnVentana</code>, <code>NotificadorFichero</code>, <code>SondaConRegistro</code>, <code>ServicioPing</code>) viven en <code>es.uib.prgava.tema1.monitor</code>, junto a sus compañeras; todas las demás, en <code>es.uib.prgava.tema1.ejercicios</code>. El esqueleto ya trae cada fichero en su sitio, así que basta con que respetes el que te encuentres.</p>
+<p>Dos ejercicios de la sección 1.4 consisten en escribir las pruebas de clases que ya has construido antes (1.4.1 las de <code>FallosEnVentana</code>, 1.4.2 las de <code>DireccionIpv4</code>). Para que no te quedes sin comprobación mientras tanto, la plantilla incluye un puñado de pruebas mínimas de esas dos clases, en <code>FallosEnVentanaBasicoTest</code> y <code>DireccionIpv4BasicoTest</code>. No las repitas en las tuyas.</p>
 <div class="callout callout-style-simple callout-tip no-icon">
 <div class="callout-body d-flex">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-body-container">
-<p>Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión de diseño, no solo que el código funcione.</p>
+<p>Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión de diseño, no que el código funcione.</p>
 </div>
 </div>
 </div>
@@ -778,8 +779,9 @@ tcp:mail.uib.es:25=500</code></pre>
 <li>Sepárala en dos clases con una única responsabilidad cada una:
 <ul>
 <li><code>EstadisticasSensor</code>, que solo calcula (media, máximo, mínimo, número de lecturas) y no toca el sistema de ficheros;</li>
-<li><code>ExportadorCsv</code>, que solo escribe, y que recibe lo que tiene que escribir; no debe conocer la lógica de cálculo.</li>
-</ul></li>
+<li><code>ExportadorCsv</code>, con un único método <code>escribir(Path destino, List&lt;String&gt; filas)</code>, que solo escribe lo que recibe y no conoce la lógica de cálculo.</li>
+</ul>
+<code>EstadisticasSensor</code> ofrece además <code>List&lt;String&gt; comoFilas()</code>, que prepara las filas del CSV empezando por la cabecera <code>metrica;valor</code>: así el exportador sigue sin saber nada de sensores.</li>
 <li>Escribe un <code>main</code> que las use juntas y produzca exactamente la misma salida que la clase original.</li>
 <li>Comprueba lo que has ganado: escribe <strong>una</strong> aserción sobre la media sin crear ningún fichero.</li>
 </ol>
@@ -837,11 +839,11 @@ tcp:mail.uib.es:25=500</code></pre>
 </div>
 <div id="callout-14" class="callout-14-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>La plantilla incluye <code>ListaSoloLectura extends ArrayList&lt;String&gt;</code>, que redefine <code>add</code> y <code>remove</code> para lanzar <code>UnsupportedOperationException</code>.</p>
+<p>La plantilla incluye <code>ListaSoloLecturaHeredada extends ArrayList&lt;String&gt;</code>, que redefine <code>add</code> y <code>remove</code> para lanzar <code>UnsupportedOperationException</code>. No la corrijas: úsala para el diagnóstico y escribe la versión buena en el esqueleto <code>ListaSoloLectura</code>.</p>
 <ol type="1">
-<li>Escribe un método <code>static void rellenar(List&lt;String&gt; destino, int cuantos)</code> que añada elementos a la lista recibida. Comprueba que funciona con un <code>ArrayList</code> y falla con <code>ListaSoloLectura</code>.</li>
+<li>Escribe un método <code>static void rellenar(List&lt;String&gt; destino, int cuantos)</code> que añada elementos a la lista recibida. Comprueba que funciona con un <code>ArrayList</code> y falla con <code>ListaSoloLecturaHeredada</code>.</li>
 <li>En un comentario, explica <strong>qué parte del contrato</strong> de <code>List</code> rompe la subclase y por qué eso viola el principio de sustitución de Liskov. Cita la precondición o la postcondición concreta.</li>
-<li>Rediseña la clase <strong>con composición</strong>: <code>ListaSoloLectura implements Iterable&lt;String&gt;</code>, con un <code>List&lt;String&gt;</code> interno recibido por constructor (copiado defensivamente), y solo los métodos de lectura que tenga sentido ofrecer (<code>obtener(int)</code>, <code>tamano()</code>, <code>contiene(Object)</code>, <code>iterator()</code>).</li>
+<li>Escribe la versión buena <strong>con composición</strong>: <code>ListaSoloLectura implements Iterable&lt;String&gt;</code>, con un <code>List&lt;String&gt;</code> interno recibido por constructor (copiado defensivamente), y solo los métodos de lectura que tenga sentido ofrecer (<code>obtener(int)</code>, <code>tamano()</code>, <code>contiene(Object)</code>, <code>iterator()</code>).</li>
 <li>Comprueba que ahora <code>rellenar</code> <strong>ni siquiera compila</strong> con la nueva clase, y explica por qué eso es mejor que fallar en tiempo de ejecución.</li>
 </ol>
 </div>
@@ -861,8 +863,8 @@ tcp:mail.uib.es:25=500</code></pre>
 <div class="callout-body-container callout-body">
 <p>La plantilla incluye una interfaz <code>GestorDispositivos</code> con ocho métodos que mezclan consulta (<code>buscarPorNombre</code>, <code>listarTodos</code>, <code>contar</code>), alta y baja (<code>registrar</code>, <code>eliminar</code>) y administración (<code>reiniciar</code>, <code>actualizarFirmware</code>, <code>restaurarValoresDeFabrica</code>).</p>
 <ol type="1">
-<li>Divídela en tres interfaces por <strong>rol</strong>: <code>ConsultaDispositivos</code>, <code>AltaDispositivos</code> y <code>AdministracionDispositivos</code>. Mantén una interfaz <code>GestorDispositivos</code> que las extienda a las tres, para quien necesite todo.</li>
-<li>Implementa <code>CatalogoEnMemoria</code>, que implementa solo <code>ConsultaDispositivos</code> y <code>AltaDispositivos</code> (un catálogo no reinicia nada).</li>
+<li>Divídela en tres interfaces por <strong>rol</strong>: <code>ConsultaDispositivos</code>, <code>AltaDispositivos</code> y <code>AdministracionDispositivos</code>. La plantilla te las da <strong>vacías</strong>, con un comentario indicando qué métodos van en cada una; tú los trasladas desde <code>GestorDispositivos</code>, que debe quedar extendiendo a las tres para quien necesite todo.</li>
+<li>Completa <code>CatalogoEnMemoria</code>, que implementa solo <code>ConsultaDispositivos</code> y <code>AltaDispositivos</code> (un catálogo no reinicia nada). Cuando hayas movido los métodos a las interfaces, añade <code>@Override</code> a los cinco: si alguno no compila, lo has colocado en la interfaz equivocada.</li>
 <li>Escribe un método <code>static String resumen(ConsultaDispositivos consulta)</code> y comprueba que puedes llamarlo con <code>CatalogoEnMemoria</code> sin que exista ningún método de administración.</li>
 <li>En un comentario, indica qué habría tenido que hacer <code>CatalogoEnMemoria</code> con los métodos de administración si no hubieras dividido la interfaz, y con qué otro principio SOLID choca esa solución.</li>
 </ol>
@@ -881,10 +883,10 @@ tcp:mail.uib.es:25=500</code></pre>
 </div>
 <div id="callout-16" class="callout-16-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>La plantilla incluye <code>InformeDiario</code>, que en su constructor hace <code>new RepositorioEnMemoria()</code> y escribe el informe con <code>System.out.println</code>.</p>
+<p>La plantilla incluye <code>InformeDiarioAcoplado</code>, que se fabrica su propio <code>RepositorioEnMemoria</code> y escribe el informe con <code>System.out.println</code>. No la modifiques: escribe la versión buena en el esqueleto <code>InformeDiario</code>.</p>
 <ol type="1">
 <li>Explica en un comentario por qué esta clase es imposible de probar tal como está.</li>
-<li>Refactorízala para que reciba sus colaboradores <strong>por el constructor</strong>: un <code>LectorResultados</code> (no un <code>RepositorioResultados</code>: solo lee, aplica también el principio I) y un <code>Consumer&lt;String&gt;</code> como destino del texto.</li>
+<li>Escribe <code>InformeDiario</code> recibiendo sus colaboradores <strong>por el constructor</strong>: un <code>LectorResultados</code> (no un <code>RepositorioResultados</code>: solo lee, aplica también el principio I) y un <code>Consumer&lt;String&gt;</code> como destino del texto. Debe emitir una cabecera y una línea por servicio, con la misma información que la versión acoplada.</li>
 <li>Deja el cableado en un <code>main</code>: <code>new InformeDiario(repositorio, System.out::println)</code>.</li>
 <li>Demuestra la ganancia: en un <code>main</code> de prueba, construye el informe con un repositorio de mentira y un <code>Consumer</code> que acumule las líneas en una lista, y comprueba el contenido sin escribir en consola.</li>
 </ol>
@@ -1131,10 +1133,10 @@ tcp:mail.uib.es:25=500</code></pre>
 </div>
 <div id="callout-27" class="callout-27-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>La plantilla incluye la clase <code>Borrado</code> con cinco líneas comentadas que <strong>no compilan</strong>.</p>
+<p>La plantilla incluye la clase <code>Borrado</code> con cinco líneas comentadas que <strong>no compilan</strong>, más un par de sobrecargas que tampoco pueden coexistir.</p>
 <ol type="1">
-<li>Descoméntalas de una en una y anota, junto a cada una, el mensaje del compilador y la razón en términos de borrado de tipos (<em>type erasure</em>).</li>
-<li>Implementa <code>public static &lt;T&gt; List&lt;T&gt; filtrarPorTipo(List&lt;?&gt; lista, Class&lt;T&gt; tipo)</code>, que devuelva los elementos de la lista que son del tipo indicado, usando <code>tipo.isInstance</code> y <code>tipo.cast</code>. No debe producir ningún aviso del compilador ni contener ningún <em>cast</em> con paréntesis.</li>
+<li>Descoméntalas de una en una y anota, junto a cada una, el mensaje del compilador y la razón en términos de borrado de tipos (<em>type erasure</em>). Vuelve a comentarlas al terminar, para que el proyecto siga compilando.</li>
+<li>En la clase <code>TestigoDeTipo</code>, implementa <code>public static &lt;T&gt; List&lt;T&gt; filtrarPorTipo(List&lt;?&gt; lista, Class&lt;T&gt; tipo)</code>, que devuelva los elementos de la lista que son del tipo indicado, usando <code>tipo.isInstance</code> y <code>tipo.cast</code>. No debe producir ningún aviso del compilador ni contener ningún <em>cast</em> con paréntesis.</li>
 <li>Pruébalo con una <code>List&lt;Servicio&gt;</code> que mezcle <code>ServicioHttp</code>, <code>ServicioDns</code> y <code>PuertoTcp</code>, extrayendo solo los <code>PuertoTcp</code>.</li>
 <li>En un comentario, explica por qué <code>filtrarPorTipo(lista, List.class)</code> no puede devolver una <code>List&lt;List&lt;String&gt;&gt;</code> comprobada.</li>
 </ol>
@@ -1158,7 +1160,7 @@ tcp:mail.uib.es:25=500</code></pre>
 <li><code>public static final Predicate&lt;Resultado&gt; ES_FALLO</code> y <code>public static Predicate&lt;Resultado&gt; masLentoQue(Duration umbral)</code>.</li>
 <li><code>public static Predicate&lt;Resultado&gt; problematico(Duration umbral)</code>, definido <strong>componiendo</strong> los dos anteriores con <code>or</code>.</li>
 <li><code>public static final Comparator&lt;Resultado&gt; POR_SERVICIO_Y_LATENCIA</code>: ordena por nombre de servicio ascendente y, a igualdad de servicio, por latencia <strong>descendente</strong>. Usa <code>Comparator.comparing</code>, <code>thenComparing</code> y <code>reverseOrder</code>.</li>
-<li><code>public static Function&lt;Resultado, String&gt; etiqueta()</code>, que produzca <code>NOMBRE-SERVICIO (123 ms)</code> componiendo dos funciones con <code>andThen</code>.</li>
+<li><code>public static Function&lt;Resultado, String&gt; etiqueta()</code>, que produzca el nombre del servicio en mayúsculas seguido de la latencia, como <code>DNS:UIB.ES (123 ms)</code>, componiendo dos funciones con <code>andThen</code>.</li>
 <li><code>public static Sonda sondaConstante(Estado estado)</code>, que devuelva una <strong>lambda</strong> que implemente <code>Sonda</code> y responda siempre con ese estado.</li>
 </ol>
 <div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
@@ -1220,7 +1222,7 @@ tcp:mail.uib.es:25=500</code></pre>
 <li><code>public static Map&lt;Boolean, List&lt;Resultado&gt;&gt; particionPorFallo(List&lt;Resultado&gt; historial)</code> con <code>partitioningBy</code>.</li>
 <li><code>public static Map&lt;Servicio, Double&gt; disponibilidades(List&lt;Resultado&gt; historial)</code>: fracción de comprobaciones correctas por servicio, con <code>groupingBy</code> y un colector <em>aguas abajo</em>.</li>
 <li><code>public static Map&lt;Servicio, LongSummaryStatistics&gt; estadisticasLatencia(List&lt;Resultado&gt; historial)</code>, excluyendo los fallos.</li>
-<li><code>public static String tabla(List&lt;Resultado&gt; historial)</code>: una línea por servicio con nombre, disponibilidad en tanto por ciento y latencia media, construida con <code>joining</code> y <code>String.format</code>, ordenada de peor a mejor disponibilidad.</li>
+<li><code>public static String tabla(List&lt;Resultado&gt; historial)</code>: una línea por servicio con nombre, disponibilidad en tanto por ciento y latencia media, construida con <code>joining</code> y <code>String.format</code>, ordenada de peor a mejor disponibilidad. Pasa <code>Locale.of("es", "ES")</code> como primer argumento de <code>String.format</code>: sin él, el separador decimal depende de la configuración regional de la máquina y la salida cambia entre tu ordenador y GitHub Actions.</li>
 </ol>
 <div class="callout callout-style-default callout-tip no-icon callout-titled" title="Formato esperado de `tabla`">
 <div class="callout-header d-flex align-content-center">
@@ -1255,7 +1257,7 @@ https://www.uib.es             86,0 %   latencia media   246 ms</code></pre>
 <ol type="1">
 <li>Escribe <code>public static List&lt;Resultado&gt; todos(LectorResultados lector)</code>, que devuelva todos los resultados de todos los servicios en una sola lista ordenada por instante, usando <code>flatMap</code>.</li>
 <li>Escribe <code>public static int rachaMaximaDeFallos(List&lt;Resultado&gt; historial)</code>, que devuelva la longitud de la mayor secuencia de fallos consecutivos. Impleméntalo <strong>con un bucle</strong>.</li>
-<li>Intenta ahora la misma función con <code>reduce</code> o con un colector. Consérvala aunque quede peor.</li>
+<li>Escribe <code>public static int rachaMaximaConReduce(List&lt;Resultado&gt; historial)</code> con <code>reduce</code> o con un colector. Consérvala aunque quede peor: las dos deben dar el mismo resultado.</li>
 <li>En un comentario de cinco líneas, compara las dos versiones y justifica cuál pondrías en producción. Relaciónalo con lo que dice el tema en <a href="../../es/contenido/tema1.html#cuándo-no-usar-streams">1.3.7</a> sobre el estado entre iteraciones.</li>
 </ol>
 </div>
@@ -1376,7 +1378,7 @@ https://www.uib.es             86,0 %   latencia media   246 ms</code></pre>
 <p>La plantilla incluye <code>DetectorDeCaidas</code>, una clase que decide si un servicio lleva demasiado tiempo caído. Es correcta pero <strong>imposible de probar</strong>: llama a <code>Instant.now()</code> dentro de sus métodos y crea su propia <code>SondaSimulada</code> con una semilla aleatoria.</p>
 <ol type="1">
 <li>Escribe en un comentario por qué no puedes escribir ni una sola prueba fiable sobre la clase tal como está, y qué principio SOLID se está incumpliendo.</li>
-<li>Refactorízala: inyecta por constructor un <code>java.time.Clock</code> y una <code>Sonda</code>. Sustituye <code>Instant.now()</code> por <code>Instant.now(reloj)</code>.</li>
+<li>Refactorízala <strong>en su propio fichero</strong>: inyecta por constructor un <code>java.time.Clock</code> y una <code>Sonda</code>, y sustituye <code>Instant.now()</code> por <code>Instant.now(reloj)</code>.</li>
 <li>Escribe <code>DetectorDeCaidasTest</code> usando <code>Clock.fixed(...)</code> y una <code>SondaProgramada</code> (del ejercicio 1.4.3) para comprobar, de forma completamente determinista:
 <ul>
 <li>que un servicio que responde no se marca como caído;</li>
