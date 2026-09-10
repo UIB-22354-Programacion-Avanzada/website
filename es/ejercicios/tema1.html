@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -443,8 +478,18 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#cómo-trabajar-estos-ejercicios" id="toc-cómo-trabajar-estos-ejercicios" class="nav-link active" data-scroll-target="#cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</a></li>
+  <li><a href="#conceptos-fundamentales-de-la-poo-en-java" id="toc-conceptos-fundamentales-de-la-poo-en-java" class="nav-link" data-scroll-target="#conceptos-fundamentales-de-la-poo-en-java">1.1. Conceptos fundamentales de la POO en Java</a></li>
+  <li><a href="#principios-solid-y-patrones-de-diseño-canónicos" id="toc-principios-solid-y-patrones-de-diseño-canónicos" class="nav-link" data-scroll-target="#principios-solid-y-patrones-de-diseño-canónicos">1.2. Principios SOLID y patrones de diseño canónicos</a></li>
+  <li><a href="#genericidad-en-java-y-stream-api" id="toc-genericidad-en-java-y-stream-api" class="nav-link" data-scroll-target="#genericidad-en-java-y-stream-api">1.3. Genericidad en Java y Stream API</a></li>
+  <li><a href="#pruebas-unitarias-junit" id="toc-pruebas-unitarias-junit" class="nav-link" data-scroll-target="#pruebas-unitarias-junit">1.4. Pruebas unitarias (JUnit)</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -469,9 +514,883 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><em>Contenido pendiente.</em></p>
+<section id="cómo-trabajar-estos-ejercicios" class="level2">
+<h2 class="anchored" data-anchor-id="cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</h2>
+<p>Los 28 ejercicios de esta página acompañan al <a href="https://uib-22354-programacion-avanzada.github.io/website/es/contenido/tema1.html">contenido del Tema 1</a>{target=“_blank”, rel=“noopener noreferrer”} y se numeran <code>1.X.k</code>, donde <code>X</code> es el subapartado del tema al que corresponden. Cada enunciado indica con precisión qué clase escribir, en qué paquete, con qué firma y qué comportamiento debe tener: lo que se te pide es exactamente eso, ni más ni menos.</p>
+<p>No empiezas desde una carpeta vacía. En la organización del curso tienes el repositorio <strong><code>t1-ejercicios</code></strong>, una plantilla con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos"><code>t1-ejemplos</code></a> que contiene:</p>
+<ul>
+<li>un <strong>esqueleto</strong> de cada clase que se pide, con su firma y un comentario <code>// TODO</code> en el cuerpo;</li>
+<li>una <strong>copia del código del monitor</strong> (paquete <code>es.uib.prgava.tema1.monitor</code>) que puedes usar y, cuando el enunciado lo pida, modificar libremente;</li>
+<li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>, salvo en los ejercicios de la sección 1.4, donde las pruebas son precisamente lo que tienes que escribir.</li>
+</ul>
+<p>El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que completas el código. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde. Las soluciones no se publican; en clase se comentan las que más dudas generen.</p>
+<p>Salvo que el enunciado diga otra cosa, todas las clases nuevas van en el paquete <code>es.uib.prgava.tema1.ejercicios</code>, y puedes importar libremente las del monitor y las de los paquetes <code>poo</code> y <code>genericos</code> de <code>t1-ejemplos</code>, que también están en la plantilla.</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión de diseño, no solo que el código funcione.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="conceptos-fundamentales-de-la-poo-en-java" class="level2">
+<h2 class="anchored" data-anchor-id="conceptos-fundamentales-de-la-poo-en-java">1.1. Conceptos fundamentales de la POO en Java</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema1.html#conceptos-fundamentales-de-la-poo-en-java">1.1 del tema</a>: clases y objetos, encapsulación e invariantes, herencia, polimorfismo, jerarquías selladas y excepciones.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.1 Registro `DireccionIpv4`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.1 Registro <code>DireccionIpv4</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe un <code>record DireccionIpv4(int primero, int segundo, int tercero, int cuarto)</code> que represente una dirección IPv4 como cuatro octetos.</p>
+<ol type="1">
+<li><strong>Constructor compacto.</strong> Cada octeto debe estar entre 0 y 255. Si alguno no lo está, lanza <code>IllegalArgumentException</code> con el mensaje <code>"Octeto fuera de rango: " + valor</code> (el valor inválido, no la dirección entera).</li>
+<li><strong>Fábrica estática</strong> <code>public static DireccionIpv4 desde(String texto)</code>. Acepta cuatro números separados por puntos. Si no hay exactamente cuatro partes, o alguna no es un entero, lanza <code>IllegalArgumentException</code> con un mensaje que incluya el texto recibido.</li>
+<li><strong><code>toString()</code></strong> redefinido para devolver la forma habitual <code>192.168.1.1</code> (el <code>toString</code> generado por el <code>record</code> no sirve aquí).</li>
+<li><strong><code>public boolean esPrivada()</code></strong>: devuelve <code>true</code> para los rangos privados <code>10.x.x.x</code>, <code>172.16.x.x</code>–<code>172.31.x.x</code> y <code>192.168.x.x</code>.</li>
+</ol>
+<p>No escribas <code>equals</code> ni <code>hashCode</code>: parte del ejercicio es entender por qué no hacen falta.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> ip <span class="op">=</span> DireccionIpv4<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"192.168.1.1"</span><span class="op">);</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ip<span class="op">);</span>                                  <span class="co">// 192.168.1.1</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ip<span class="op">.</span><span class="fu">esPrivada</span><span class="op">());</span>                      <span class="co">// true</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ip<span class="op">.</span><span class="fu">equals</span><span class="op">(</span><span class="kw">new</span> <span class="fu">DireccionIpv4</span><span class="op">(</span><span class="dv">192</span><span class="op">,</span> <span class="dv">168</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">1</span><span class="op">)));</span>   <span class="co">// true</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>DireccionIpv4<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"192.168.1.300"</span><span class="op">);</span>                    <span class="co">// IllegalArgumentException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.2 Clase `Servidor`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.2 Clase <code>Servidor</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe una clase <code>Servidor</code> <strong>tradicional</strong> (no un <code>record</code>) que modele un servidor con nombre, dirección y puerto. El objetivo es practicar la encapsulación con todas sus piezas.</p>
+<ol type="1">
+<li>Atributos <strong>privados</strong>: <code>nombre</code> (<code>String</code>), <code>direccion</code> (<code>DireccionIpv4</code>), <code>puerto</code> (<code>int</code>) y <code>enServicio</code> (<code>boolean</code>).</li>
+<li>Un atributo <strong>de clase</strong> <code>private static int servidoresCreados</code>, que cuenta cuántos objetos <code>Servidor</code> se han construido, con su método de acceso <code>public static int getServidoresCreados()</code>.</li>
+<li>Constructor <code>Servidor(String nombre, DireccionIpv4 direccion, int puerto)</code> que rechaza nombres nulos o en blanco y direcciones nulas (<code>Objects.requireNonNull</code> o <code>IllegalArgumentException</code>, según proceda), valida que el puerto esté entre 1 y 65 535, deja el servidor <strong>fuera de servicio</strong> e incrementa el contador.</li>
+<li>Constructor sobrecargado <code>Servidor(String nombre, DireccionIpv4 direccion)</code> que use el puerto 443 delegando en el anterior con <code>this(...)</code>. No repitas la validación.</li>
+<li>Comportamiento: <code>arrancar()</code> y <code>parar()</code>, que cambian <code>enServicio</code>.</li>
+<li>Métodos de acceso <code>getNombre()</code>, <code>getDireccion()</code>, <code>getPuerto()</code>, <code>isEnServicio()</code>.</li>
+<li><code>equals</code> y <code>hashCode</code> basados <strong>solo</strong> en dirección y puerto (dos servidores con el mismo nombre en máquinas distintas no son el mismo servidor), y un <code>toString()</code> legible.</li>
+</ol>
+<p><strong>No escribas</strong> <code>setDireccion</code> ni <code>setPuerto</code>. Añade un comentario de dos líneas explicando qué invariante te permite mantener esa decisión.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> web <span class="op">=</span> <span class="kw">new</span> <span class="fu">Servidor</span><span class="op">(</span><span class="st">"web"</span><span class="op">,</span> DireccionIpv4<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"10.0.0.1"</span><span class="op">),</span> <span class="dv">80</span><span class="op">);</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> otro <span class="op">=</span> <span class="kw">new</span> <span class="fu">Servidor</span><span class="op">(</span><span class="st">"web-replica"</span><span class="op">,</span> DireccionIpv4<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"10.0.0.1"</span><span class="op">),</span> <span class="dv">80</span><span class="op">);</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>web<span class="op">.</span><span class="fu">arrancar</span><span class="op">();</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>web<span class="op">.</span><span class="fu">isEnServicio</span><span class="op">());</span>                  <span class="co">// true</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>web<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>otro<span class="op">));</span>                    <span class="co">// true: misma dirección y puerto</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>Servidor<span class="op">.</span><span class="fu">getServidoresCreados</span><span class="op">());</span>     <span class="co">// 2</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.3 Corregir la clase `Etiqueta`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-5-contents" aria-controls="callout-5" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.3 Corregir la clase <code>Etiqueta</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-5" class="callout-5-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye una clase <code>Etiqueta</code> con dos campos (<code>nombre</code> y <code>valor</code>) que redefine <code>equals</code> correctamente pero <strong>no</strong> redefine <code>hashCode</code>.</p>
+<ol type="1">
+<li>Escribe un <code>main</code> que <strong>demuestre el fallo</strong>: mete una etiqueta en un <code>HashSet</code>, comprueba con <code>contains</code> una etiqueta igual pero distinta, y añade la misma etiqueta dos veces mostrando el tamaño resultante. Haz lo mismo con un <code>HashMap</code> usando etiquetas como clave.</li>
+<li>Compila con <code>mvn -DcompilerArgument=-Xlint:all compile</code> o activa las inspecciones de tu IDE y localiza el aviso que ya te estaba avisando del problema.</li>
+<li><strong>Corrige</strong> la clase añadiendo <code>hashCode</code> con <code>Objects.hash</code>, y comprueba que el <code>main</code> anterior pasa a comportarse como esperabas.</li>
+<li>Escribe además <code>record EtiquetaRecord(String nombre, String valor)</code> y repite el <code>main</code> con ella. En un comentario, indica cuántas líneas te ha ahorrado y qué restricción impone el <code>record</code> que la clase original no tenía.</li>
+</ol>
+<p>Repasa el error frecuente sobre <code>equals</code> y <code>hashCode</code> en <a href="../../es/contenido/tema1.html#objetos-clases-y-estado">la sección 1.1.1 del tema</a>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.4 Clase `PuntoAcceso` (herencia)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-7-contents" aria-controls="callout-7" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.4 Clase <code>PuntoAcceso</code> (herencia)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-7" class="callout-7-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>PuntoAcceso</code> como subclase de <code>es.uib.prgava.tema1.poo.DispositivoRed</code>, que modele un punto de acceso inalámbrico.</p>
+<ol type="1">
+<li>Declara <code>public enum Banda { GHZ_24, GHZ_5 }</code> (puede ser un fichero aparte o un tipo anidado).</li>
+<li>Atributos propios: <code>banda</code> (<code>Banda</code>) y <code>canal</code> (<code>int</code>).</li>
+<li>Constructor <code>PuntoAcceso(String nombre, String direccionIp, Banda banda, int canal)</code> que llame a <code>super(nombre, direccionIp)</code> <strong>como primera instrucción</strong> y valide el canal: de 1 a 14 en <code>GHZ_24</code>, de 36 a 165 en <code>GHZ_5</code>. Si no es válido, <code>IllegalArgumentException</code> indicando la banda y el canal.</li>
+<li>Método <code>cambiarCanal(int nuevoCanal)</code> con la misma validación (extrae la comprobación a un método <code>private</code> para no duplicarla).</li>
+<li><code>@Override public String toString()</code> que incluya el nombre, la IP, la banda y el canal.</li>
+</ol>
+<p>Responde en un comentario al final de la clase: ¿por qué tienes que usar <code>getNombre()</code> en <code>toString()</code> en lugar de leer directamente el campo <code>nombre</code> de la superclase?</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> ap <span class="op">=</span> <span class="kw">new</span> <span class="fu">PuntoAcceso</span><span class="op">(</span><span class="st">"ap-aulario"</span><span class="op">,</span> <span class="st">"10.0.1.20"</span><span class="op">,</span> PuntoAcceso<span class="op">.</span><span class="fu">Banda</span><span class="op">.</span><span class="fu">GHZ_5</span><span class="op">,</span> <span class="dv">44</span><span class="op">);</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>ap<span class="op">.</span><span class="fu">activar</span><span class="op">();</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ap<span class="op">);</span>                    <span class="co">// PuntoAcceso[ap-aulario, ip=10.0.1.20, 5 GHz, canal 44]</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>ap<span class="op">.</span><span class="fu">cambiarCanal</span><span class="op">(</span><span class="dv">11</span><span class="op">);</span>                       <span class="co">// IllegalArgumentException: canal 11 inválido en GHZ_5</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.5 Añadir `ServicioPing` a la jerarquía sellada">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.5 Añadir <code>ServicioPing</code> a la jerarquía sellada
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Este ejercicio <strong>sí modifica</strong> el código del monitor incluido en la plantilla (paquete <code>es.uib.prgava.tema1.monitor</code>).</p>
+<ol type="1">
+<li>Crea <code>public record ServicioPing(String host) implements Servicio</code>, con un constructor compacto que rechace hosts nulos o en blanco y normalice a minúsculas, y con <code>nombre()</code> devolviendo <code>"ping:" + host</code>.</li>
+<li>Añade <code>ServicioPing</code> a la cláusula <code>permits</code> de la interfaz sellada <code>Servicio</code>.</li>
+<li><strong>Compila sin tocar nada más</strong> y anota qué clases dejan de compilar y con qué mensaje exacto.</li>
+<li>Arréglalas. Como mínimo tendrás que actualizar <code>Descripciones.describir</code>.</li>
+<li>Extiende la fábrica <code>Servicio.desde</code> para que interprete <code>ping:host</code>.</li>
+<li>En un comentario de tres líneas, responde: si <code>Servicio</code> fuera una interfaz normal (no <code>sealed</code>), ¿qué habría ocurrido en el paso 3, y cuándo te habrías enterado del problema?</li>
+</ol>
+<p>Consulta <a href="../../es/contenido/tema1.html#jerarquías-cerradas-clases-selladas-y-pattern-matching">1.1.5 del tema</a> si necesitas repasar la exhaustividad del <code>switch</code>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.6 Clase `LectorUmbrales` y excepción propia">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.1.6 Clase <code>LectorUmbrales</code> y excepción propia
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Cada servicio puede tener su propio umbral de latencia. Escribe el lector de ese fichero de configuración, practicando <code>try-with-resources</code>, excepciones propias y encadenamiento de causas.</p>
+<ol type="1">
+<li><code>public class UmbralInvalidoException extends RuntimeException</code> con un campo <code>linea</code> (<code>int</code>), dos constructores (con y sin causa) y un método de acceso <code>linea()</code>. El mensaje debe empezar por <code>"Línea N: "</code>.</li>
+<li><code>public final class LectorUmbrales</code> con <code>public static Map&lt;String, Duration&gt; leer(Path fichero)</code>:
+<ul>
+<li>lee el fichero con <code>Files.lines</code> dentro de un <strong>try-with-resources</strong>;</li>
+<li>ignora las líneas vacías y las que empiezan por <code>#</code>;</li>
+<li>cada línea válida tiene la forma <code>nombreServicio=milisegundos</code>;</li>
+<li>una línea sin <code>=</code>, con el nombre vacío, con un número no entero o con un valor negativo o cero produce <code>UmbralInvalidoException</code> indicando el número de línea (empezando en 1) y, cuando exista, <strong>encadenando la causa</strong> original;</li>
+<li>una clave repetida también es un error;</li>
+<li>devuelve un mapa inmutable.</li>
+</ul></li>
+<li>Escribe un <code>main</code> que lea un fichero con un error deliberado, deje escapar la excepción y copie en un comentario el <em>stack trace</em> resultante, señalando la línea de <strong>tu</strong> código y la línea de la causa.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Fichero de ejemplo (`umbrales.txt`)">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Fichero de ejemplo (<code>umbrales.txt</code>)
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<pre class="text"><code># umbrales en milisegundos
+https://www.uib.es=300
+dns:uib.es=150
+tcp:mail.uib.es:25=500</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="principios-solid-y-patrones-de-diseño-canónicos" class="level2">
+<h2 class="anchored" data-anchor-id="principios-solid-y-patrones-de-diseño-canónicos">1.2. Principios SOLID y patrones de diseño canónicos</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema1.html#principios-solid-y-patrones-de-diseño-canónicos">1.2 del tema</a>. En varios de ellos la plantilla incluye una versión <strong>mal diseñada</strong> que debes refactorizar: no la reescribas desde cero, transfórmala paso a paso comprobando que el comportamiento observable no cambia.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.1 Refactorizar `RegistroSensores` (principio S)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-11-contents" aria-controls="callout-11" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.1 Refactorizar <code>RegistroSensores</code> (principio S)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-11" class="callout-11-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye <code>RegistroSensores</code>, una clase que almacena lecturas de sensores, calcula estadísticas sobre ellas y además las exporta a un fichero CSV.</p>
+<ol type="1">
+<li>Enumera en un comentario <strong>cuántas razones para cambiar</strong> tiene la clase y quién pediría cada uno de esos cambios.</li>
+<li>Sepárala en dos clases con una única responsabilidad cada una:
+<ul>
+<li><code>EstadisticasSensor</code>, que solo calcula (media, máximo, mínimo, número de lecturas) y no toca el sistema de ficheros;</li>
+<li><code>ExportadorCsv</code>, que solo escribe, y que recibe lo que tiene que escribir; no debe conocer la lógica de cálculo.</li>
+</ul></li>
+<li>Escribe un <code>main</code> que las use juntas y produzca exactamente la misma salida que la clase original.</li>
+<li>Comprueba lo que has ganado: escribe <strong>una</strong> aserción sobre la media sin crear ningún fichero.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.2 Clase `FallosEnVentana` (principio O + Strategy)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-13-contents" aria-controls="callout-13" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.2 Clase <code>FallosEnVentana</code> (principio O + Strategy)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-13" class="callout-13-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Añade una política de alerta nueva <strong>sin modificar</strong> <code>Monitor</code> ni la interfaz <code>PoliticaDeAlerta</code>.</p>
+<p>Escribe <code>public final class FallosEnVentana implements PoliticaDeAlerta</code>:</p>
+<ol type="1">
+<li>Constructor <code>FallosEnVentana(int minimoFallos, int tamanoVentana)</code>. Valida que <code>1 ≤ minimoFallos ≤ tamanoVentana</code>; en otro caso, <code>IllegalArgumentException</code>.</li>
+<li><code>debeAlertar(List&lt;Resultado&gt; historial)</code> devuelve <code>true</code> si entre las <strong>últimas <code>tamanoVentana</code> comprobaciones</strong> hay al menos <code>minimoFallos</code> fallos. Si el historial tiene menos elementos que la ventana, considera los que haya. A diferencia de <code>FallosConsecutivos</code>, los fallos <strong>no</strong> tienen que ser seguidos.</li>
+<li><code>toString()</code> descriptivo, por ejemplo <code>"2 fallos en las últimas 5 comprobaciones"</code>.</li>
+<li>En <code>Principal</code>, sustituye la política actual por <code>new FallosEnVentana(2, 5).o(new LatenciaExcesiva(Duration.ofMillis(500), 5))</code> y comprueba que <code>Monitor</code> no ha necesitado ni una línea de cambio.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Casos que debe cumplir">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Casos que debe cumplir
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> politica <span class="op">=</span> <span class="kw">new</span> <span class="fu">FallosEnVentana</span><span class="op">(</span><span class="dv">2</span><span class="op">,</span> <span class="dv">5</span><span class="op">);</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>politica<span class="op">.</span><span class="fu">debeAlertar</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">());</span>                              <span class="co">// false</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>politica<span class="op">.</span><span class="fu">debeAlertar</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>FALLO<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">,</span> FALLO<span class="op">));</span>      <span class="co">// true  (2 fallos en 5)</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>politica<span class="op">.</span><span class="fu">debeAlertar</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>FALLO<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">,</span> OK<span class="op">));</span>     <span class="co">// false (el fallo quedó fuera)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.3 Diagnosticar y rediseñar `ListaSoloLectura` (principio L)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.3 Diagnosticar y rediseñar <code>ListaSoloLectura</code> (principio L)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye <code>ListaSoloLectura extends ArrayList&lt;String&gt;</code>, que redefine <code>add</code> y <code>remove</code> para lanzar <code>UnsupportedOperationException</code>.</p>
+<ol type="1">
+<li>Escribe un método <code>static void rellenar(List&lt;String&gt; destino, int cuantos)</code> que añada elementos a la lista recibida. Comprueba que funciona con un <code>ArrayList</code> y falla con <code>ListaSoloLectura</code>.</li>
+<li>En un comentario, explica <strong>qué parte del contrato</strong> de <code>List</code> rompe la subclase y por qué eso viola el principio de sustitución de Liskov. Cita la precondición o la postcondición concreta.</li>
+<li>Rediseña la clase <strong>con composición</strong>: <code>ListaSoloLectura implements Iterable&lt;String&gt;</code>, con un <code>List&lt;String&gt;</code> interno recibido por constructor (copiado defensivamente), y solo los métodos de lectura que tenga sentido ofrecer (<code>obtener(int)</code>, <code>tamano()</code>, <code>contiene(Object)</code>, <code>iterator()</code>).</li>
+<li>Comprueba que ahora <code>rellenar</code> <strong>ni siquiera compila</strong> con la nueva clase, y explica por qué eso es mejor que fallar en tiempo de ejecución.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.4 Dividir la interfaz `GestorDispositivos` (principio I)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-15-contents" aria-controls="callout-15" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.4 Dividir la interfaz <code>GestorDispositivos</code> (principio I)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-15" class="callout-15-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye una interfaz <code>GestorDispositivos</code> con ocho métodos que mezclan consulta (<code>buscarPorNombre</code>, <code>listarTodos</code>, <code>contar</code>), alta y baja (<code>registrar</code>, <code>eliminar</code>) y administración (<code>reiniciar</code>, <code>actualizarFirmware</code>, <code>restaurarValoresDeFabrica</code>).</p>
+<ol type="1">
+<li>Divídela en tres interfaces por <strong>rol</strong>: <code>ConsultaDispositivos</code>, <code>AltaDispositivos</code> y <code>AdministracionDispositivos</code>. Mantén una interfaz <code>GestorDispositivos</code> que las extienda a las tres, para quien necesite todo.</li>
+<li>Implementa <code>CatalogoEnMemoria</code>, que implementa solo <code>ConsultaDispositivos</code> y <code>AltaDispositivos</code> (un catálogo no reinicia nada).</li>
+<li>Escribe un método <code>static String resumen(ConsultaDispositivos consulta)</code> y comprueba que puedes llamarlo con <code>CatalogoEnMemoria</code> sin que exista ningún método de administración.</li>
+<li>En un comentario, indica qué habría tenido que hacer <code>CatalogoEnMemoria</code> con los métodos de administración si no hubieras dividido la interfaz, y con qué otro principio SOLID choca esa solución.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.5 Invertir las dependencias de `InformeDiario` (principio D)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.5 Invertir las dependencias de <code>InformeDiario</code> (principio D)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye <code>InformeDiario</code>, que en su constructor hace <code>new RepositorioEnMemoria()</code> y escribe el informe con <code>System.out.println</code>.</p>
+<ol type="1">
+<li>Explica en un comentario por qué esta clase es imposible de probar tal como está.</li>
+<li>Refactorízala para que reciba sus colaboradores <strong>por el constructor</strong>: un <code>LectorResultados</code> (no un <code>RepositorioResultados</code>: solo lee, aplica también el principio I) y un <code>Consumer&lt;String&gt;</code> como destino del texto.</li>
+<li>Deja el cableado en un <code>main</code>: <code>new InformeDiario(repositorio, System.out::println)</code>.</li>
+<li>Demuestra la ganancia: en un <code>main</code> de prueba, construye el informe con un repositorio de mentira y un <code>Consumer</code> que acumule las líneas en una lista, y comprueba el contenido sin escribir en consola.</li>
+</ol>
+<p>Repasa el error frecuente sobre el uso de <code>new</code> con colaboradores en <a href="../../es/contenido/tema1.html#los-principios-solid">1.2.3 del tema</a>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.6 Clase `NotificadorFichero` (Observer)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-17-contents" aria-controls="callout-17" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.6 Clase <code>NotificadorFichero</code> (Observer)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-17" class="callout-17-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>public final class NotificadorFichero implements Notificador</code>, que registre cada alerta en un fichero de texto.</p>
+<ol type="1">
+<li>Constructor <code>NotificadorFichero(Path destino)</code>.</li>
+<li><code>notificar(Alerta alerta)</code> añade una línea al final del fichero con el instante, el nombre del servicio y el mensaje, separados por punto y coma. Abre y cierra el fichero en cada llamada, con <code>try-with-resources</code> y <code>Files.newBufferedWriter(..., StandardOpenOption.APPEND,    StandardOpenOption.CREATE)</code>.</li>
+<li>La <code>IOException</code> es un problema de infraestructura del que el monitor no puede recuperarse: tradúcela a <code>UncheckedIOException</code>. Justifica esa decisión en un comentario.</li>
+<li>En un <code>main</code>, suscribe al monitor <strong>tres</strong> notificadores a la vez (<code>NotificadorConsola</code>, <code>NotificadorRegistro</code> y el tuyo) y comprueba que los tres reciben exactamente las mismas alertas, comparando el número de líneas del fichero con <code>registro.alertas().size()</code>.</li>
+</ol>
+<p>Añade también un método <code>desuscribir</code> en tu <code>main</code>: quita el notificador de consola a mitad de la ejecución y comprueba que el fichero sigue creciendo.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.7 Clase `SondaConRegistro` (Decorator)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.7 Clase <code>SondaConRegistro</code> (Decorator)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe un decorador de <code>Sonda</code> que cuente cuántas veces se ha sondeado cada servicio.</p>
+<ol type="1">
+<li><p><code>public final class SondaConRegistro implements Sonda</code>, con una <code>Sonda interna</code> recibida por constructor (no nula).</p></li>
+<li><p><code>sondear(Servicio)</code> incrementa el contador de ese servicio y <strong>siempre</strong> delega en la sonda interna, devolviendo su resultado sin alterarlo.</p></li>
+<li><p><code>public Map&lt;Servicio, Integer&gt; conteos()</code> devuelve una copia inmutable de los recuentos.</p></li>
+<li><p>Monta dos sondas apilando los decoradores en <strong>órdenes distintos</strong> y sondea el mismo servicio veinte veces con la misma semilla:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>Sonda a <span class="op">=</span> <span class="kw">new</span> <span class="fu">SondaConRegistro</span><span class="op">(</span><span class="kw">new</span> <span class="fu">SondaConReintentos</span><span class="op">(</span>base<span class="op">,</span> <span class="dv">3</span><span class="op">));</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>Sonda b <span class="op">=</span> <span class="kw">new</span> <span class="fu">SondaConReintentos</span><span class="op">(</span><span class="kw">new</span> <span class="fu">SondaConRegistro</span><span class="op">(</span>base<span class="op">),</span> <span class="dv">3</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p>Explica en un comentario por qué los conteos son distintos y qué mide cada uno de los dos montajes. Este es el punto del ejercicio: en Decorator, <strong>el orden es una decisión de diseño</strong>.</p></li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.8 Fábrica `PoliticaDeAlerta.desde(String)` (Factory)">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.8 Fábrica <code>PoliticaDeAlerta.desde(String)</code> (Factory)
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Añade a la interfaz <code>PoliticaDeAlerta</code> una fábrica estática que construya políticas a partir de su descripción textual, para poder elegirlas desde un fichero de configuración.</p>
+<ol type="1">
+<li><code>static PoliticaDeAlerta desde(String texto)</code> reconoce cuatro formas:
+<ul>
+<li><code>simple</code> → <code>FalloSimple</code></li>
+<li><code>consecutivos:N</code> → <code>FallosConsecutivos(N)</code></li>
+<li><code>ventana:K:N</code> → <code>FallosEnVentana(K, N)</code> (del ejercicio 1.2.2)</li>
+<li><code>latencia:MS:N</code> → <code>LatenciaExcesiva(Duration.ofMillis(MS), N)</code></li>
+</ul></li>
+<li>Cualquier otra forma, o un número mal escrito, produce <code>IllegalArgumentException</code> con un mensaje que incluya el texto recibido y enumere las formas válidas.</li>
+<li>Añade al fichero de configuración del monitor una línea <code>politica=ventana:2:5</code>, léela y úsala en <code>Principal</code>.</li>
+<li>Responde en un comentario: ¿por qué una fábrica estática con nombre es preferible aquí a cuatro constructores sobrecargados?</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>PoliticaDeAlerta p <span class="op">=</span> PoliticaDeAlerta<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"consecutivos:3"</span><span class="op">);</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>p<span class="op">);</span>                       <span class="co">// 3 fallos consecutivos</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>PoliticaDeAlerta<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"consecutivos:x"</span><span class="op">);</span>    <span class="co">// IllegalArgumentException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.9 `ConfiguracionInforme` con Builder, y `Optional` como retorno">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-22-contents" aria-controls="callout-22" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.2.9 <code>ConfiguracionInforme</code> con Builder, y <code>Optional</code> como retorno
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-22" class="callout-22-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Los informes del monitor admiten varias opciones, casi todas con un valor razonable por defecto: el caso perfecto para un <em>builder</em>.</p>
+<ol type="1">
+<li>Escribe <code>public record ConfiguracionInforme(String titulo, int maximoServicios,    boolean incluirLatencias, boolean soloConFallos)</code> con un constructor compacto que exija título no vacío y <code>maximoServicios ≥ 1</code>.</li>
+<li>Añade una clase anidada <code>public static final class Builder</code> con constructor privado, obtenida mediante <code>ConfiguracionInforme.builder()</code>, con métodos fluidos para cada opción y estos valores por defecto: título <code>"Informe de disponibilidad"</code>, <code>maximoServicios</code> 10, <code>incluirLatencias</code> <code>true</code>, <code>soloConFallos</code> <code>false</code>. <code>build()</code> delega toda la validación en el constructor del <code>record</code>.</li>
+<li>Escribe <code>public final class InformeResumen</code>, que recibe por constructor un <code>LectorResultados</code> y una <code>ConfiguracionInforme</code>, y ofrece:
+<ul>
+<li><code>public String texto()</code>, que respeta las opciones de la configuración;</li>
+<li><code>public Optional&lt;Servicio&gt; peorServicio()</code>, que devuelve el servicio con menor disponibilidad o <strong>vacío</strong> si el repositorio no tiene datos.</li>
+</ul></li>
+<li>Prohibido devolver <code>null</code> en <code>peorServicio</code> y prohibido usar <code>Optional</code> como tipo de un campo o de un parámetro. Consulta el error frecuente sobre <code>Optional</code> en <a href="../../es/contenido/tema1.html#objetos-ausentes-y-optional">1.2.5 del tema</a>.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> configuracion <span class="op">=</span> ConfiguracionInforme<span class="op">.</span><span class="fu">builder</span><span class="op">()</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">titulo</span><span class="op">(</span><span class="st">"Informe semanal"</span><span class="op">)</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">maximoServicios</span><span class="op">(</span><span class="dv">3</span><span class="op">)</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">soloConFallos</span><span class="op">(</span><span class="kw">true</span><span class="op">)</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">build</span><span class="op">();</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> informe <span class="op">=</span> <span class="kw">new</span> <span class="fu">InformeResumen</span><span class="op">(</span>repositorio<span class="op">,</span> configuracion<span class="op">);</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>informe<span class="op">.</span><span class="fu">texto</span><span class="op">());</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>informe<span class="op">.</span><span class="fu">peorServicio</span><span class="op">().</span><span class="fu">ifPresentOrElse</span><span class="op">(</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        s <span class="op">-&gt;</span> <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"Revisar: "</span> <span class="op">+</span> s<span class="op">.</span><span class="fu">nombre</span><span class="op">()),</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">()</span> <span class="op">-&gt;</span> <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"Sin datos todavía"</span><span class="op">));</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="genericidad-en-java-y-stream-api" class="level2">
+<h2 class="anchored" data-anchor-id="genericidad-en-java-y-stream-api">1.3. Genericidad en Java y Stream API</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema1.html#genericidad-en-java-y-stream-api">1.3 del tema</a>. En los que usan la Stream API, <strong>no se admiten bucles</strong> <code>for</code> ni <code>while</code> salvo que el enunciado lo autorice expresamente.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.1 Clase genérica `Historial<T>`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-24-contents" aria-controls="callout-24" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.1 Clase genérica <code>Historial&lt;T&gt;</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-24" class="callout-24-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>public final class Historial&lt;T&gt;</code>, una colección que conserva como máximo los últimos <code>n</code> elementos añadidos.</p>
+<ol type="1">
+<li>Constructor <code>Historial(int capacidad)</code> que rechace capacidades menores que 1.</li>
+<li><code>public void anadir(T elemento)</code>: si el historial está lleno, descarta el más antiguo antes de añadir. Usa un <code>ArrayDeque&lt;T&gt;</code> como almacén interno.</li>
+<li><code>public List&lt;T&gt; ultimos(int n)</code>: devuelve como máximo los <code>n</code> elementos más recientes, <strong>ordenados del más reciente al más antiguo</strong>, en una lista inmutable. Si <code>n</code> supera el número de elementos disponibles, devuelve todos los que haya.</li>
+<li><code>public int tamano()</code>, <code>public boolean vacio()</code>, <code>public boolean lleno()</code>.</li>
+<li>En un comentario, explica por qué <code>ultimos</code> devuelve <code>List.copyOf(...)</code> y qué podría ocurrir si devolviera directamente la colección interna.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> historial <span class="op">=</span> <span class="kw">new</span> Historial<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;(</span><span class="dv">3</span><span class="op">);</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>historial<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"a"</span><span class="op">);</span> historial<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"b"</span><span class="op">);</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>historial<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"c"</span><span class="op">);</span> historial<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"d"</span><span class="op">);</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span><span class="dv">2</span><span class="op">));</span>    <span class="co">// [d, c]</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">tamano</span><span class="op">());</span>      <span class="co">// 3: "a" se descartó</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.2 Métodos genéricos con cotas en `UtilidadesEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-25-contents" aria-controls="callout-25" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.2 Métodos genéricos con cotas en <code>UtilidadesEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-25" class="callout-25-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe una clase de utilidades, no instanciable (constructor privado), con tres métodos genéricos <strong>estáticos</strong>:</p>
+<ol type="1">
+<li><code>public static &lt;T extends Comparable&lt;? super T&gt;&gt; Optional&lt;T&gt; minimo(Collection&lt;? extends T&gt; elementos)</code>, que devuelve el menor elemento, o vacío si la colección lo está.</li>
+<li><code>public static &lt;T&gt; long contarSi(Collection&lt;? extends T&gt; elementos, Predicate&lt;? super T&gt; criterio)</code>.</li>
+<li><code>public static &lt;T extends Comparable&lt;? super T&gt;&gt; List&lt;T&gt; ordenadoDescendente(Collection&lt;? extends T&gt; elementos)</code>, que devuelve una lista nueva e inmutable.</li>
+</ol>
+<p>Comprueba que los tres funcionan con <code>List&lt;Integer&gt;</code>, <code>List&lt;String&gt;</code> y <code>List&lt;Duration&gt;</code> sin modificarlos.</p>
+<p>Responde en un comentario, con una frase cada uno: (a) por qué la cota es <code>Comparable&lt;? super T&gt;</code> y no <code>Comparable&lt;T&gt;</code>; (b) por qué el parámetro es <code>Collection&lt;? extends T&gt;</code> y no <code>Collection&lt;T&gt;</code>; (c) qué error de compilación aparecería si intentaras hacer <code>elementos.add(...)</code> dentro de <code>minimo</code>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.3 PECS: `copiarSi` y corrección de una firma">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-26-contents" aria-controls="callout-26" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.3 PECS: <code>copiarSi</code> y corrección de una firma
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-26" class="callout-26-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Escribe <code>public static &lt;T&gt; int copiarSi(Collection&lt;? extends T&gt; origen, Collection&lt;? super T&gt; destino, Predicate&lt;? super T&gt; filtro)</code>, que copia al destino los elementos del origen que cumplen el filtro y devuelve cuántos copió.</li>
+<li>La plantilla incluye el método <code>static &lt;T&gt; void fusionar(List&lt;T&gt; a, List&lt;T&gt; b, List&lt;T&gt; destino)</code>, con las firmas mal puestas. Corrígelas aplicando <strong>PECS</strong> y añade en un comentario tres llamadas que <strong>antes no compilaban</strong> y ahora sí, por ejemplo mezclar una <code>List&lt;Integer&gt;</code> y una <code>List&lt;Double&gt;</code> en una <code>List&lt;Number&gt;</code>.</li>
+<li>Escribe un <code>main</code> que copie los resultados con fallo de una <code>List&lt;Resultado&gt;</code> a una <code>List&lt;Object&gt;</code> y explique en un comentario por qué el comodín <code>? super T</code> lo permite.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.4 Borrado de tipos y testigos de tipo">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-27-contents" aria-controls="callout-27" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.4 Borrado de tipos y testigos de tipo
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-27" class="callout-27-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye la clase <code>Borrado</code> con cinco líneas comentadas que <strong>no compilan</strong>.</p>
+<ol type="1">
+<li>Descoméntalas de una en una y anota, junto a cada una, el mensaje del compilador y la razón en términos de borrado de tipos (<em>type erasure</em>).</li>
+<li>Implementa <code>public static &lt;T&gt; List&lt;T&gt; filtrarPorTipo(List&lt;?&gt; lista, Class&lt;T&gt; tipo)</code>, que devuelva los elementos de la lista que son del tipo indicado, usando <code>tipo.isInstance</code> y <code>tipo.cast</code>. No debe producir ningún aviso del compilador ni contener ningún <em>cast</em> con paréntesis.</li>
+<li>Pruébalo con una <code>List&lt;Servicio&gt;</code> que mezcle <code>ServicioHttp</code>, <code>ServicioDns</code> y <code>PuertoTcp</code>, extrayendo solo los <code>PuertoTcp</code>.</li>
+<li>En un comentario, explica por qué <code>filtrarPorTipo(lista, List.class)</code> no puede devolver una <code>List&lt;List&lt;String&gt;&gt;</code> comprobada.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.5 Interfaces funcionales y composición">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-29-contents" aria-controls="callout-29" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.5 Interfaces funcionales y composición
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-29" class="callout-29-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe una clase <code>Criterios</code> con constantes y métodos que construyan comportamiento a base de componer funciones. Ninguno de sus métodos debe tener un <code>if</code>.</p>
+<ol type="1">
+<li><code>public static final Predicate&lt;Resultado&gt; ES_FALLO</code> y <code>public static Predicate&lt;Resultado&gt; masLentoQue(Duration umbral)</code>.</li>
+<li><code>public static Predicate&lt;Resultado&gt; problematico(Duration umbral)</code>, definido <strong>componiendo</strong> los dos anteriores con <code>or</code>.</li>
+<li><code>public static final Comparator&lt;Resultado&gt; POR_SERVICIO_Y_LATENCIA</code>: ordena por nombre de servicio ascendente y, a igualdad de servicio, por latencia <strong>descendente</strong>. Usa <code>Comparator.comparing</code>, <code>thenComparing</code> y <code>reverseOrder</code>.</li>
+<li><code>public static Function&lt;Resultado, String&gt; etiqueta()</code>, que produzca <code>NOMBRE-SERVICIO (123 ms)</code> componiendo dos funciones con <code>andThen</code>.</li>
+<li><code>public static Sonda sondaConstante(Estado estado)</code>, que devuelva una <strong>lambda</strong> que implemente <code>Sonda</code> y responda siempre con ese estado.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="dt">var</span> problematicos <span class="op">=</span> resultados<span class="op">.</span><span class="fu">stream</span><span class="op">()</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>Criterios<span class="op">.</span><span class="fu">problematico</span><span class="op">(</span><span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">500</span><span class="op">)))</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">sorted</span><span class="op">(</span>Criterios<span class="op">.</span><span class="fu">POR_SERVICIO_Y_LATENCIA</span><span class="op">)</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">map</span><span class="op">(</span>Criterios<span class="op">.</span><span class="fu">etiqueta</span><span class="op">())</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span><span class="fu">toList</span><span class="op">();</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.6 Informes con la Stream API">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-30-contents" aria-controls="callout-30" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.6 Informes con la Stream API
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-30" class="callout-30-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>public final class InformesEjercicio</code> con tres métodos estáticos que operen sobre una <code>List&lt;Resultado&gt;</code>, <strong>sin bucles</strong>:</p>
+<ol type="1">
+<li><code>public static Map&lt;Estado, Long&gt; recuentoGlobal(List&lt;Resultado&gt; historial)</code>: cuántos resultados hay de cada estado. El mapa debe iterarse en el orden de declaración del <code>enum</code>.</li>
+<li><code>public static OptionalDouble latenciaMediaDe(List&lt;Resultado&gt; historial, Servicio servicio)</code>: latencia media en milisegundos de ese servicio, <strong>excluyendo los fallos</strong>; vacío si no hay ninguna comprobación correcta.</li>
+<li><code>public static List&lt;Servicio&gt; serviciosConAlMenos(List&lt;Resultado&gt; historial, int minimoFallos)</code>: servicios que acumulan al menos ese número de fallos, ordenados de más a menos fallos y, a igualdad, por nombre.</li>
+</ol>
+<p>Añade en un comentario, para cada método, cuál es la operación terminal y por qué la elegiste.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.7 Colectores: partición, agrupación y resumen">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-32-contents" aria-controls="callout-32" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.7 Colectores: partición, agrupación y resumen
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-32" class="callout-32-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Amplía <code>InformesEjercicio</code> con cuatro métodos más, cada uno construido con un colector distinto:</p>
+<ol type="1">
+<li><code>public static Map&lt;Boolean, List&lt;Resultado&gt;&gt; particionPorFallo(List&lt;Resultado&gt; historial)</code> con <code>partitioningBy</code>.</li>
+<li><code>public static Map&lt;Servicio, Double&gt; disponibilidades(List&lt;Resultado&gt; historial)</code>: fracción de comprobaciones correctas por servicio, con <code>groupingBy</code> y un colector <em>aguas abajo</em>.</li>
+<li><code>public static Map&lt;Servicio, LongSummaryStatistics&gt; estadisticasLatencia(List&lt;Resultado&gt; historial)</code>, excluyendo los fallos.</li>
+<li><code>public static String tabla(List&lt;Resultado&gt; historial)</code>: una línea por servicio con nombre, disponibilidad en tanto por ciento y latencia media, construida con <code>joining</code> y <code>String.format</code>, ordenada de peor a mejor disponibilidad.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Formato esperado de `tabla`">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Formato esperado de <code>tabla</code>
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<pre class="text"><code>mail.uib.es:25                 82,0 %   latencia media   238 ms
+dns:uib.es                     84,0 %   latencia media   227 ms
+https://www.uib.es             86,0 %   latencia media   246 ms</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.8 `flatMap`, y cuándo un bucle es mejor">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-33-contents" aria-controls="callout-33" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.3.8 <code>flatMap</code>, y cuándo un bucle es mejor
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-33" class="callout-33-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li>Escribe <code>public static List&lt;Resultado&gt; todos(LectorResultados lector)</code>, que devuelva todos los resultados de todos los servicios en una sola lista ordenada por instante, usando <code>flatMap</code>.</li>
+<li>Escribe <code>public static int rachaMaximaDeFallos(List&lt;Resultado&gt; historial)</code>, que devuelva la longitud de la mayor secuencia de fallos consecutivos. Impleméntalo <strong>con un bucle</strong>.</li>
+<li>Intenta ahora la misma función con <code>reduce</code> o con un colector. Consérvala aunque quede peor.</li>
+<li>En un comentario de cinco líneas, compara las dos versiones y justifica cuál pondrías en producción. Relaciónalo con lo que dice el tema en <a href="../../es/contenido/tema1.html#cuándo-no-usar-streams">1.3.7</a> sobre el estado entre iteraciones.</li>
+</ol>
+</div>
+</div>
+</div>
+</section>
+<section id="pruebas-unitarias-junit" class="level2">
+<h2 class="anchored" data-anchor-id="pruebas-unitarias-junit">1.4. Pruebas unitarias (JUnit)</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema1.html#pruebas-unitarias-junit-como-primer-contacto-con-la-verificación">1.4 del tema</a>. Aquí <strong>las pruebas son el entregable</strong>: la plantilla trae las clases ya implementadas y los ficheros de prueba vacíos. Recuerda las convenciones: un comportamiento por prueba, nombres que describan ese comportamiento, y las tres fases <em>preparar, actuar, comprobar</em> separadas por una línea en blanco.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.1 Pruebas de `FallosEnVentana`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-34-contents" aria-controls="callout-34" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.4.1 Pruebas de <code>FallosEnVentana</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-34" class="callout-34-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>FallosEnVentanaTest</code> para la clase del ejercicio 1.2.2, con <strong>al menos seis</strong> métodos <code>@Test</code>, uno por partición de equivalencia:</p>
+<ol type="1">
+<li>historial vacío;</li>
+<li>historial más corto que la ventana, sin fallos suficientes;</li>
+<li>exactamente el mínimo de fallos dentro de la ventana (valor límite);</li>
+<li>un fallo menos del mínimo (valor límite);</li>
+<li>fallos suficientes pero <strong>no consecutivos</strong> dentro de la ventana;</li>
+<li>fallos suficientes que quedan <strong>fuera</strong> de la ventana por ser demasiado antiguos.</li>
+</ol>
+<p>Usa <code>@BeforeEach</code> para construir la política y constantes <code>private static final</code> para los resultados de ejemplo. Añade además un <code>@ParameterizedTest</code> con <code>@CsvSource</code> que compruebe que los constructores inválidos (<code>0,5</code>, <code>6,5</code>, <code>-1,3</code>) lanzan <code>IllegalArgumentException</code>.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.2 Pruebas parametrizadas de `DireccionIpv4`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-35-contents" aria-controls="callout-35" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.4.2 Pruebas parametrizadas de <code>DireccionIpv4</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-35" class="callout-35-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>DireccionIpv4Test</code> para la clase del ejercicio 1.1.1:</p>
+<ol type="1">
+<li><code>@ParameterizedTest</code> con <code>@ValueSource(strings = {...})</code> para textos inválidos (<code>"1.2.3"</code>, <code>"1.2.3.4.5"</code>, <code>"a.b.c.d"</code>, <code>""</code>, <code>"1.2.3.256"</code>), comprobando con <code>assertThrows</code> que <code>desde</code> los rechaza.</li>
+<li><code>@ParameterizedTest</code> con <code>@CsvSource</code> que compruebe <code>esPrivada</code> sobre al menos seis direcciones, incluyendo los <strong>límites</strong> de los rangos privados: <code>172.15.0.1</code> (pública), <code>172.16.0.1</code> (privada), <code>172.31.255.255</code> (privada) y <code>172.32.0.1</code> (pública).</li>
+<li>Un <code>@Test</code> que compruebe con <code>assertAll</code> que <code>toString</code>, <code>equals</code> y <code>hashCode</code> se comportan como se espera para una misma dirección construida de dos formas distintas.</li>
+<li>Un <code>@Test</code> con los valores límite de un octeto: 0 y 255 válidos, −1 y 256 rechazados.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.3 Dobles de prueba: `SondaProgramada` y `NotificadorEspia`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-36-contents" aria-controls="callout-36" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.4.3 Dobles de prueba: <code>SondaProgramada</code> y <code>NotificadorEspia</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-36" class="callout-36-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe en <code>src/test/java</code> los dobles necesarios para probar <code>Monitor</code> de forma determinista.</p>
+<ol type="1">
+<li><code>SondaProgramada implements Sonda</code>: se construye con un <code>Map&lt;Servicio, List&lt;Estado&gt;&gt;</code> y devuelve, para cada servicio, los estados de su lista en orden, repitiendo el último cuando se agota. Es un <em>stub</em>.</li>
+<li><code>NotificadorEspia implements Notificador</code>: guarda las alertas recibidas <strong>en orden</strong> y ofrece <code>List&lt;Alerta&gt; alertas()</code> y <code>int cuantas()</code>. Es un <em>espía</em>.</li>
+<li><code>MonitorTest</code> (el tuyo, no el del tema) que compruebe:
+<ul>
+<li>que dos servicios distintos alertan de forma independiente: si uno falla dos veces seguidas y el otro no falla, solo se emite una alerta y es del primero;</li>
+<li>que el orden de las alertas recibidas por el espía coincide con el orden de comprobación;</li>
+<li>que un servicio que se recupera y vuelve a fallar no dispara la alerta hasta acumular de nuevo los fallos necesarios.</li>
+</ul></li>
+</ol>
+<p>Ninguna de estas pruebas puede tardar más de unos milisegundos ni usar números aleatorios.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.4 `assertAll` y `assertThrows` sobre `ConfiguracionMonitor`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-37-contents" aria-controls="callout-37" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.4.4 <code>assertAll</code> y <code>assertThrows</code> sobre <code>ConfiguracionMonitor</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-37" class="callout-37-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Escribe <code>ConfiguracionMonitorTest</code> con cuatro pruebas:</p>
+<ol type="1">
+<li>Un <code>@Test</code> que compruebe con <strong>un solo</strong> <code>assertAll</code> los cuatro valores por defecto del <em>builder</em> cuando solo se indica un servicio.</li>
+<li>Un <code>@Test</code> que compruebe que construir sin ningún servicio lanza <code>IllegalArgumentException</code>, y que <strong>el mensaje</strong> es el esperado (captura la excepción con <code>assertThrows</code> e inspecciónala).</li>
+<li>Un <code>@ParameterizedTest</code> con <code>@ValueSource(ints = {-1, -10})</code> para reintentos negativos.</li>
+<li>Un <code>@Test</code> que compruebe que la lista de servicios devuelta es <strong>inmutable</strong>: intentar añadir un elemento debe lanzar <code>UnsupportedOperationException</code>. Explica en un comentario qué decisión de diseño del constructor compacto hace que esto se cumpla.</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.5 Refactorizar `DetectorDeCaidas` para poder probarlo">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-38-contents" aria-controls="callout-38" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>1.4.5 Refactorizar <code>DetectorDeCaidas</code> para poder probarlo
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-38" class="callout-38-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La plantilla incluye <code>DetectorDeCaidas</code>, una clase que decide si un servicio lleva demasiado tiempo caído. Es correcta pero <strong>imposible de probar</strong>: llama a <code>Instant.now()</code> dentro de sus métodos y crea su propia <code>SondaSimulada</code> con una semilla aleatoria.</p>
+<ol type="1">
+<li>Escribe en un comentario por qué no puedes escribir ni una sola prueba fiable sobre la clase tal como está, y qué principio SOLID se está incumpliendo.</li>
+<li>Refactorízala: inyecta por constructor un <code>java.time.Clock</code> y una <code>Sonda</code>. Sustituye <code>Instant.now()</code> por <code>Instant.now(reloj)</code>.</li>
+<li>Escribe <code>DetectorDeCaidasTest</code> usando <code>Clock.fixed(...)</code> y una <code>SondaProgramada</code> (del ejercicio 1.4.3) para comprobar, de forma completamente determinista:
+<ul>
+<li>que un servicio que responde no se marca como caído;</li>
+<li>que un servicio caído <strong>menos</strong> tiempo del umbral no se marca (valor límite);</li>
+<li>que un servicio caído exactamente el umbral sí se marca (valor límite).</li>
+</ul></li>
+<li>Comprueba que las pruebas tardan milisegundos aunque el umbral sea de horas. Explica en una frase por qué.</li>
+</ol>
+</div>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
