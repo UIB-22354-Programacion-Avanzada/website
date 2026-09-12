@@ -65,3 +65,15 @@ quarto render           # genera el sitio completo en _site/
 ## Licencia
 
 © 2026 Alejandro Mesejo · [UIB-EPS](https://eps.uib.es/)
+
+Este material se publica bajo licencia
+[**Creative Commons Reconocimiento-CompartirIgual 4.0 Internacional**](https://creativecommons.org/licenses/by-sa/4.0/deed.es)
+(CC BY-SA 4.0). Eres libre de copiarlo, distribuirlo y adaptarlo, incluso con fines comerciales,
+siempre que cites la autoría y distribuyas las obras derivadas bajo esta misma licencia.
+
+El código de los ejemplos y los ejercicios, alojado en los repositorios `tN-ejemplos` y
+`tN-ejercicios` de la organización, se publica bajo licencia **MIT**.
+
+Las **condiciones de uso de asistentes de IA** aplicables a las entregas de la asignatura están
+recogidas en la
+[guía docente](https://uib-22354-programacion-avanzada.github.io/website/es/informaciones/guia-docente.html).
