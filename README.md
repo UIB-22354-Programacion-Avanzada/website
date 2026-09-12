@@ -1,14 +1,13 @@
 # Programación Avanzada (22354) — sitio web de la asignatura
 
-Código fuente del portal web de **Programación Avanzada (22354)**, asignatura obligatoria de
-segundo curso del **Grado en Ingeniería Telemática** de la Escola Politècnica Superior de la
-**Universitat de les Illes Balears**.
+Código fuente del portal web de **22354 - Programación Avanzada**, asignatura obligatoria de
+segundo curso del [**Grado en Ingeniería Telemática**](https://estudis.uib.es/estudis-de-grau/grau/telematica/GTT2-P/) de la [**Escola Politècnica Superior**](https://eps.uib.es/) de la
+[**Universitat de les Illes Balears**](https://www.uib.es).
 
 🌐 **[uib-22354-programacion-avanzada.github.io/website](https://uib-22354-programacion-avanzada.github.io/website/)**
 
 El sitio reúne la guía docente, el material teórico de los cinco temas, los ejercicios, la
-bibliografía y los recursos de apoyo. Está escrito en español y construido con
-[Quarto](https://quarto.org/).
+bibliografía y los recursos de apoyo. Está construido con [Quarto](https://quarto.org/).
 
 ## Contenido de la asignatura
 
@@ -63,26 +62,6 @@ quarto preview          # vista previa con recarga automática
 quarto render           # genera el sitio completo en _site/
 ```
 
-`freeze: auto` mantiene en `_freeze/` los resultados ya calculados, de modo que solo se vuelve
-a ejecutar el código de las páginas que hayan cambiado.
+## Licencia
 
-## Convenciones de redacción
-
-- **Callouts con numeración propia.** El sitio redefine los cinco tipos de callout de Quarto:
-  `important` → *Concepto Clave*, `note` → *Ejemplo*, `caution` → *Error Frecuente*,
-  `warning` → *Técnica de Depuración*, `tip` → *Fundamento Teórico*. Con `crossref: chapters:
-  true` se numeran por página y se citan en el texto con `@imp-nombre`, `@nte-nombre`, etc.
-- **Numeración de secciones.** Dentro de cada tema, los apartados `##` siguen los subapartados
-  de la guía docente (1.1, 1.2, …) y los `###` se numeran `1.X.k`.
-- **Diagramas** en Mermaid, incrustados directamente en el `.qmd`.
-- **Bibliografía** por tema, en un `.bib` junto al `.qmd`, con la lista de referencias al final
-  de la página.
-
-## Licencia y uso
-
-Material docente elaborado por **Alejandro Mesejo Chiong** (UIB-EPS) para el curso 2026-2027.
-Se puede consultar y reutilizar con fines educativos citando la fuente.
-
-Las **condiciones de uso de asistentes de IA** aplicables a las entregas de la asignatura están
-recogidas en la
-[guía docente](https://uib-22354-programacion-avanzada.github.io/website/es/informaciones/guia-docente.html).
+© 2026 Alejandro Mesejo · [UIB-EPS](https://eps.uib.es/)
