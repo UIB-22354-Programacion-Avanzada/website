@@ -22,15 +22,12 @@ Todo el código del tema es Java 25, se organiza en proyectos Maven y vive en el
 ::: {.callout-tip appearance="simple"}
 **Ejecuta los ejemplos mientras lees.** Todo el código de este tema está en el repositorio
 [`t1-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos), listo para
-abrirse en un entorno de desarrollo en el navegador, sin instalar nada:
+abrirse en un entorno de desarrollo en el navegador (VS Code en un Codespace de GitHub), sin instalar nada:
 
 [![Abrir en GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/UIB-22354-Programacion-Avanzada/t1-ejemplos)
 
 Necesitas una **cuenta de GitHub** (gratuita) y haber iniciado sesión; el entorno se crea en tu
-cuenta y la primera vez tarda unos minutos. Dentro, `guiones/` contiene un guion de JShell por
-sección: `mvn -q compile` y después `jshell --class-path target/classes guiones/1.1-objetos.jsh`
-te deja en un intérprete de Java con los objetos del apartado ya creados, para experimentar con
-ellos. El `README.md` del repositorio lo explica paso a paso.
+cuenta y la primera vez tarda unos minutos. También puedes clonar el repositorio y abrirlo en tu IDE favorito (IntelliJ, Eclipse, VS Code...). En cualquier caso, compila y ejecuta los ejemplos para ver cómo funcionan y experimentar con ellos.
 :::
 
 ## 1.1. Conceptos fundamentales de la POO en Java
