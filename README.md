@@ -13,13 +13,13 @@ bibliografía y los recursos de apoyo. Está construido con [Quarto](https://qua
 
 | Tema | Título | Horas presenciales |
 |---|---|---|
-| 1 | POO, principios SOLID y diseño | 12 |
+| 1 | [POO, principios SOLID y diseño](https://uib-22354-programacion-avanzada.github.io/website/es/contenido/tema1.html) | 12 |
 | 2 | Algoritmos, complejidad y estructuras de datos | 8 |
 | 3 | Programación concurrente | 16 |
 | 4 | Programación de red y servicios distribuidos | 12 |
 | 5 | Bases de datos: SQL, JDBC y NoSQL | 12 |
 
-La pila técnica es **Java 25**, **Maven**, **JUnit 5**, **GitHub Codespaces** y **GitHub
+La pila tecnológica (tech stack) es **Java 25**, **Maven**, **JUnit 5**, **GitHub Codespaces** y **GitHub
 Actions**. Un mismo ejemplo motivador —un monitor de servicios de red— recorre la asignatura y
 va ganando concurrencia, comunicación por sockets y persistencia a medida que avanzan los temas.
 

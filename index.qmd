@@ -7,7 +7,7 @@ toc: false
 
 ## Bienvenidos
 
-Este sitio recoge el material docente de la asignatura [**Programación Avanzada (22354) de la Universitat de les Illes Balears**](https://estudis.uib.es/estudis-de-grau/grau/telematica/GTT2-P/22354/){target="_blank" rel="noopener noreferrer"}. La asignatura profundiza en el diseño orientado a objetos, los algoritmos y estructuras de datos, la programación concurrente, la programación de red y las bases de datos, utilizando **Java** como lenguaje principal.
+Este sitio recoge el material docente de la asignatura [**22354 - Programación Avanzada de la Universitat de les Illes Balears**](https://estudis.uib.es/estudis-de-grau/grau/telematica/GTT2-P/22354/){target="_blank" rel="noopener noreferrer"}. La asignatura profundiza en el diseño orientado a objetos, los algoritmos y estructuras de datos, la programación concurrente, la programación de red y las bases de datos, utilizando **Java** como lenguaje principal.
 
 ---
 
@@ -27,10 +27,6 @@ El contenido teórico-práctico del curso, organizado en 5 temas que van desde l
 **Ejercicios:**
 
 Colección de ejercicios propuestos para cada tema, pensados para consolidar los conceptos trabajados en clase.
-
-**Práctica del Curso:**
-
-Elemento de evaluación complementaria: enunciado, plazo y entrega de la práctica del curso.
 
 **Recursos:**
 
