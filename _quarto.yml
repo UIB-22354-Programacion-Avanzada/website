@@ -73,6 +73,16 @@ website:
               text: "Exámenes anteriores"
             - href: es/recursos/herramientas-software.qmd
               text: "Herramientas de software"
+            - href: es/soluciones/tema1.qmd
+              text: "Soluciones Ejercicios T1"
+            - href: es/soluciones/tema2.qmd
+              text: "Soluciones Ejercicios T2"
+            - href: es/soluciones/tema3.qmd
+              text: "Soluciones Ejercicios T3"
+            - href: es/soluciones/tema4.qmd
+              text: "Soluciones Ejercicios T4"
+            - href: es/soluciones/tema5.qmd
+              text: "Soluciones Ejercicios T5"
 
         - section: "Bibliografía"
           contents:

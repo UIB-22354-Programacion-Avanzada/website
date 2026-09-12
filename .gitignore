@@ -9,5 +9,8 @@
 # Proyecto Maven con el código de los ejemplos (se publica en un repositorio aparte)
 /_codigo/
 
+# Repositorio privado con las soluciones (se copian a es/soluciones/ al publicarlas)
+/_soluciones/
+
 # Carpeta de trabajo de la app de escritorio de Claude
 /Claude outputs/
