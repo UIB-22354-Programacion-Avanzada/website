@@ -813,6 +813,7 @@ Ejemplo&nbsp;1: Una clase completa: <code>DispositivoRed</code>
 <li>No hay <code>setDireccionIp</code>: una vez creado el dispositivo, su IP no cambia desde fuera. Decidir qué <em>setters</em> <strong>no</strong> escribir es tan importante como escribir los que hacen falta.</li>
 <li><code>esIpValida</code> es <code>private static</code>: un detalle de implementación que nadie fuera de la clase necesita. La expresión regular acepta cuatro octetos de 0 a 255: <code>25[0-5]</code> cubre 250–255, <code>2[0-4][0-9]</code> cubre 200–249 y <code>[01]?[0-9][0-9]?</code> cubre 0–199.</li>
 <li><code>equals</code>, <code>hashCode</code> y <code>toString</code> redefinen (<code>@Override</code>) métodos heredados de <code>Object</code>. Volveremos sobre los dos primeros enseguida, porque encierran el error más frecuente de esta sección (<a href="#cau-equals-sin-hashcode" class="quarto-xref">error frecuente&nbsp;1</a>).</li>
+<li>Actualmente, la forma más limpia, segura y recomendada de sobrescribir <code>hashCode()</code> en una clase de Java es utilizando el método <code>Objects.hash()</code> de la clase de utilidad <strong><code>java.util.Objects</code></strong> (disponible desde Java 7). Le pasas <strong>exactamente los mismos atributos</strong> que utilizas dentro de tu método <code>equals()</code></li>
 </ul>
 </div>
 </div>
