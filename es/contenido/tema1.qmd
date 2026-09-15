@@ -366,7 +366,42 @@ En el monitor, ¿qué significa que dos servicios sean «el mismo»? Un servicio
 
 ### 1.1.2 Encapsulación e invariantes
 
-La **encapsulación** es la ocultación del estado de un objeto tras una interfaz de métodos. Que los campos sean `private` no es una formalidad: es lo que permite a la clase **garantizar** propiedades sobre su estado, porque nadie puede modificarlo sin pasar por sus métodos. Esas propiedades se llaman invariantes.
+Si hubiera que quedarse con una sola idea de la orientación a objetos, sería esta: **un objeto es
+responsable de su propia coherencia**, no lo son quienes lo instancian y lo usan.
+
+La **encapsulación** (*encapsulation*) es la ocultación del estado de un objeto tras una interfaz
+de métodos. 
+
+Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que
+importa ahora es para qué sirve. Esto suele presentarse como «poner los atributos en
+`private` y ofrecer métodos de acceso». Esa es la mecánica, no la idea. La idea es que la
+clase **controla todos los caminos por los que el estado de sus objetos puede cambiar**, y que por eso puede
+garantizar propiedades que se cumplen siempre, pase lo que pase fuera de ella.
+
+Que los campos sean `private` no es una formalidad ni una convención de estilo: es lo que permite 
+a la clase **garantizar** propiedades sobre su estado, porque nadie puede modificarlo sin pasar por 
+sus métodos. La clase controla todos los caminos de entrada, y por eso puede prometer algo que se cumple 
+siempre. Esas promesas se llaman **invariantes**.
+
+De ahí se sigue una consecuencia que conviene asumir pronto, porque contradice una costumbre muy
+extendida: **un atributo privado con su `get` y su `set` generados automáticamente no está
+encapsulado**.
+
+```java
+// Fragmento: encapsulación aparente
+public class Umbral {
+    private long milisegundos;
+
+    public long getMilisegundos()            { return milisegundos; }
+    public void setMilisegundos(long valor)  { this.milisegundos = valor; }   // acepta 0, -7...
+}
+```
+
+Esta clase ofrece exactamente las mismas garantías que si el campo fuera `public`: ninguna. El
+`private` solo ha añadido dos métodos y la ilusión de control. Generar un par de accesores por cada
+campo, que es lo que hacen los asistentes de los IDE con un par de clics, produce clases así con
+mucha facilidad. La pregunta que hay que hacerse ante cada clase no es «¿he puesto los atributos en
+`private`?», sino **«¿qué tiene que ser siempre cierto aquí, y qué camino podría romperlo?»**.
 
 ::: {#imp-invariante .callout-important title="Invariante de clase"}
 Un **invariante de clase** es una condición sobre el estado de un objeto que se cumple siempre que el objeto es observable desde fuera: al terminar el constructor y al terminar cada método público. Ejemplos: «la latencia nunca es negativa», «el puerto está entre 1 y 65535», «la lista de servicios no contiene `null`». La clase es responsable de establecer el invariante en el constructor y de preservarlo en cada método. Si un invariante puede violarse desde fuera, la encapsulación está rota.
