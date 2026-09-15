@@ -232,7 +232,11 @@ Para la mayoría de las clases que representan *valores* (un punto, una fecha, u
 La versión de `DispositivoRed` cumple todo esto: `otro instanceof DispositivoRed d` devuelve `false` para `null` y para objetos de otras clases, y la comparación de campos es simétrica y transitiva. Y además, siempre que se redefine `equals` **hay que redefinir `hashCode`**, de modo que dos objetos iguales tengan el mismo código *hash*; `Objects.hash(nombre, direccionIp)` lo garantiza. Este último punto es el que se olvida.
 
 ::: {#cau-equals-sin-hashcode .callout-caution title="Redefinir `equals` sin redefinir `hashCode`"}
-Las colecciones basadas en tablas *hash* (`HashSet`, `HashMap`) localizan un elemento en dos pasos: primero usan `hashCode` para elegir el «cajón» donde buscar, y solo después usan `equals` dentro de ese cajón. Si dos objetos son iguales según `equals` pero tienen `hashCode` distintos, la colección los buscará en cajones diferentes y no los encontrará.
+La regla de oro en Java dice lo siguiente: ***Si dos objetos son iguales según tu método `equals()`, entonces ambos objetos deben devolver exactamente el mismo número en su método `hashCode()***`.
+
+Si sobrescribes `equals()` para que compare los datos del objeto, pero no haces lo mismo con `hashCode()`, este último seguirá usando su comportamiento por defecto (que genera el número basándose en la dirección de memoria del objeto).
+
+Si haces esto, **las colecciones basadas en tablas hash (`HashSet`, `HashMap`, `Hashtable`) dejarán de funcionar correctamente**. Las colecciones basadas en tablas *hash* localizan un elemento en dos pasos: primero usan `hashCode` para elegir el «cajón» donde buscar, y solo después usan `equals` dentro de ese cajón. Si dos objetos son iguales según `equals` pero tienen `hashCode` distintos, la colección los buscará en cajones diferentes y no los encontrará.
 
 ```java
 // PuntoRoto.java
@@ -263,7 +267,9 @@ public class PuntoRoto {
 }
 ```
 
-La lógica de `equals` es correcta y el programa compila; el error solo aparece al usar la clase en una colección *hash*, a menudo lejos del punto donde se escribió. El compilador puede ayudarte: con `javac -Xlint:all` (o activando las inspecciones de IntelliJ) obtendrás el aviso `Class PuntoRoto overrides equals, but neither it nor any superclass overrides hashCode method`. Acostúmbrate a compilar con todos los avisos activados. Bloch dedica a este contrato un capítulo entero de *Effective Java* [@bloch2018, ítems 10 y 11].
+El intento de buscar `new PuntoRoto(1, 2)` en el `HashSet` falla porque el *hash* de ese objeto no coincide con el *hash* del objeto que ya está en el conjunto, aunque `equals` diga que son iguales. Por eso el tamaño del conjunto es 2, cuando debería ser 1 (un conjunto no admite duplicados). La lógica de `equals` es correcta y el programa compila; el error solo aparece al usar la clase en una colección *hash*, a menudo lejos del punto donde se escribió. 
+
+El compilador puede ayudarte: con `javac -Xlint:all` (o activando las inspecciones de IntelliJ) obtendrás el aviso `Class PuntoRoto overrides equals, but neither it nor any superclass overrides hashCode method`. Acostúmbrate a compilar con todos los avisos activados. Bloch dedica a este contrato un capítulo entero de *Effective Java* [@bloch2018, ítems 10 y 11].
 :::
 
 Fíjate en la sintaxis `o instanceof PuntoRoto p && ...`: es *pattern matching* para `instanceof`, estándar desde Java 16. Declara la variable `p` ya convertida al tipo, evitando el *cast* explícito que se escribía tradicionalmente. La usaremos a menudo.
