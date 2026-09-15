@@ -172,6 +172,7 @@ Lo que hay que observar en la clase:
 - No hay `setDireccionIp`: una vez creado el dispositivo, su IP no cambia desde fuera. Decidir qué *setters* **no** escribir es tan importante como escribir los que hacen falta.
 - `esIpValida` es `private static`: un detalle de implementación que nadie fuera de la clase necesita. La expresión regular acepta cuatro octetos de 0 a 255: `25[0-5]` cubre 250–255, `2[0-4][0-9]` cubre 200–249 y `[01]?[0-9][0-9]?` cubre 0–199.
 - `equals`, `hashCode` y `toString` redefinen (`@Override`) métodos heredados de `Object`. Volveremos sobre los dos primeros enseguida, porque encierran el error más frecuente de esta sección (@cau-equals-sin-hashcode).
+- Actualmente, la forma más limpia, segura y recomendada de sobrescribir `hashCode()` en una clase de Java es utilizando el método `Objects.hash()` de la clase de utilidad **`java.util.Objects`** (disponible desde Java 7). Le pasas **exactamente los mismos atributos** que utilizas dentro de tu método `equals()`
 :::
 
 Todas las clases de Java descienden de `Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la API de Java). La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
