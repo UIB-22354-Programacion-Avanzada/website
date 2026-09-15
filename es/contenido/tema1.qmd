@@ -276,7 +276,7 @@ Fíjate en la sintaxis `o instanceof PuntoRoto p && ...`: es *pattern matching* 
 
 La forma correcta de escribir `equals` y `hashCode` a mano es mecánica, y precisamente por eso Java 16 introdujo los **registros** (`record`), que los generan automáticamente junto con el constructor, los métodos de acceso y `toString`.
 
-::: {#imp-javarecords .callout-important title="Tipo especial de clase `record`"}
+::: {#imp-javarecords .callout-important title="Tipo especial de clase, el `record`"}
 
 Los **Records** en Java (introducidos de forma oficial en Java 16) son un tipo especial de clase diseñada específicamente para ser **portadores transparentes de datos inmutables**.
 
@@ -284,6 +284,7 @@ Su objetivo principal es hacerte la vida más fácil eliminando el *código repe
 
 ```java
 // Punto.java
+// antes de Java 16, sin Records
 package es.uib.prgava.tema1.poo;
 
 // El método tradicional (mucho código)
@@ -323,7 +324,10 @@ Al escribir esto, el compilador de Java hace la magia por ti y genera automátic
 Con esta única línea, podemos escribir código que funcione igual que antes, pero sin el *boilerplate*. Por ejemplo:
 
 ```java
-public class EjemploRecord {
+// DemoPunto.java
+package es.uib.prgava.tema1.poo;
+
+public class DemoPunto {
     public static void main(String[] args) {
         Punto p1 = new Punto(5, 10);
         Punto p2 = new Punto(5, 10);
