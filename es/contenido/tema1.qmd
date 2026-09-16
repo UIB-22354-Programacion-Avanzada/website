@@ -284,9 +284,7 @@ Los **Records** en Java (introducidos de forma oficial en Java 16) son un tipo e
 Su objetivo principal es hacerte la vida más fácil eliminando el *código repetitivo* (boilerplate) que normalmente tienes que escribir al crear una clase que solo sirve para guardar información. Antes de los Records, si querías crear una clase sencilla para representar unas coordenadas en un plano, tenías que escribir todo esto:
 
 ```java
-// Punto.java
-// antes de Java 16, sin Records
-package es.uib.prgava.tema1.poo;
+// Fragmento: antes de Java 16, sin Records
 
 // El método tradicional (mucho código)
 public class Punto {
