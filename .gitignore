@@ -12,5 +12,8 @@
 # Repositorio privado con las soluciones (se copian a es/soluciones/ al publicarlas)
 /_soluciones/
 
+# Guiones de mantenimiento (repositorio privado aparte)
+/_sincronizar/
+
 # Carpeta de trabajo de la app de escritorio de Claude
 /Claude outputs/
