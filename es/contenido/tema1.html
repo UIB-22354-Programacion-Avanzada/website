@@ -817,7 +817,7 @@ Ejemplo&nbsp;1: Una clase completa: <code>DispositivoRed</code>
 </ul>
 </div>
 </div>
-<p>Todas las clases de Java descienden de <code>Object</code>, la raíz de la jerarquía: si una clase no declara <code>extends</code>, extiende implícitamente a <code>Object</code>. De ella heredan <code>equals</code>, <code>hashCode</code>, <code>toString</code> y algunos métodos más que conviene conocer (consulta su documentación en la API de Java). La anotación <code>@Override</code> no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, <code>equals(DispositivoRed otro)</code> en lugar de <code>equals(Object otro)</code>), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.</p>
+<p>Todas las clases de Java descienden de <code>Object</code>, la raíz de la jerarquía: si una clase no declara <code>extends</code>, extiende implícitamente a <code>Object</code>. De ella heredan <code>equals</code>, <code>hashCode</code>, <code>toString</code> y algunos métodos más que conviene conocer (consulta su documentación en la <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html">API de Java</a>). La anotación <code>@Override</code> no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, <code>equals(DispositivoRed otro)</code> en lugar de <code>equals(Object otro)</code>), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.</p>
 </section>
 <section id="crear-objetos-y-referencias" class="level4">
 <h4 class="anchored" data-anchor-id="crear-objetos-y-referencias">Crear objetos y referencias</h4>
@@ -859,7 +859,7 @@ Dispositivos creados: 4</code></pre>
 </section>
 <section id="igualdad-por-estado-equals-y-hashcode" class="level4">
 <h4 class="anchored" data-anchor-id="igualdad-por-estado-equals-y-hashcode">Igualdad por estado: <code>equals</code> y <code>hashCode</code></h4>
-<p>Para la mayoría de las clases que representan <em>valores</em> (un punto, una fecha, una dirección, el resultado de una comprobación) queremos que dos objetos con el mismo estado sean iguales. Eso obliga a redefinir <code>equals</code>, y <code>equals</code> viene con un contrato que la documentación de <code>Object</code> fija con precisión <span class="citation" data-cites="jls">(<a href="#ref-jls" role="doc-biblioref">Oracle 2025b</a>)</span>:</p>
+<p>Para la mayoría de las clases que representan <em>valores</em> (un punto, una fecha, una dirección, el resultado de una comprobación) queremos que dos objetos con el mismo estado sean iguales. Eso obliga a redefinir <code>equals</code>, y <code>equals</code> viene con un contrato que la documentación de <code>Object</code> fija con precisión <span class="citation" data-cites="objectdoc">(<a href="#ref-objectdoc" role="doc-biblioref">Oracle 2025a</a>)</span>:</p>
 <ul>
 <li>debe ser reflexivo (<code>x.equals(x)</code> es <code>true</code>),</li>
 <li>simétrico (<code>x.equals(y)</code> si y solo si <code>y.equals(x)</code>),</li>
@@ -923,26 +923,24 @@ Concepto Clave&nbsp;3: Tipo especial de clase, el <code>record</code>
 <div class="callout-body-container callout-body">
 <p>Los <strong>Records</strong> en Java (introducidos de forma oficial en Java 16) son un tipo especial de clase diseñada específicamente para ser <strong>portadores transparentes de datos inmutables</strong>.</p>
 <p>Su objetivo principal es hacerte la vida más fácil eliminando el <em>código repetitivo</em> (boilerplate) que normalmente tienes que escribir al crear una clase que solo sirve para guardar información. Antes de los Records, si querías crear una clase sencilla para representar unas coordenadas en un plano, tenías que escribir todo esto:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Punto.java</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">// antes de Java 16, sin Records</span></span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">poo</span><span class="op">;</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">// El método tradicional (mucho código)</span></span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> Punto <span class="op">{</span></span>
-<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="dt">int</span> x<span class="op">;</span></span>
-<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="dt">int</span> y<span class="op">;</span></span>
-<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">Punto</span><span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> <span class="dt">int</span> y<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">x</span> <span class="op">=</span> x<span class="op">;</span></span>
-<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">y</span> <span class="op">=</span> y<span class="op">;</span></span>
-<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
-<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">getX</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> x<span class="op">;</span> <span class="op">}</span></span>
-<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">getY</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> y<span class="op">;</span> <span class="op">}</span></span>
-<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Además tendrías que escribir o generar:</span></span>
-<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">// equals(), hashCode() y toString()</span></span>
-<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Fragmento: antes de Java 16, sin Records</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">// El método tradicional (mucho código)</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> Punto <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="dt">int</span> x<span class="op">;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="dt">int</span> y<span class="op">;</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="fu">Punto</span><span class="op">(</span><span class="dt">int</span> x<span class="op">,</span> <span class="dt">int</span> y<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">x</span> <span class="op">=</span> x<span class="op">;</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">y</span> <span class="op">=</span> y<span class="op">;</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">getX</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> x<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">getY</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> y<span class="op">;</span> <span class="op">}</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Además tendrías que escribir o generar:</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// equals(), hashCode() y toString()</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Con un Record, puedes hacer exactamente lo mismo en una sola línea de código:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Punto.java</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">poo</span><span class="op">;</span></span>
@@ -1005,9 +1003,9 @@ Concepto Clave&nbsp;4: Identidad e igualdad
 <section id="encapsulación-e-invariantes" class="level3">
 <h3 class="anchored" data-anchor-id="encapsulación-e-invariantes">1.1.2 Encapsulación e invariantes</h3>
 <p>Si hubiera que quedarse con una sola idea de la orientación a objetos, sería esta: <strong>un objeto es responsable de su propia coherencia</strong>, no lo son quienes lo instancian y lo usan.</p>
-<p>La <strong>encapsulación</strong> (<em>encapsulation</em>) es la ocultación del estado de un objeto tras una interfaz de métodos.</p>
-<p>Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que importa ahora es para qué sirve. Esto suele presentarse como «poner los atributos en <code>private</code> y ofrecer métodos de acceso». Esa es la mecánica, no la idea. La idea es que la clase <strong>controla todos los caminos por los que el estado de sus objetos puede cambiar</strong>, y que por eso puede garantizar propiedades que se cumplen siempre, pase lo que pase fuera de ella.</p>
-<p>Que los campos sean <code>private</code> no es una formalidad ni una convención de estilo: es lo que permite a la clase <strong>garantizar</strong> propiedades sobre su estado, porque nadie puede modificarlo sin pasar por sus métodos. La clase controla todos los caminos de entrada, y por eso puede prometer algo que se cumple siempre. Esas promesas se llaman <strong>invariantes</strong>.</p>
+<p>La <strong>encapsulación</strong> (<em>encapsulation</em>) es la ocultación del estado de un objeto tras una interfaz de métodos. Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que importa ahora es para qué sirve.</p>
+<p>Suele presentarse como «poner los atributos en <code>private</code> y ofrecer métodos de acceso». Eso es la mecánica. La idea es otra: <strong>el estado se oculta para que la clase pueda responder de él</strong>. Si cualquiera pudiera modificarlo, ninguna garantía sería posible, y la responsabilidad se repartiría entre todos los que tocan el objeto — es decir, no sería de nadie.</p>
+<p>Y esa responsabilidad, una vez asumida, vale mucho. Si nadie puede modificar un objeto sin pasar por sus métodos, y sus métodos comprueban lo que hace falta, entonces la clase puede afirmar que ciertas propiedades se cumplen <strong>siempre</strong>, pase lo que pase fuera de ella: que el puerto está entre 1 y 65 535, que la latencia nunca es negativa, que la lista de servicios no está vacía. Quien use la clase no tiene que comprobarlo, ni acordarse de comprobarlo, ni desconfiar. Esas promesas se llaman <strong>invariantes</strong>.</p>
 <p>De ahí se sigue una consecuencia que conviene asumir pronto, porque contradice una costumbre muy extendida: <strong>un atributo privado con su <code>get</code> y su <code>set</code> generados automáticamente no está encapsulado</strong>.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Fragmento: encapsulación aparente</span></span>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">public</span> <span class="kw">class</span> Umbral <span class="op">{</span></span>
@@ -3181,7 +3179,7 @@ Concepto Clave&nbsp;8: PECS: <em>producer extends, consumer super</em>
 </section>
 <section id="la-stream-api" class="level3">
 <h3 class="anchored" data-anchor-id="la-stream-api">1.3.6 La Stream API</h3>
-<p>Un <strong>stream</strong> es una secuencia de elementos sobre la que se aplican operaciones en cadena. No es una colección: no almacena nada, se recorre una sola vez y describe <strong>qué</strong> calcular en lugar de <strong>cómo</strong> recorrerlo. El modelo tiene tres partes <span class="citation" data-cites="streamdoc">(<a href="#ref-streamdoc" role="doc-biblioref">Oracle 2025a</a>)</span>:</p>
+<p>Un <strong>stream</strong> es una secuencia de elementos sobre la que se aplican operaciones en cadena. No es una colección: no almacena nada, se recorre una sola vez y describe <strong>qué</strong> calcular en lugar de <strong>cómo</strong> recorrerlo. El modelo tiene tres partes <span class="citation" data-cites="streamdoc">(<a href="#ref-streamdoc" role="doc-biblioref">Oracle 2025b</a>)</span>:</p>
 <ol type="1">
 <li>Una <strong>fuente</strong>: una colección (<code>lista.stream()</code>), un <em>array</em> (<code>Arrays.stream</code>), un generador (<code>Stream.iterate</code>, <code>IntStream.range</code>), un fichero (<code>Files.lines</code>)…</li>
 <li>Cero o más <strong>operaciones intermedias</strong>, que devuelven otro stream y son <strong>perezosas</strong>: no hacen nada hasta que hay una operación terminal. <code>filter</code>, <code>map</code>, <code>flatMap</code>, <code>sorted</code>, <code>distinct</code>, <code>limit</code>, <code>skip</code>, <code>peek</code>.</li>
@@ -3449,7 +3447,7 @@ Técnica de Depuración&nbsp;2: Depurar un <em>pipeline</em>
 </section>
 <section id="junit-5-en-un-proyecto-maven" class="level3">
 <h3 class="anchored" data-anchor-id="junit-5-en-un-proyecto-maven">1.4.2 JUnit 5 en un proyecto Maven</h3>
-<p><strong>JUnit 5</strong> (cuya parte principal se llama <em>Jupiter</em>) es el marco de pruebas estándar en Java <span class="citation" data-cites="junit5">(<a href="#ref-junit5" role="doc-biblioref">JUnit Team 2026</a>)</span>. Maven lo integra sin configuración especial siempre que se respete la estructura de directorios estándar <span class="citation" data-cites="maven">(<a href="#ref-maven" role="doc-biblioref">Apache Software Foundation 2026</a>)</span>:</p>
+<p><strong>JUnit 5</strong> (cuya parte principal se llama <em>Jupiter</em>) es el marco de pruebas estándar en Java; su <a href="https://junit.org/junit5/docs/current/user-guide/">guía de usuario</a> es la referencia completa. Maven lo integra sin configuración especial siempre que se respete la estructura de directorios estándar <span class="citation" data-cites="maven">(<a href="#ref-maven" role="doc-biblioref">Apache Software Foundation 2026</a>)</span>:</p>
 <pre class="text"><code>t1-ejemplos/
 ├── pom.xml
 └── src/
@@ -3900,11 +3898,14 @@ Meyer, Bertrand. 1997. <em>Object-Oriented Software Construction</em>. 2.ª ed. 
 <div id="ref-naftalin2006" class="csl-entry" role="listitem">
 Naftalin, Maurice, y Philip Wadler. 2006. <em>Java Generics and Collections</em>. Sebastopol: O’Reilly.
 </div>
+<div id="ref-objectdoc" class="csl-entry" role="listitem">
+Oracle. 2025a. <span>«Class <span>java.lang.Object</span>, <span>Java</span> <span>SE</span> 25 <span>API</span> Specification»</span>. <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html" class="uri">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html</a>.
+</div>
 <div id="ref-streamdoc" class="csl-entry" role="listitem">
-Oracle. 2025a. <span>«Package <span>java.util.stream</span>, <span>Java</span> <span>SE</span> 25 <span>API</span> Specification»</span>. <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html" class="uri">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html</a>.
+———. 2025b. <span>«Package <span>java.util.stream</span>, <span>Java</span> <span>SE</span> 25 <span>API</span> Specification»</span>. <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html" class="uri">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/package-summary.html</a>.
 </div>
 <div id="ref-jls" class="csl-entry" role="listitem">
-———. 2025b. <span>«The <span>Java</span> Language Specification, <span>Java</span> <span>SE</span> 25 Edition»</span>. <a href="https://docs.oracle.com/javase/specs/jls/se25/html/index.html" class="uri">https://docs.oracle.com/javase/specs/jls/se25/html/index.html</a>.
+———. 2025c. <span>«The <span>Java</span> Language Specification, <span>Java</span> <span>SE</span> 25 Edition»</span>. <a href="https://docs.oracle.com/javase/specs/jls/se25/html/index.html" class="uri">https://docs.oracle.com/javase/specs/jls/se25/html/index.html</a>.
 </div>
 <div id="ref-parnas1972" class="csl-entry" role="listitem">
 Parnas, David L. 1972. <span>«On the Criteria to Be Used in Decomposing Systems into Modules»</span>. <em>Communications of the ACM</em> 15 (12): 1053-58. <a href="https://doi.org/10.1145/361598.361623">https://doi.org/10.1145/361598.361623</a>.
@@ -4021,6 +4022,13 @@ Urma, Raoul-Gabriel, Mario Fusco, y Alan Mycroft. 2018. <em>Modern Java in Actio
           if (link.dataset.originalHref !== undefined) {
             link.href = link.dataset.originalHref;
           }
+            // target, if specified
+            link.setAttribute("target", "_blank");
+            if (link.getAttribute("rel") === null) {
+              link.setAttribute("rel", "noopener");
+            }
+            // default icon
+            link.classList.add("external");
         }
       }
     function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
