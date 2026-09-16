@@ -370,18 +370,20 @@ Si hubiera que quedarse con una sola idea de la orientación a objetos, sería e
 responsable de su propia coherencia**, no lo son quienes lo instancian y lo usan.
 
 La **encapsulación** (*encapsulation*) es la ocultación del estado de un objeto tras una interfaz
-de métodos. 
+de métodos. Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que
+importa ahora es para qué sirve.
 
-Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que
-importa ahora es para qué sirve. Esto suele presentarse como «poner los atributos en
-`private` y ofrecer métodos de acceso». Esa es la mecánica, no la idea. La idea es que la
-clase **controla todos los caminos por los que el estado de sus objetos puede cambiar**, y que por eso puede
-garantizar propiedades que se cumplen siempre, pase lo que pase fuera de ella.
+Suele presentarse como «poner los atributos en `private` y ofrecer métodos de acceso». Eso es la
+mecánica. La idea es otra: **el estado se oculta para que la clase pueda responder de él**. Si
+cualquiera pudiera modificarlo, ninguna garantía sería posible, y la responsabilidad se repartiría
+entre todos los que tocan el objeto — es decir, no sería de nadie.
 
-Que los campos sean `private` no es una formalidad ni una convención de estilo: es lo que permite 
-a la clase **garantizar** propiedades sobre su estado, porque nadie puede modificarlo sin pasar por 
-sus métodos. La clase controla todos los caminos de entrada, y por eso puede prometer algo que se cumple 
-siempre. Esas promesas se llaman **invariantes**.
+Y esa responsabilidad, una vez asumida, vale mucho. Si nadie puede modificar un objeto sin pasar
+por sus métodos, y sus métodos comprueban lo que hace falta, entonces la clase puede afirmar que
+ciertas propiedades se cumplen **siempre**, pase lo que pase fuera de ella: que el puerto está
+entre 1 y 65 535, que la latencia nunca es negativa, que la lista de servicios no está vacía. Quien
+use la clase no tiene que comprobarlo, ni acordarse de comprobarlo, ni desconfiar. Esas promesas se
+llaman **invariantes**.
 
 De ahí se sigue una consecuencia que conviene asumir pronto, porque contradice una costumbre muy
 extendida: **un atributo privado con su `get` y su `set` generados automáticamente no está
