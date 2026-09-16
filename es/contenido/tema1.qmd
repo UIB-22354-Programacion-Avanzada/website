@@ -3,6 +3,8 @@ title: "Tema 1: POO, Principios SOLID y Diseño"
 lang: es
 sidebar: barra-es
 bibliography: tema1.bib
+nocite: |
+  @junit5, @jls
 ---
 
 ## Introducción
@@ -175,7 +177,7 @@ Lo que hay que observar en la clase:
 - Actualmente, la forma más limpia, segura y recomendada de sobrescribir `hashCode()` en una clase de Java es utilizando el método `Objects.hash()` de la clase de utilidad **`java.util.Objects`** (disponible desde Java 7). Le pasas **exactamente los mismos atributos** que utilizas dentro de tu método `equals()`
 :::
 
-Todas las clases de Java descienden de `Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la API de Java). La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
+Todas las clases de Java descienden de `Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la [API de Java](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html)). La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
 
 #### Crear objetos y referencias
 
@@ -224,7 +226,7 @@ Las dos últimas comparaciones son el núcleo de este apartado. `alias` y `enrut
 
 #### Igualdad por estado: `equals` y `hashCode`
 
-Para la mayoría de las clases que representan *valores* (un punto, una fecha, una dirección, el resultado de una comprobación) queremos que dos objetos con el mismo estado sean iguales. Eso obliga a redefinir `equals`, y `equals` viene con un contrato que la documentación de `Object` fija con precisión [@jls]: 
+Para la mayoría de las clases que representan *valores* (un punto, una fecha, una dirección, el resultado de una comprobación) queremos que dos objetos con el mismo estado sean iguales. Eso obliga a redefinir `equals`, y `equals` viene con un contrato que la documentación de `Object` fija con precisión [@objectdoc]: 
 
 - debe ser reflexivo (`x.equals(x)` es `true`), 
 - simétrico (`x.equals(y)` si y solo si `y.equals(x)`), 
@@ -2754,7 +2756,7 @@ Las pruebas cambian, además, la forma de escribir código. La guía docente de 
 
 ### 1.4.2 JUnit 5 en un proyecto Maven
 
-**JUnit 5** (cuya parte principal se llama *Jupiter*) es el marco de pruebas estándar en Java [@junit5]. Maven lo integra sin configuración especial siempre que se respete la estructura de directorios estándar [@maven]:
+**JUnit 5** (cuya parte principal se llama *Jupiter*) es el marco de pruebas estándar en Java; su [guía de usuario](https://junit.org/junit5/docs/current/user-guide/) es la referencia completa. Maven lo integra sin configuración especial siempre que se respete la estructura de directorios estándar [@maven]:
 
 ```text
 t1-ejemplos/
