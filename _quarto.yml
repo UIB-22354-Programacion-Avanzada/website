@@ -73,6 +73,8 @@ website:
               text: "Exámenes anteriores"
             - href: es/recursos/herramientas-software.qmd
               text: "Herramientas de software"
+            - href: es/recursos/glosario.qmd
+              text: "Glosario de telemática"
             - href: es/soluciones/tema1.qmd
               text: "Soluciones Ejercicios T1"
             - href: es/soluciones/tema2.qmd
@@ -115,12 +117,11 @@ format:
     css: styles.css
     toc: true
     callout-icon: false
-    link-external-newwindow: true
-    link-external-icon: true
     include-after-body:
       text: |
         <script src="/logo-href.js"></script>
         <script src="/full-view.js"></script>
+        <script src="/glosario.js"></script>
 
 freeze: auto
 editor: source

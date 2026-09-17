@@ -1,0 +1,20 @@
+---
+title: "Glosario de telemática"
+lang: es
+sidebar: barra-es
+toc: false
+---
+
+Los ejemplos de esta asignatura están tomados del dominio de la telemática: encaminadores, conmutadores, latencias, sondas. Esto tiene una ventaja y un riesgo. La ventaja es que el código se parece a los problemas de tu titulación en lugar de hablar de cuentas bancarias y de figuras geométricas. El riesgo es que un ejemplo puede resultar convincente como código y ser falso como telemática.
+
+Esta página existe para que puedas comprobarlo. Cada término que aparece marcado en las páginas de contenido —así: [encaminador]{.glos}— muestra su definición al pasar por encima, y aquí están todas juntas. Cuando en el Tema 1 escribimos que un `Enrutador` *es un* `DispositivoRed`, la definición de abajo es lo que te permite decidir si esa afirmación se sostiene.
+
+Son definiciones breves, pensadas para situar el término, no para sustituir a las asignaturas de redes del grado. Se indica también el nombre en inglés, que es el que encontrarás en la documentación técnica, en los mensajes de error y en las interfaces de administración de cualquier equipo real.
+
+::: {.callout-note appearance="simple"}
+El glosario contiene ahora mismo [22]{#glosario-total} términos y crece con los temas.
+:::
+
+::: {#glosario-lista}
+*Cargando el glosario…*
+:::

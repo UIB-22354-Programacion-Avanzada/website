@@ -74,3 +74,70 @@ $input-bg: #242424;
 .sidebar-tools-main .quarto-color-scheme-toggle:hover {
   background-color: #cccccc !important;
 }
+
+// ---------------------------------------------------------------------------
+// Glosario de telemática (glosario.js)
+// ---------------------------------------------------------------------------
+
+span.glos {
+  border-bottom: 1px dotted #75AADB;
+  cursor: help;
+  text-decoration: none;
+}
+
+span.glos:hover,
+span.glos:focus {
+  background-color: #2a3a4a;
+  border-bottom-style: solid;
+  outline: none;
+}
+
+span.glos-sin-definicion {
+  border-bottom: 1px dotted #ff6b6b;
+}
+
+.glos-popover {
+  max-width: 24rem;
+}
+
+.glos-popover .popover-header {
+  font-size: 1rem;
+  background-color: #303030;
+  color: #ffffff;
+}
+
+.glos-popover .popover-body {
+  color: #e8e8e8;
+}
+
+.glos-popover .glos-def {
+  margin-bottom: 0.5rem;
+}
+
+.glos-popover .glos-mas {
+  margin-bottom: 0;
+  font-size: 0.85rem;
+}
+
+.glos-entrada {
+  border-left: 3px solid #75AADB;
+  padding: 0.1rem 0 0.1rem 1rem;
+  margin-bottom: 1.6rem;
+  scroll-margin-top: 4rem;
+}
+
+.glos-entrada .glos-termino {
+  font-size: 1.15rem;
+  margin-top: 0;
+  margin-bottom: 0.35rem;
+}
+
+.glos-entrada .glos-ingles {
+  font-style: italic;
+  font-weight: normal;
+  color: #b0b0b0;
+}
+
+.glos-entrada.glos-destacada {
+  background-color: #2a3a4a;
+}

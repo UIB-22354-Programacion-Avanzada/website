@@ -99,7 +99,7 @@ El modificador **`final`** indica que un elemento no puede ser modificado de det
 
 La práctica habitual, que seguiremos siempre, es declarar los atributos `private` y exponer solo los métodos necesarios. Cuando hace falta leer o modificar un atributo desde fuera se escriben **métodos de acceso** (*getters*) y **de modificación** (*setters*), que permiten a la clase controlar cómo se accede a su estado: validar, calcular, o negarse. Esto se verá en la sección de encapsulación e invariantes.
 
-Veamos todo esto reunido en un ejemplo del dominio de la telemática: un dispositivo de red (*Network Device*) con nombre y dirección IPv4, que puede estar activo o inactivo, y cuya clase lleva la cuenta de cuántos dispositivos se han creado.
+Veamos todo esto reunido en un ejemplo del dominio de la telemática: un [dispositivo de red]{.glos} (*network device*) con nombre y [dirección]{.glos data-termino="direccion-ip"} IPv4, que puede estar activo o inactivo, y cuya clase lleva la cuenta de cuántos dispositivos se han creado.
 
 ::: {#nte-dispositivo-red .callout-note title="Una clase completa: `DispositivoRed`"}
 ```java
@@ -447,7 +447,7 @@ Regla práctica: haz cada clase inmutable salvo que tengas una razón concreta p
 ::: {#imp-herencia .callout-important title="Herencia"}
 La **herencia** es otro de los pilares fundamentales de la POO. Es el mecanismo que permite que una nueva clase (llamada *subclase* o clase hija) se construya basándose en una clase ya existente (llamada *superclase* o clase padre). La **subclase** (o clase hija) recibe los atributos y métodos de la **superclase** (o clase padre), puede añadir otros y puede redefinir (*override*) los heredados. Entre las ventajas de la herencia destacan: 
 
-- **La relación "es un" (is-a):** La herencia modela conceptualmente el mundo real, pero solo tiene sentido lógico si puedes afirmar que el hijo "es un" tipo del padre. Por ejemplo, un `Gato` *es un* `Animal`. Un `Enrutador` (*router*) *es un* `DispositivoRed` y un `Conmutador` (*switch*) *es un* `DispositivoRed`.
+- **La relación «es un» (*is-a*):** La herencia modela conceptualmente el mundo real, pero solo tiene sentido lógico si puedes afirmar que el hijo "es un" tipo del padre. Por ejemplo, un `Gato` *es un* `Animal`. Un `Enrutador` ([*router*]{.glos data-termino="router"}) *es un* `DispositivoRed` y un `Conmutador` ([*switch*]{.glos data-termino="switch"}) *es un* `DispositivoRed`.
 - **Reutilización de código:** Es su beneficio más inmediato. Si todos los dispositivos de red tienen un método `activar()`, lo programas una sola vez en la superclase `DispositivoRed`, y tanto las clases `Enrutador` como `Conmutador` lo obtienen gratis.
 - **Especialización:** Permite diseñar sistemas partiendo de lo general (el padre) y especializando o refinando el comportamiento a medida que desciendes en la jerarquía (los hijos).
 - **Polimorfismo:** La herencia es el cimiento que permite que un programa trate a un objeto de la clase hija exactamente como si fuera de la clase padre, facilitando un código mucho más flexible.
@@ -483,7 +483,7 @@ public class Enrutador extends DispositivoRed {
 }
 ```
 
-Un conmutador con clase `Conmutador` tiene todo lo que tiene un `DispositivoRed`, más un número de puertos y un comportamiento de reenvío de tramas (*frame forwarding*):
+Un conmutador con clase `Conmutador` tiene todo lo que tiene un `DispositivoRed`, más un número de [puertos]{.glos data-termino="puerto"} y un comportamiento de reenvío de [tramas]{.glos data-termino="trama"} (*frame forwarding*):
 
 ```java
 // Conmutador.java
@@ -506,7 +506,7 @@ public class Conmutador extends DispositivoRed {
 }
 ```
 
-- Un `Enrutador` tiene todo lo que tiene un `DispositivoRed` (`activar`, `getNombre`, `equals`...) más el mecanismo de encaminamiento con el método `encaminar`. 
+- Un `Enrutador` tiene todo lo que tiene un `DispositivoRed` (`activar`, `getNombre`, `equals`...) más el mecanismo de [encaminamiento]{.glos} (*routing*) con el método `encaminar`. 
 - Observa que accede a los atributos heredados a través de los *getters* y no directamente: son `private` en `DispositivoRed`, y `private` significa privado también para las subclases. 
 - La llamada `super(nombre, direccionIp)` debe ser la primera instrucción del constructor; si la omites, Java intenta llamar al constructor sin parámetros de la superclase, y si este no existe, el código no compila. 
 - Lo mismo ocurre con un `Conmutador`: tiene todo lo que tiene un `DispositivoRed`, más el mecanismo de reenvío de tramas con el método `reenviarTrama`.
@@ -514,94 +514,112 @@ public class Conmutador extends DispositivoRed {
 
 Hasta aquí, la herencia como un mecanismo para «reutilizar código». Esa visión es incompleta y, a menudo, perjudicial. La herencia es, ante todo, una relación de **subtipo**: declara que cualquier objeto de la subclase puede usarse donde se espera uno de la superclase. Esa promesa es fuerte, y solo debe hacerse cuando es cierta. En términos prácticos: **usa herencia cuando exista una relación es-un auténtica**, cuando las subclases compartan atributos e implementación (no solo una interfaz) y cuando la superclase esté bajo tu control. `Enrutador extends DispositivoRed` cumple las tres. El ejemplo siguiente no.
 
-Considera un ejemplo clásico [@bloch2018, ítem 18]. Queremos un conjunto que cuente cuántos elementos se han intentado añadir a lo largo de su vida. Heredar de `HashSet` parece lo más directo:
+Considera un ejemplo clásico [@bloch2018, ítem 18], adaptado a nuestro dominio. Supón que en tu proyecto ya existe —escrita por otro equipo, o traída de una biblioteca— una clase que registra eventos de red (*event log*):
 
 ```java
-// ConjuntoContador.java
+// RegistroEventos.java
 package es.uib.prgava.tema1.poo;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+public class RegistroEventos {
 
-public class ConjuntoContador<E> extends HashSet<E> {
-    private int intentos = 0;
-
-    @Override
-    public boolean add(E e) {
-        intentos++;
-        return super.add(e);
+    public void registrar(String evento) {
+        System.out.println("[registro] " + evento);
     }
 
-    @Override
-    public boolean addAll(Collection<? extends E> c) {
-        intentos += c.size();
-        return super.addAll(c);
-    }
-
-    public int intentos() { return intentos; }
-
-    public static void main(String[] args) {
-        var c = new ConjuntoContador<String>();
-        c.addAll(List.of("a", "b", "c"));
-        System.out.println(c.intentos());   // esperábamos 3; imprime 6
+    public void registrarVarios(String... eventos) {
+        for (String evento : eventos) {
+            registrar(evento);                  // uso propio: se llama a sí misma
+        }
     }
 }
 ```
 
-El resultado es 6 porque `HashSet.addAll` está implementado llamando a `add` para cada elemento, y nuestra redefinición de `add` vuelve a contar. Podríamos «arreglarlo» quitando la redefinición de `addAll`, pero entonces dependeríamos de un detalle de implementación de `HashSet` que la documentación no garantiza y que podría cambiar en una versión futura de Java.
+El `String... eventos` es un **número variable de argumentos** (*varargs*): permite llamar al método con los eventos que sean, `registrarVarios("uno")` o `registrarVarios("uno", "dos", "tres")`, y dentro se comporta como un array que se puede recorrer con un `for` mejorado.
+
+Necesitas la misma funcionalidad, pero contando cuántos eventos se han registrado a lo largo de la vida del objeto. Heredar parece lo más directo:
+
+```java
+// RegistroContador.java
+package es.uib.prgava.tema1.poo;
+
+public class RegistroContador extends RegistroEventos {
+
+    private int registrados = 0;
+
+    @Override
+    public void registrar(String evento) {
+        registrados++;
+        super.registrar(evento);
+    }
+
+    @Override
+    public void registrarVarios(String... eventos) {
+        registrados += eventos.length;
+        super.registrarVarios(eventos);
+    }
+
+    public int registrados() { return registrados; }
+
+    public static void main(String[] args) {
+        var registro = new RegistroContador();
+        registro.registrarVarios("enlace caído", "enlace restaurado", "latencia alta");
+        System.out.println(registro.registrados());   // esperábamos 3; imprime 6
+    }
+}
+```
+
+Imprime **6**. La razón está en la línea marcada como «uso propio»: `registrarVarios` funciona llamando a `registrar` para cada evento, de modo que nuestra redefinición cuenta dos veces —una en `registrarVarios` y otra en cada `registrar`—.
+
+Podríamos «arreglarlo» quitando la redefinición de `registrarVarios`. Pero entonces nuestra clase dependería de un detalle interno de `RegistroEventos` que nadie ha prometido mantener: si mañana alguien reescribe `registrarVarios` para que no use `registrar`, nuestra cuenta se rompe sin que hayamos tocado una sola línea de nuestro código.
 
 ::: {#tip-clase-base-fragil .callout-tip title="La herencia rompe la encapsulación"}
 Una subclase depende de detalles de implementación de su superclase: qué métodos llaman a cuáles, en qué orden, con qué estado intermedio. Esos detalles no forman parte de la interfaz pública y pueden cambiar sin previo aviso, rompiendo la subclase sin que esta haya cambiado una línea. Es el **problema de la clase base frágil** (*fragile base class problem*). Por eso la herencia solo es segura cuando la superclase ha sido **diseñada y documentada para ser extendida** (como las clases abstractas que uno mismo escribe con ese fin) o cuando ambas clases están bajo el control del mismo equipo. Heredar de una clase concreta de una biblioteca es casi siempre una mala idea.
 :::
 
-La alternativa es la **composición**: en lugar de *ser* un `HashSet`, nuestra clase *tiene* un `Set` interno al que delega:
+La alternativa es la **composición**: en lugar de *ser* un `RegistroEventos`, nuestra clase *tiene* uno y le delega el trabajo.
 
 ```java
-// ConjuntoContador.java (versión con composición)
+// RegistroContador.java (versión con composición)
 package es.uib.prgava.tema1.poo;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+public class RegistroContador {
 
-public class ConjuntoContador<E> implements Iterable<E> {
-    private final Set<E> interno = new HashSet<>();
-    private int intentos = 0;
+    private final RegistroEventos interno = new RegistroEventos();   // TIENE un registro
+    private int registrados = 0;                                     // en vez de SER uno
 
-    public boolean add(E e) {
-        intentos++;
-        return interno.add(e);
+    public void registrar(String evento) {
+        registrados++;
+        interno.registrar(evento);
     }
 
-    public boolean addAll(Collection<? extends E> c) {
-        boolean cambiado = false;
-        for (E e : c) {
-            cambiado |= add(e);
+    public void registrarVarios(String... eventos) {
+        for (String evento : eventos) {
+            registrar(evento);            // aquí el uso propio lo controlamos nosotros
         }
-        return cambiado;
     }
 
-    public boolean contains(Object o) { return interno.contains(o); }
-    public int size() { return interno.size(); }
-    public int intentos() { return intentos; }
-
-    @Override
-    public Iterator<E> iterator() { return interno.iterator(); }
+    public int registrados() { return registrados; }
 
     public static void main(String[] args) {
-        var c = new ConjuntoContador<String>();
-        c.addAll(List.of("a", "b", "c"));
-        System.out.println(c.intentos());   // 3
+        var registro = new RegistroContador();
+        registro.registrarVarios("enlace caído", "enlace restaurado", "latencia alta");
+        System.out.println(registro.registrados());   // 3
     }
 }
 ```
 
-Ahora el comportamiento no depende de cómo `HashSet` implemente `addAll`, porque nosotros controlamos qué se llama. El precio es escribir los métodos de delegación, pero a cambio la clase es robusta y su interfaz pública es exactamente la que queremos, ni más ni menos.
+Ahora el comportamiento no depende de cómo `RegistroEventos` implemente `registrarVarios`, porque quien decide qué se llama somos nosotros. El precio es escribir los métodos que delegan; a cambio, la clase es robusta y su interfaz pública es exactamente la que queremos, ni más ni menos.
 
-::: {#imp-composicion .callout-important title="Preferir la composición a la herencia"}
+::: {#imp-composicion-concepto .callout-important title="Composición"}
+La **composición** es la otra forma de construir una clase a partir de otras: en lugar de heredar de ellas, la clase **contiene** referencias a objetos de esas clases y les delega parte del trabajo.
+
+Se entiende mejor contrapuesta a la herencia:
+
+- **Herencia — relación «es un» (*is-a*)**: un `Enrutador` *es un* `DispositivoRed`.
+- **Composición — relación «tiene un» (*has-a*)**: un `Enrutador` *tiene una* tabla de rutas; un `RegistroContador` *tiene un* `RegistroEventos`.
+
+La clase que compone decide **qué** expone y **qué** delega: puede ofrecer solo parte de las operaciones del objeto interno, cambiarles el nombre, añadir comportamiento antes o después de delegar, o incluso sustituir el objeto interno por otro durante la ejecución. Nada de eso es posible al heredar, donde la subclase recibe la interfaz completa de la superclase, le convenga o no.
+
 Usa herencia solo cuando exista una relación **es-un** auténtica y sustituible (volveremos a esto con el principio de sustitución de Liskov en 1.2) y la superclase esté diseñada para ser extendida. En cualquier otro caso, usa **composición**: la clase contiene una referencia a otra y le delega parte del trabajo. La composición es más flexible (la referencia puede cambiarse, incluso en tiempo de ejecución), no expone detalles de implementación y es la base de casi todos los patrones de diseño que veremos.
 :::
 
@@ -647,6 +665,16 @@ Observa `final` en `Circulo`: declara que la clase no está diseñada para ser e
 
 ### 1.1.4 Polimorfismo e interfaces
 
+::: {#imp-polimorfismo .callout-important title="Polimorfismo"}
+**Polimorfismo** significa literalmente «muchas formas»: un mismo nombre de operación se comporta de forma distinta según el objeto sobre el que se invoca. Es un concepto general de la programación orientada a objetos, independiente de Java.
+
+La forma que nos interesa aquí es el **polimorfismo de subtipo**: si `B` es un subtipo de `A`, allí donde el programa espera un `A` puede recibir un `B`, y al llamar a un método el objeto responde con *su* versión, no con la de `A`. Quien escribe el código que llama no necesita saber qué subtipo tiene delante.
+
+Esa es la razón de ser del mecanismo: permite escribir código que trabaja con «una figura», «un dispositivo» o «una sonda» sin enumerar los casos posibles, y que por tanto **no hay que modificar cuando aparece un tipo nuevo**. El principio abierto/cerrado de 1.2 es, en esencia, la recomendación de aprovecharlo.
+
+Existen otras formas de polimorfismo que también verás en el curso: la **sobrecarga** de métodos (varios métodos con el mismo nombre y distintos parámetros, resuelta al compilar) y el **polimorfismo paramétrico**, que en Java son los genéricos (1.3). Cuando en este tema decimos «polimorfismo» a secas nos referimos al de subtipo.
+:::
+
 `describir()` en `Figura` llama a `area()`, y la versión de `area()` que se ejecuta depende del tipo **dinámico** del objeto (el de la clase con que se creó), no del tipo **estático** de la variable (el declarado). Esto es el **polimorfismo de subtipo**, y el mecanismo que lo hace posible se llama **enlace dinámico** (*dynamic dispatch*): la máquina virtual decide en tiempo de ejecución qué método invocar.
 
 ```java
@@ -654,32 +682,181 @@ Figura f = new Circulo(1.0);        // tipo estático Figura, tipo dinámico Cir
 System.out.println(f.describir());  // "círculo de área 3.14159..." — se ejecuta Circulo.area()
 ```
 
-El polimorfismo es lo que permite escribir código que trabaja con «una figura» sin saber cuál, y por tanto código que no hay que tocar cuando aparece una figura nueva. Es la herramienta central del diseño orientado a objetos, y el principio abierto/cerrado de 1.2 es, esencialmente, la recomendación de usarla.
-
 Conviene no confundir dos mecanismos de nombre parecido. La **sobrescritura** (*overriding*) es lo que acabamos de ver: una subclase redefine un método de la superclase con **la misma firma** (nombre y parámetros), y la versión que se ejecuta se decide en tiempo de ejecución según el tipo dinámico. La **sobrecarga** (*overloading*) es tener en una misma clase varios métodos con el mismo nombre y **distintos parámetros** (como los dos constructores de `DispositivoRed`); cuál se llama se decide en tiempo de compilación según los tipos de los argumentos. Solo la primera es polimorfismo.
 
 ::: {#cau-instanceof-en-cadena .callout-caution title="Preguntar el tipo en lugar de usar polimorfismo"}
-Un gestor de red que hace mantenimiento a dispositivos de varios tipos puede escribirse preguntando por el tipo de cada uno:
+Junto al círculo, añadimos una segunda figura, tan sencilla como él:
 
 ```java
-// Fragmento: incorrecto
-static void mantenimiento(DispositivoRed dispositivo) {
-    dispositivo.desactivar();
-    if (dispositivo instanceof Enrutador e) {
-        e.encaminar("0.0.0.0", "0.0.0.0");          // prueba de encaminamiento
-    } else if (dispositivo instanceof Conmutador c) {
-        c.reenviarTrama();                           // prueba de reenvío
+// Cuadrado.java
+package es.uib.prgava.tema1.poo;
+
+public final class Cuadrado extends Figura {
+    private final double lado;
+
+    public Cuadrado(double lado) {
+        super("cuadrado");
+        this.lado = lado;
     }
-    dispositivo.activar();
+
+    @Override
+    public double area() { return lado * lado; }
 }
 ```
 
-Funciona, pero cada tipo nuevo de dispositivo obliga a modificar `mantenimiento` (y todos los métodos parecidos que haya por el programa), y si olvidas uno, el compilador no dirá nada. La solución polimórfica es que cada clase sepa cómo se prueba a sí misma: un método `autocomprobar()` en `DispositivoRed` (vacío o abstracto) que `Enrutador` y `Conmutador` redefinen, y `mantenimiento` se reduce a `dispositivo.desactivar(); dispositivo.autocomprobar(); dispositivo.activar();`, sin saber cuántos tipos existen. La cadena de `instanceof` sobre una jerarquía abierta es uno de los olores de código más reconocibles; en la sección siguiente veremos que sobre una jerarquía **cerrada** (sellada) el `switch` con patrones es, en cambio, perfectamente legítimo, porque el compilador garantiza que no falta ningún caso (véase @tip-tipos-algebraicos).
+Y ahora queremos una operación nueva sobre las figuras: ampliarlas o reducirlas. `Figura` solo declara `area()`, así que es tentador resolverla desde fuera, con un método que pregunte de qué tipo es cada figura:
+
+```java
+// Fragmento: incorrecto
+static Figura escalar(Figura figura, double factor) {
+    if (figura instanceof Circulo c) {
+        return new Circulo(c.getRadio() * factor);
+    } else if (figura instanceof Cuadrado q) {
+        return new Cuadrado(q.getLado() * factor);
+    }
+    throw new IllegalArgumentException("figura desconocida: " + figura);
+}
+```
+
+Funciona, y ese es el problema: funciona hasta que aparece una figura nueva. Entonces hay que volver a este método —y a todos los que tengan la misma cadena repartidos por el programa— y añadirle un caso. Si olvidas uno, **el compilador no dirá nada**: el fallo aparecerá en ejecución, con esa excepción, el día que alguien escale la figura que falta. Y fíjate en el precio adicional: para poder escalar desde fuera, `Circulo` y `Cuadrado` han tenido que exponer sus medidas con *getters*, rompiendo la encapsulación que conseguimos en 1.1.2 (@imp-encapsulación).
+
+La solución polimórfica es **que cada figura sepa escalarse a sí misma**. La operación se declara donde corresponde, en `Figura`, y abstracta: la superclase dice *qué* se puede hacer con una figura, no *cómo*.
+
+```java
+// Figura.java (con escalar)
+package es.uib.prgava.tema1.poo;
+
+public abstract class Figura {
+    private final String nombre;
+
+    protected Figura(String nombre) { this.nombre = nombre; }
+
+    public abstract double area();
+
+    /** Devuelve una figura del mismo tipo con el tamaño multiplicado por el factor. */
+    public abstract Figura escalar(double factor);
+
+    public String describir() {
+        return nombre + " de área " + area();   // llama al método abstracto: enlace dinámico
+    }
+}
+```
+
+Cada subclase la implementa con lo que solo ella conoce, su propio atributo privado, y los *getters* dejan de hacer falta:
+
+```java
+// Circulo.java (con escalar)
+package es.uib.prgava.tema1.poo;
+
+public final class Circulo extends Figura {
+    private final double radio;
+
+    public Circulo(double radio) {
+        super("círculo");
+        this.radio = radio;
+    }
+
+    @Override
+    public double area() { return Math.PI * radio * radio; }
+
+    @Override
+    public Circulo escalar(double factor) { return new Circulo(radio * factor); }
+}
+```
+
+```java
+// Cuadrado.java (con escalar)
+package es.uib.prgava.tema1.poo;
+
+public final class Cuadrado extends Figura {
+    private final double lado;
+
+    public Cuadrado(double lado) {
+        super("cuadrado");
+        this.lado = lado;
+    }
+
+    @Override
+    public double area() { return lado * lado; }
+
+    @Override
+    public Cuadrado escalar(double factor) { return new Cuadrado(lado * factor); }
+}
+```
+
+Y la llamada deja de preguntar nada: `figura.escalar(2)`. El método `escalar(Figura, double)` desaparece; no hay que sustituirlo por nada.
+
+Ahora añade una figura nueva, un anillo:
+
+```java
+// Anillo.java
+package es.uib.prgava.tema1.poo;
+
+public final class Anillo extends Figura {
+    private final double exterior;
+    private final double interior;
+
+    public Anillo(double exterior, double interior) {
+        super("anillo");
+        this.exterior = exterior;
+        this.interior = interior;
+    }
+
+    @Override
+    public double area() { return Math.PI * (exterior * exterior - interior * interior); }
+
+    @Override
+    public Anillo escalar(double factor) {
+        return new Anillo(exterior * factor, interior * factor);
+    }
+}
+```
+
+```java
+// DemoEscalar.java
+package es.uib.prgava.tema1.poo;
+
+public class DemoEscalar {
+    public static void main(String[] args) {
+        Figura[] figuras = { new Circulo(1), new Cuadrado(3), new Anillo(2, 1) };
+
+        for (var figura : figuras) {          // no sabe de qué tipo es ninguna
+            System.out.println(figura.describir());
+            System.out.println("  al doble → " + figura.escalar(2).describir());
+        }
+    }
+}
+```
+
+```text
+círculo de área 3.141592653589793
+  al doble → círculo de área 12.566370614359172
+cuadrado de área 9.0
+  al doble → cuadrado de área 36.0
+anillo de área 9.42477796076938
+  al doble → anillo de área 37.69911184307752
+```
+
+`DemoEscalar` no ha cambiado ni una línea para admitir el anillo, y no sabe cuántos tipos de figura existen. Con la cadena de `instanceof`, en cambio, habría lanzado la excepción.
+
+Compara además las dos formas de olvidarse de la figura nueva. Al escribir `Anillo`, si olvidas `escalar`, **el código no compila**: `Figura` lo declara `abstract` y toda subclase concreta está obligada a implementarlo. Con la cadena de `instanceof`, olvidar el caso compila perfectamente y falla en ejecución, tal vez meses después. Esa es la diferencia entre un error que te encuentra el compilador y uno que te encuentra un usuario.
+
+La cadena de `instanceof` sobre una jerarquía abierta es uno de los olores de código más reconocibles. En la sección siguiente veremos que sobre una jerarquía **cerrada** (sellada) el `switch` con patrones es, en cambio, perfectamente legítimo, porque ahí sí el compilador garantiza que no falta ningún caso (véase @tip-tipos-algebraicos).
 :::
 
-Ahora bien, para obtener polimorfismo no hace falta herencia de clases. Una **interfaz** define un contrato (un conjunto de métodos) sin imponer implementación ni jerarquía. Una clase puede implementar varias interfaces, cosa que no puede hacer con clases, y dos clases sin ninguna relación pueden compartir una interfaz. Para el diseño esto es decisivo: una interfaz describe **lo que un objeto sabe hacer**, no **lo que es**.
+Ahora bien, para obtener polimorfismo no hace falta herencia de clases.
 
-En el monitor, la pieza que comprueba un servicio es una sonda. No queremos atarnos a una implementación concreta (en este tema serán simuladas; en el Tema 4, reales), así que la definimos como interfaz:
+::: {#imp-interfaz .callout-important title="Interfaz"}
+Una **interfaz** es un contrato: una lista de operaciones que quien la implemente se compromete a ofrecer, **sin decir cómo** las realiza y sin imponer ninguna jerarquía de clases. Es también un concepto general de la POO.
+
+La diferencia con la herencia es de naturaleza, no de sintaxis. Una superclase describe **lo que un objeto es** y le transmite implementación; una interfaz describe **lo que un objeto sabe hacer**. Por eso una clase tiene una sola superclase pero puede implementar tantas interfaces como quiera, y dos clases sin ninguna relación entre sí pueden implementar la misma interfaz.
+
+Programar contra la interfaz y no contra la clase concreta es lo que permite sustituir una implementación por otra sin tocar el código que la usa: es la base de la inversión de dependencias (1.2) y de casi todo lo que puede comprobarse con pruebas.
+:::
+
+En Java, una interfaz se declara con `interface` y una clase declara que la cumple con `implements`. El compilador comprueba que la clase proporciona todos los métodos prometidos; si falta alguno, no compila.
+
+En el monitor, la pieza que comprueba un servicio es una [sonda]{.glos} (*probe*). No queremos atarnos a una implementación concreta (en este tema serán simuladas; en el Tema 4, reales), así que la definimos como interfaz:
 
 ```java
 // Sonda.java
@@ -725,17 +902,36 @@ Con clases abstractas e interfaces sobre la mesa, la pregunta natural es cuándo
 
 La regla práctica: define el **contrato** como interfaz (`Sonda`, `Notificador`), y usa una clase abstracta solo cuando varias implementaciones compartan atributos y código (lo haremos en 1.2 con `SondaBase`). Como una clase puede implementar muchas interfaces pero extender una sola clase, empezar por la interfaz deja todas las puertas abiertas.
 
-Una interfaz de la biblioteca estándar que usarás constantemente es `Comparable<T>`, con un único método `int compareTo(T otro)` que devuelve un entero negativo, cero o positivo según el objeto actual sea menor, igual o mayor que `otro`. Implementarla define el **orden natural** de una clase, que `Collections.sort`, `List.sort` y las colecciones ordenadas usan automáticamente:
+Java trae ya definidas muchas interfaces que su propia biblioteca utiliza, y la más útil de todas para empezar es `Comparable`. No la escribes tú: está en `java.lang` y su declaración es, esencialmente, esta:
+
+```java
+// Fragmento: declaración simplificada de la interfaz de la biblioteca
+public interface Comparable<T> {
+    int compareTo(T otro);
+}
+```
+
+El `<T>` entre ángulos es un **parámetro de tipo** —la maquinaria de los genéricos, que estudiaremos en 1.3—; por ahora basta leer `Comparable<Puerto>` como «comparable con otros `Puerto`».
+
+El contrato de `compareTo` es una convención de signo, no de valor: `a.compareTo(b)` debe devolver un número **negativo** si `a` va antes que `b`, **cero** si ambos cuentan como iguales para el orden, y **positivo** si `a` va después. Cuánto vale exactamente ese número es irrelevante; solo se mira el signo.
+
+Implementarla equivale a declarar el **orden natural** de la clase: cómo se ordenan sus objetos cuando nadie dice otra cosa. Y aquí está lo interesante: no eres tú quien llama a `compareTo`. Lo llaman las operaciones de ordenación y búsqueda de la biblioteca, que están escritas contra la interfaz y por tanto funcionan con **cualquier** clase que la implemente, incluidas las tuyas —las veremos en el Tema 2—. Ese es el polimorfismo de subtipo aplicado al revés de lo habitual: el código de la biblioteca, escrito años antes que el tuyo, invoca tu método.
 
 ```java
 // Fragmento
 public record Puerto(int numero) implements Comparable<Puerto> {
     @Override
     public int compareTo(Puerto otro) {
-        return Integer.compare(numero, otro.numero);
+        return Integer.compare(numero, otro.numero);   // negativo, cero o positivo
     }
 }
 ```
+
+`Integer.compare(a, b)` hace justo eso y evita el error clásico de escribir `a - b` (@cau-resta-compareto).
+
+::: {#cau-resta-compareto .callout-caution title="Implementar `compareTo` restando"}
+`return numero - otro.numero;` parece equivalente y casi siempre lo es. Pero si `numero` vale 2 000 000 000 y `otro.numero` vale −2 000 000 000, la resta no cabe en un `int`: desborda y devuelve un número **negativo**, invirtiendo el orden sin aviso. El programa no falla, simplemente ordena mal, y encontrarlo cuesta horas. Usa siempre `Integer.compare`, `Double.compare` o el `compareTo` del tipo correspondiente.
+:::
 
 La volveremos a encontrar en 1.3, donde aparecerá en la firma de los métodos genéricos.
 
@@ -759,7 +955,7 @@ Sonda s3 = servicio -> Resultado.activo(servicio, Duration.ofMillis(50));
 
 ### 1.1.5 Jerarquías cerradas: clases selladas y *pattern matching*
 
-Volvamos a los servicios del monitor. Hay tres tipos (HTTP, DNS, puerto TCP) y cada uno se describe con datos distintos. El diseño tradicional sería una clase abstracta `Servicio` con tres subclases, cada una con sus campos, `equals`, `hashCode` y `toString` escritos a mano. Java moderno ofrece algo mejor: una **interfaz sellada** cuyas implementaciones son registros.
+Volvamos a los servicios del monitor. Hay tres tipos ([HTTP]{.glos}, [DNS]{.glos}, [puerto]{.glos data-termino="puerto"} [TCP]{.glos}) y cada uno se describe con datos distintos. El diseño tradicional sería una clase abstracta `Servicio` con tres subclases, cada una con sus campos, `equals`, `hashCode` y `toString` escritos a mano. Java moderno ofrece algo mejor: una **interfaz sellada** cuyas implementaciones son registros.
 
 ```java
 // Servicio.java
@@ -981,7 +1177,13 @@ Estos «ficheros fuente compactos» importan implícitamente los tipos más habi
 
 ### 1.1.6 Excepciones como parte del contrato
 
-Una excepción es la forma en que un método comunica que no ha podido cumplir su postcondición. Qué excepciones puede lanzar un método forma parte de su contrato tanto como sus parámetros y su tipo de retorno, y decidirlo bien es una cuestión de diseño.
+::: {#imp-excepcion .callout-important title="Excepción"}
+Una **excepción** es un objeto que representa una situación en la que un método **no ha podido hacer lo que prometía**. Cuando se produce, el método no devuelve un valor: *lanza* la excepción, su ejecución se interrumpe y el control salta al primer bloque de la cadena de llamadas preparado para atenderla.
+
+La idea de fondo es una separación de responsabilidades. Detectar el problema y saber qué hacer con él son cosas distintas y ocurren en lugares distintos del programa: el método que abre un fichero detecta que no existe, pero no sabe si eso es fatal o si hay una alternativa; eso lo sabe quien lo llamó. La excepción lleva la información del punto que la detecta al punto que puede decidir, sin que los métodos intermedios tengan que hacer nada.
+
+Por eso **qué excepciones lanza un método forma parte de su contrato**, tanto como sus parámetros y su tipo de retorno, y elegirlas bien es una cuestión de diseño y no un detalle de implementación. La alternativa —devolver un código de error o un valor especial como `-1` o `null`— obliga a comprobar el resultado de cada llamada, y quien olvide hacerlo continuará con datos inválidos sin enterarse.
+:::
 
 Java distingue dos familias. Las **excepciones comprobadas** (*checked*; subclases de `Exception` que no descienden de `RuntimeException`) obligan a quien llama al método a capturarlas o a declararlas con `throws`. Las **no comprobadas** (*unchecked*; subclases de `RuntimeException`) no obligan a nada. La regla de Bloch para elegir es útil [@bloch2018, ítems 70 y 71]: usa una excepción comprobada para condiciones **recuperables** de las que quien llama puede razonablemente hacer algo (un fichero que no existe, una conexión que se cierra), y una no comprobada para **errores de programación** (un argumento inválido, un índice fuera de rango, un estado ilegal) que no deben capturarse sino corregirse en el código. Las excepciones comprobadas tienen un coste real en legibilidad, especialmente con lambdas y streams, y en Java moderno la tendencia es usarlas con moderación.
 
@@ -1010,7 +1212,15 @@ public class ConfiguracionInvalidaException extends RuntimeException {
 
 El segundo constructor recibe la **causa**: cuando capturamos una excepción de bajo nivel (por ejemplo, `NumberFormatException` al leer el puerto) y lanzamos otra de más alto nivel, encadenarlas conserva el diagnóstico original. Perder la causa es uno de los errores más frustrantes de depurar.
 
-Leer un fichero de configuración es, además, la ocasión para el recurso más importante de la gestión de recursos en Java: **`try-with-resources`**. Cualquier objeto que implemente `AutoCloseable` (ficheros, sockets, conexiones a bases de datos) declarado en la cabecera del `try` se cierra automáticamente al salir del bloque, tanto si termina bien como si lanza una excepción:
+Leer un fichero de configuración es, además, la ocasión para el recurso más importante de la gestión de recursos en Java: **`try-with-resources`**. Cualquier objeto que implemente `AutoCloseable` (ficheros, sockets, conexiones a bases de datos) declarado en la cabecera del `try` se cierra automáticamente al salir del bloque, tanto si termina bien como si lanza una excepción.
+
+El lector devuelve un servicio por cada línea útil del fichero, así que necesitamos guardar un número indeterminado de ellos. Para eso usaremos una **lista**, la primera colección que aparece en el curso. De momento basta con esto:
+
+- `List<Servicio>` es una **secuencia ordenada** de elementos, todos del tipo escrito entre ángulos; a diferencia de un array, no hay que decidir de antemano cuántos caben.
+- `new ArrayList<Servicio>()` crea una lista vacía a la que se van añadiendo elementos con `add(...)`. `size()` dice cuántos hay, `isEmpty()` si está vacía, `get(i)` devuelve el elemento de la posición `i` (contando desde 0, como en un array), `getLast()` el último, y el `for (var x : lista)` la recorre entera.
+- `List.copyOf(lista)` devuelve una **copia inmutable**: quien la reciba puede leerla, pero no añadir ni quitar nada. Es la forma de aplicar a una colección lo que ya sabemos de la encapsulación (@imp-encapsulación): si devolviéramos la lista original, cualquiera podría modificarla a nuestras espaldas.
+
+El Tema 2 está dedicado a las colecciones: qué tipos hay, en qué se diferencian y cuánto cuesta cada operación. Aquí solo las usamos como almacén.
 
 ```java
 // LectorConfiguracion.java
@@ -1029,11 +1239,12 @@ public final class LectorConfiguracion {
 
     public static List<Servicio> leer(Path fichero) {
         var servicios = new ArrayList<Servicio>();
-        try (var lineas = Files.lines(fichero)) {          // el stream se cierra al salir
+        try (var lector = Files.newBufferedReader(fichero)) {   // se cierra al salir del try
+            String linea;
             int numero = 0;
-            for (var it = lineas.iterator(); it.hasNext(); ) {
+            while ((linea = lector.readLine()) != null) {
                 numero++;
-                var linea = it.next().strip();
+                linea = linea.strip();
                 if (linea.isEmpty() || linea.startsWith("#")) {
                     continue;
                 }
@@ -1077,25 +1288,27 @@ dns:uib.es
 tcp:mail.uib.es:25
 ```
 
-Fíjate en la traducción de excepciones: la `IOException` comprobada de `Files.lines` se convierte en `UncheckedIOException` (una clase estándar pensada justo para esto), y las `IllegalArgumentException` que lanzan los constructores de los registros o `Integer.parseInt` se envuelven en nuestra `ConfiguracionInvalidaException` con el número de línea. Quien llame a `leer` recibe excepciones que hablan en términos de configuración, no de entrada/salida ni de conversión de cadenas.
+`Files.newBufferedReader` abre el fichero para leerlo línea a línea; `readLine()` devuelve la siguiente o `null` cuando no quedan más, y el `try-with-resources` garantiza que el fichero se cierra aunque se lance una excepción a mitad de la lectura.
+
+Fíjate también en la traducción de excepciones: la `IOException` comprobada de `Files.newBufferedReader` se convierte en `UncheckedIOException` (una clase estándar pensada justo para esto), y las `IllegalArgumentException` que lanzan los constructores de los registros o `Integer.parseInt` se envuelven en nuestra `ConfiguracionInvalidaException` con el número de línea. Quien llame a `leer` recibe excepciones que hablan en términos de configuración, no de entrada/salida ni de conversión de cadenas.
 
 ::: {#wrn-stack-trace .callout-warning title="Leer un *stack trace*"}
 Cuando una excepción no se captura, la máquina virtual imprime la **traza de la pila** (*stack trace*). Aprender a leerla es la técnica de depuración más rentable que existe. Ejemplo, con un fichero que contiene `tcp:mail.uib.es:abc`:
 
 ```text
 Exception in thread "main" es.uib.prgava.tema1.monitor.ConfiguracionInvalidaException: Línea 3: For input string: "abc"
-    at es.uib.prgava.tema1.monitor.LectorConfiguracion.interpretar(LectorConfiguracion.java:50)
-    at es.uib.prgava.tema1.monitor.LectorConfiguracion.leer(LectorConfiguracion.java:25)
-    at es.uib.prgava.tema1.monitor.Principal.main(Principal.java:7)
+    at es.uib.prgava.tema1.monitor.LectorConfiguracion.interpretar(LectorConfiguracion.java:51)
+    at es.uib.prgava.tema1.monitor.LectorConfiguracion.leer(LectorConfiguracion.java:26)
+    at es.uib.prgava.tema1.monitor.Principal.main(Principal.java:9)
 Caused by: java.lang.NumberFormatException: For input string: "abc"
     at java.base/java.lang.NumberFormatException.forInputString(NumberFormatException.java:67)
     at java.base/java.lang.Integer.parseInt(Integer.java:662)
     at java.base/java.lang.Integer.parseInt(Integer.java:778)
-    at es.uib.prgava.tema1.monitor.LectorConfiguracion.interpretar(LectorConfiguracion.java:46)
+    at es.uib.prgava.tema1.monitor.LectorConfiguracion.interpretar(LectorConfiguracion.java:47)
     ... 2 more
 ```
 
-Léela así. (1) La primera línea dice **qué** excepción y **con qué mensaje**: aquí, nuestra excepción con el número de línea. (2) Las líneas `at` son la pila de llamadas en el momento del lanzamiento, **de la más interna a la más externa**: la primera es donde se lanzó; busca la primera que pertenezca a *tu* código (`LectorConfiguracion.java:50`, el `catch` que envuelve la excepción). (3) `Caused by` es la causa encadenada: la excepción original, con su propia pila; aquí revela que el problema real fue `Integer.parseInt`, llamado desde la línea 46. Las líneas de `java.base` son internas de la biblioteca: sáltalas y busca de nuevo la primera de tu código. (4) `... 2 more` indica que las líneas restantes coinciden con las de la traza anterior. Sin el encadenamiento de causas, el punto (3) no existiría y habría que adivinar por qué la línea 3 era inválida.
+Léela así. (1) La primera línea dice **qué** excepción y **con qué mensaje**: aquí, nuestra excepción con el número de línea. (2) Las líneas `at` son la pila de llamadas en el momento del lanzamiento, **de la más interna a la más externa**: la primera es donde se lanzó; busca la primera que pertenezca a *tu* código (`LectorConfiguracion.java:51`, el `catch` que envuelve la excepción). (3) `Caused by` es la causa encadenada: la excepción original, con su propia pila; aquí revela que el problema real fue `Integer.parseInt`, llamado desde la línea 47. Las líneas de `java.base` son internas de la biblioteca: sáltalas y busca de nuevo la primera de tu código. (4) `... 2 more` indica que las líneas restantes coinciden con las de la traza anterior. Sin el encadenamiento de causas, el punto (3) no existiría y habría que adivinar por qué la línea 3 era inválida.
 :::
 
 ::: {.callout-tip appearance="simple"}
@@ -1169,9 +1382,12 @@ public class MonitorV0 {
         }
         // 5. Informe final
         for (var servicio : servicios) {
-            long fallos = historial.stream()
-                    .filter(r -> r.servicio().equals(servicio) && r.esFallo())
-                    .count();
+            long fallos = 0;
+            for (var resultado : historial) {
+                if (resultado.servicio().equals(servicio) && resultado.esFallo()) {
+                    fallos++;
+                }
+            }
             System.out.println(servicio.nombre() + ": " + fallos + " fallos de " + rondas);
         }
     }
@@ -1316,12 +1532,12 @@ El ejemplo canónico de violación es la cadena de `if` sobre el tipo:
 // Fragmento: cerrado a la extensión
 static double area(Object figura) {
     if (figura instanceof Circulo c) return Math.PI * c.radio() * c.radio();
-    if (figura instanceof Rectangulo r) return r.base() * r.altura();
+    if (figura instanceof Cuadrado q) return q.lado() * q.lado();
     throw new IllegalArgumentException("Figura desconocida");
 }
 ```
 
-Añadir un triángulo obliga a modificar `area` y cualquier otro método con la misma cadena. Es la misma cadena de `instanceof` de @cau-instanceof-en-cadena. Con una interfaz `Figura` y un método `area()` polimórfico (como en 1.1), añadir un triángulo es añadir una clase.
+Añadir un anillo obliga a modificar `area` y cualquier otro método con la misma cadena. Es exactamente la cadena de `instanceof` de @cau-instanceof-en-cadena. Con la clase abstracta `Figura` y un método `area()` polimórfico (como en 1.1), añadir un anillo es añadir una clase y nada más.
 
 Para el monitor, las políticas de alerta son el caso perfecto. Tres implementaciones:
 
@@ -1359,9 +1575,10 @@ public final class FallosConsecutivos implements PoliticaDeAlerta {
     @Override
     public boolean debeAlertar(List<Resultado> historial) {
         if (historial.size() < minimo) return false;
-        return historial.subList(historial.size() - minimo, historial.size())
-                        .stream()
-                        .allMatch(Resultado::esFallo);
+        for (int i = historial.size() - minimo; i < historial.size(); i++) {
+            if (!historial.get(i).esFallo()) return false;   // uno bueno rompe la racha
+        }
+        return true;
     }
 
     @Override
@@ -1388,12 +1605,15 @@ public final class LatenciaExcesiva implements PoliticaDeAlerta {
     @Override
     public boolean debeAlertar(List<Resultado> historial) {
         if (historial.size() < muestras) return false;
-        var recientes = historial.subList(historial.size() - muestras, historial.size());
-        long totalMs = recientes.stream()
-                .filter(r -> !r.esFallo())
-                .mapToLong(r -> r.latencia().toMillis())
-                .sum();
-        long activos = recientes.stream().filter(r -> !r.esFallo()).count();
+        long totalMs = 0;                 // suma de latencias de las muestras que respondieron
+        long activos = 0;                 // cuántas respondieron
+        for (int i = historial.size() - muestras; i < historial.size(); i++) {
+            var resultado = historial.get(i);
+            if (!resultado.esFallo()) {
+                totalMs += resultado.latencia().toMillis();
+                activos++;
+            }
+        }
         return activos > 0 && totalMs / activos > umbral.toMillis();
     }
 
@@ -1414,7 +1634,7 @@ En 1.1 elogiamos el `switch` exhaustivo sobre una interfaz sellada (@tip-tipos-a
 
 Es la definición formal de lo que en @imp-composicion llamábamos «relación es-un sustituible» [@liskov1994]. El énfasis está en el **comportamiento**: no basta con que la subclase compile donde se espera la superclase; debe respetar su contrato. En términos de diseño por contrato, una subclase no puede **fortalecer las precondiciones** (exigir más), no puede **debilitar las postcondiciones** (garantizar menos) y debe **preservar los invariantes** de la superclase.
 
-El ejemplo canónico es engañosamente simple. Matemáticamente, todo cuadrado es un rectángulo; en un diseño mutable, `Cuadrado extends Rectangulo` es un error:
+El ejemplo canónico es engañosamente simple. Matemáticamente, todo cuadrado es un rectángulo; en un diseño mutable, `Cuadrado extends Rectangulo` es un error (nada que ver con el `Cuadrado` inmutable de 1.1: el de aquí es deliberadamente mutable, que es justamente de donde viene el problema):
 
 ```java
 // Fragmento: violación del principio L
@@ -1502,7 +1722,14 @@ package es.uib.prgava.tema1.monitor;
 public interface RepositorioResultados extends LectorResultados, EscritorResultados { }
 ```
 
-`RepositorioResultados` reúne ambos roles para quien necesite los dos (como `Monitor`), pero el generador de informes dependerá solo de `LectorResultados`. Una implementación en memoria, suficiente para este tema:
+`RepositorioResultados` reúne ambos roles para quien necesite los dos (como `Monitor`), pero el generador de informes dependerá solo de `LectorResultados`.
+
+La implementación guarda un historial **por cada servicio**, y para eso una lista no basta: necesitamos buscar por servicio. Aparecen aquí las otras dos colecciones básicas, con lo justo para leer el código:
+
+- `Map<Servicio, List<Resultado>>` es un **diccionario**: asocia a cada **clave** (un `Servicio`) un **valor** (su lista de resultados). `new HashMap<>()` crea uno vacío; `get(clave)` devuelve el valor asociado o `null` si la clave no está, `getOrDefault(clave, x)` devuelve `x` en ese caso, y `keySet()` da todas las claves. Que la búsqueda funcione depende de `equals` y `hashCode` de la clave (@imp-identidad-vs-igualdad): por eso los servicios son registros, que los traen escritos.
+- `Set<Servicio>` es un **conjunto**: elementos sin repetir y sin orden garantizado. Es lo que devuelve `keySet()`, y es el tipo adecuado para «qué servicios hay», donde preguntar por el tercero no significa nada.
+
+Una implementación en memoria, suficiente para este tema:
 
 ```java
 // RepositorioEnMemoria.java
@@ -1541,7 +1768,7 @@ public final class RepositorioEnMemoria implements RepositorioResultados {
 }
 ```
 
-Observa que `historial` devuelve una **copia inmutable**: el repositorio no expone su lista interna, y quien reciba el historial no puede modificar el estado del repositorio. Es la encapsulación de 1.1 aplicada a una colección. `computeIfAbsent` es el idioma para «obtener la lista de esta clave, creándola si no existe».
+Observa que `historial` devuelve una **copia inmutable**: el repositorio no expone su lista interna, y quien reciba el historial no puede modificar el estado del repositorio. Es la encapsulación de 1.1 aplicada a una colección (@imp-encapsulación). `computeIfAbsent(clave, f)` es el idioma para «dame la lista de esta clave, creándola con `f` si todavía no existe»; sin él habría que escribir a mano la comprobación de `null`, la creación y la inserción, tres líneas en las que es fácil equivocarse.
 
 #### D: principio de inversión de dependencias
 
@@ -1686,14 +1913,48 @@ classDiagram
 
 **En el monitor.** Ya lo hemos construido: `PoliticaDeAlerta` es la estrategia y `Monitor` el contexto. Merece la pena señalar que en Java moderno una estrategia sin estado ni configuración no necesita clase: es una lambda. `FalloSimple` podría escribirse como `PoliticaDeAlerta simple = h -> !h.isEmpty() && h.getLast().esFallo();`. Las clases con nombre siguen siendo preferibles cuando la estrategia tiene parámetros (`FallosConsecutivos(2)`), cuando conviene un `toString` descriptivo o cuando la lógica ocupa más de dos líneas. La biblioteca estándar está llena de estrategias: `Comparator` es la estrategia de ordenación de `List.sort`, y `Runnable` la estrategia de trabajo de un hilo.
 
-Las estrategias se **combinan** con facilidad. Con métodos `default` en la interfaz obtenemos composición lógica sin tocar ninguna implementación:
+Las estrategias se **combinan**: si queremos alertar cuando se cumpla una política *o* la otra, no hace falta tocar ninguna de las existentes, basta con una más que las tenga a las dos (composición, @imp-composicion-concepto):
 
 ```java
-// PoliticaDeAlerta.java (con combinadores)
+// CualquieraDeDos.java
 package es.uib.prgava.tema1.monitor;
 
 import java.util.List;
 
+/** Alerta si alerta cualquiera de las dos políticas que recibe. */
+public final class CualquieraDeDos implements PoliticaDeAlerta {
+    private final PoliticaDeAlerta primera;
+    private final PoliticaDeAlerta segunda;
+
+    public CualquieraDeDos(PoliticaDeAlerta primera, PoliticaDeAlerta segunda) {
+        this.primera = primera;
+        this.segunda = segunda;
+    }
+
+    @Override
+    public boolean debeAlertar(List<Resultado> historial) {
+        return primera.debeAlertar(historial) || segunda.debeAlertar(historial);
+    }
+
+    @Override
+    public String toString() { return primera + " o " + segunda; }
+}
+```
+
+Fíjate en que `CualquieraDeDos` **es** una política y **tiene** dos políticas, así que puede recibir como argumento otra `CualquieraDeDos`: la combinación se encadena sin límite. Y lo hace sin conocer ninguna implementación concreta, solo la interfaz.
+
+```java
+// Fragmento
+PoliticaDeAlerta politica = new CualquieraDeDos(
+        new FallosConsecutivos(3),
+        new LatenciaExcesiva(Duration.ofMillis(500), 5));
+```
+
+::: {.callout-note collapse="true" title="Ampliación: combinadores con métodos `default`"}
+Escribir una clase por cada forma de combinar (`CualquieraDeDos`, `AmbasALaVez`…) funciona, pero la biblioteca estándar resuelve esto de otra manera: pone la combinación **en la propia interfaz**, como métodos `default` que devuelven una lambda.
+
+```java
+// Fragmento: variante avanzada, no es la que usa el proyecto
 @FunctionalInterface
 public interface PoliticaDeAlerta {
     boolean debeAlertar(List<Resultado> historial);
@@ -1701,14 +1962,11 @@ public interface PoliticaDeAlerta {
     default PoliticaDeAlerta o(PoliticaDeAlerta otra) {
         return h -> this.debeAlertar(h) || otra.debeAlertar(h);
     }
-
-    default PoliticaDeAlerta y(PoliticaDeAlerta otra) {
-        return h -> this.debeAlertar(h) && otra.debeAlertar(h);
-    }
 }
 ```
 
-Ahora `new FallosConsecutivos(3).o(new LatenciaExcesiva(Duration.ofMillis(500), 5))` es una política nueva sin escribir una clase nueva. Es exactamente el diseño de `Predicate.and`/`or` en la biblioteca estándar, que veremos en 1.3.
+El método `o` no devuelve un `boolean`: devuelve **otra política**, escrita como lambda, que al ejecutarse consultará a las dos originales. Con eso, `new FallosConsecutivos(3).o(new LatenciaExcesiva(...))` construye la política combinada en una línea. Es exactamente el diseño de `Predicate.and` y `Predicate.or` de la biblioteca estándar, y lo entenderás mejor después de 1.3, cuando las lambdas dejen de ser una curiosidad sintáctica.
+:::
 
 **Cuándo no usarlo.** Cuando solo hay una variante y no hay indicios de que vaya a haber más; una interfaz con una única implementación es abstracción sin beneficio. Añade la interfaz cuando aparezca la segunda variante (o cuando necesites la primera para probar, como en 1.4).
 
@@ -1792,7 +2050,24 @@ Las fábricas estáticas de `Resultado` (`activo`, `degradado`, `caido`) que esc
 
 **Estructura.** Un objeto auxiliar, el *constructor* (*builder*), acumula los parámetros mediante métodos con nombre que devuelven el propio *builder* (interfaz fluida), y un método final `build()` valida y crea el objeto [@bloch2018, ítem 2].
 
-**En el monitor.** La configuración del monitor crece: intervalo entre rondas, tiempo de espera de las sondas, número de reintentos, umbral de latencia, lista de servicios. La modelamos como registro inmutable con un *builder* anidado:
+**En el monitor.** La configuración del monitor crece: intervalo entre rondas, [tiempo de espera]{.glos} (*timeout*) de las sondas, número de reintentos, umbral de latencia, lista de servicios. Con un constructor, crearla sería `new ConfiguracionMonitor(Duration.ofSeconds(10), Duration.ofSeconds(2), 3, Duration.ofMillis(300), servicios)`, una fila de valores en la que nadie recuerda cuál es cuál. Con un *builder*, se lee como una frase:
+
+```java
+// Fragmento
+var configuracion = ConfiguracionMonitor.builder()
+        .intervalo(Duration.ofSeconds(10))
+        .reintentos(3)
+        .servicio(Servicio.desde("https://www.uib.es"))
+        .servicio(Servicio.desde("tcp:mail.uib.es:25"))
+        .build();
+```
+
+Cada método deja anotado un valor y **devuelve el propio *builder***, que es lo que permite encadenar las llamadas; `build()` construye el objeto definitivo. Los parámetros no indicados toman su valor por defecto y el orden no importa.
+
+**Cuándo no usarlo.** Con tres o menos parámetros, todos obligatorios, un constructor o una fábrica estática es más claro. El *builder* cuesta unas veinte líneas; empieza a compensar a partir de cuatro o cinco parámetros o cuando varios son opcionales.
+
+::: {.callout-note collapse="true" title="Ampliación: el código completo del *builder*"}
+La configuración es un registro inmutable y el *builder* una clase anidada `static` con constructor privado, de modo que solo se obtiene a través de `ConfiguracionMonitor.builder()`. La validación no se duplica: sigue estando en un único sitio, el constructor compacto del registro, al que `build()` delega.
 
 ```java
 // ConfiguracionMonitor.java
@@ -1847,22 +2122,7 @@ public record ConfiguracionMonitor(Duration intervalo, Duration tiempoDeEspera,
     }
 }
 ```
-
-Su uso se lee como una frase:
-
-```java
-// Fragmento
-var configuracion = ConfiguracionMonitor.builder()
-        .intervalo(Duration.ofSeconds(10))
-        .reintentos(3)
-        .servicio(Servicio.desde("https://www.uib.es"))
-        .servicio(Servicio.desde("tcp:mail.uib.es:25"))
-        .build();
-```
-
-Los parámetros no indicados toman el valor por defecto; el orden no importa; y la validación sigue estando en un único sitio, el constructor compacto del registro, al que `build()` delega. Fíjate en que el `Builder` es una clase anidada `static` con constructor privado: solo se obtiene a través de `ConfiguracionMonitor.builder()`.
-
-**Cuándo no usarlo.** Con tres o menos parámetros, todos obligatorios, un constructor o una fábrica estática es más claro. El *builder* cuesta unas veinte líneas; empieza a compensar a partir de cuatro o cinco parámetros o cuando varios son opcionales.
+:::
 
 #### Observer
 
@@ -2168,7 +2428,10 @@ public final class SondaSimulada extends SondaBase {
 
 La sonda del Tema 4 extenderá `SondaBase` e implementará `medir` abriendo un socket; la clasificación y el contrato con `Monitor` ya están resueltos.
 
-Ahora bien, en Java moderno hay que preguntarse si la herencia es necesaria. El mismo esqueleto puede expresarse con **composición y una función**:
+Este es, por fin, el uso legítimo de la herencia del que hablábamos en @tip-clase-base-fragil: `SondaBase` está *diseñada* para ser extendida y dice exactamente qué se puede redefinir (`medir`) y qué no (`sondear`, que es `final`).
+
+::: {.callout-note collapse="true" title="Ampliación: el mismo esqueleto sin herencia"}
+En Java moderno conviene preguntarse si la herencia es necesaria. Cuando el paso variable es **una sola** función, el esqueleto puede expresarse con composición: un método que recibe la medición como argumento y devuelve una sonda ya montada, sin jerarquía de clases.
 
 ```java
 // Fragmento: alternativa a Template Method con una función
@@ -2181,7 +2444,8 @@ static Sonda sondaDesde(Function<Servicio, Optional<Duration>> medidor, Duration
 }
 ```
 
-Cuando el paso variable es **una** función pura, esta forma es más ligera y no impone jerarquía. Template Method sigue siendo preferible cuando hay **varios** pasos variables que comparten estado, cuando las subclases necesitan un lugar donde guardar recursos (el socket, en el Tema 4) o cuando se quiere que la relación quede documentada como tipo. Lo importante es reconocer que son dos soluciones al mismo problema y elegir con criterio, no por costumbre.
+`Function<Servicio, Optional<Duration>>` es el tipo de «algo que recibe un servicio y devuelve una latencia, si la hay»; lo veremos con detalle en 1.3. Template Method sigue siendo preferible cuando hay **varios** pasos variables que comparten estado, cuando las subclases necesitan un lugar donde guardar recursos (el socket, en el Tema 4) o cuando se quiere que la relación quede documentada como tipo. Lo importante es reconocer que son dos soluciones al mismo problema y elegir con criterio, no por costumbre.
+:::
 
 **Cuándo no usarlo.** Cuando el paso variable es una sola función sin estado (usa una lambda), y cuando las subclases empiezan a redefinir ganchos para saltarse pasos del esqueleto: eso indica que el algoritmo no era realmente común.
 
@@ -2210,10 +2474,10 @@ ultimo.ifPresentOrElse(
         () -> System.out.println("sin datos"));
 
 // Mejor aún cuando se quiere un valor: transformar y dar un valor por defecto
-Estado estado = ultimo.map(Resultado::estado).orElse(Estado.CAIDO);
+Estado estado = ultimo.map(r -> r.estado()).orElse(Estado.CAIDO);
 ```
 
-`map`, `filter`, `flatMap`, `orElse`, `orElseGet` y `orElseThrow` permiten encadenar el tratamiento sin ramas explícitas; los verás de nuevo en 1.3, porque `Optional` es, conceptualmente, un stream de cero o un elemento.
+`map` aplica la operación **solo si hay valor** y devuelve otro `Optional`; `orElse` lo desenvuelve dando un valor de repuesto para el caso vacío. Entre los dos sustituyen al `if`: no hay ninguna rama escrita, pero los dos casos están tratados. Hay más métodos de la misma familia (`filter`, `orElseGet`, `orElseThrow`) y volverán en 1.3.
 
 ::: {#cau-optional-mal-usado .callout-caution title="`Optional` como campo o como parámetro"}
 `Optional` se diseñó **solo como tipo de retorno** [@bloch2018, ítem 55]. Usarlo como tipo de un campo obliga a envolver y desenvolver constantemente y no funciona con la serialización; usarlo como parámetro fuerza a quien llama a escribir `Optional.of(x)` o `Optional.empty()` en lugar de, simplemente, sobrecargar el método. Tampoco lo uses para colecciones: una lista vacía ya expresa la ausencia; `Optional<List<T>>` es redundante. Y no llames nunca a `get()` sin haber comprobado antes `isPresent()`; si te encuentras escribiendo esa pareja, hay un `map`/`orElse` que lo expresa mejor.
@@ -2240,6 +2504,10 @@ La tabla siguiente resume el recorrido de esta sección como una guía de diagn�
 El monitor ha pasado de una clase de sesenta líneas a una docena de clases pequeñas. No es gratis: hay más ficheros y hay que saber cómo se conectan. Lo que se gana es que cada uno de los cambios que enumeramos tras `MonitorV0` (sonda real, correo, otra política, base de datos, pruebas) es ahora una clase nueva y una línea en `Principal`. En la siguiente sección explotaremos el historial que el repositorio acumula para producir informes, y para ello necesitamos las dos herramientas que faltan: los genéricos, que hacen reutilizables las colecciones, y los streams, que hacen expresivas las consultas sobre ellas.
 
 ## 1.3. Genericidad en Java y Stream API
+
+Esta sección tiene dos mitades y conviene saberlo antes de entrar. La primera trata de los **genéricos**, y va de lo que ya vienes haciendo sin darte cuenta —escribir `List<Servicio>`— a escribir tus propias clases y métodos genéricos. La segunda trata de las **lambdas y los streams**, que son la forma de expresar «qué quiero de esta colección» en lugar de «cómo recorrerla».
+
+Hay partes de los genéricos que son maquinaria fina del compilador. Las encontrarás en bloques de **Ampliación** plegados: no hacen falta para escribir buen código en esta asignatura y puedes dejarlas para una segunda lectura, pero explican errores de compilación que, cuando aparecen, resultan incomprensibles sin ellas.
 
 ### 1.3.1 Por qué existen los genéricos
 
@@ -2299,17 +2567,17 @@ Un parámetro de tipo puede **acotarse** para exigir que el tipo real cumpla un 
 // Utilidades.java
 package es.uib.prgava.tema1.genericos;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 public final class Utilidades {
     private Utilidades() { }
 
-    public static <T extends Comparable<? super T>> Optional<T> maximo(Collection<? extends T> elementos) {
+    public static <T extends Comparable<T>> Optional<T> maximo(List<T> elementos) {
         T mejor = null;
-        for (T e : elementos) {
-            if (mejor == null || e.compareTo(mejor) > 0) {
-                mejor = e;
+        for (T elemento : elementos) {
+            if (mejor == null || elemento.compareTo(mejor) > 0) {
+                mejor = elemento;
             }
         }
         return Optional.ofNullable(mejor);
@@ -2317,7 +2585,7 @@ public final class Utilidades {
 }
 ```
 
-`<T extends Comparable<? super T>>` se lee «T es un tipo que sabe compararse con T o con algún supertipo de T». La cota permite llamar a `compareTo` dentro del método; sin ella, `e` sería un `Object` y no tendría ese método. El `? super T` es un comodín que explicaremos enseguida; de momento observa que `maximo(List.of(3, 1, 2))` devuelve `Optional[3]`, y `maximo(listaDeDuraciones)` devuelve la mayor duración, con un único método comprobado para ambos.
+`<T extends Comparable<T>>` se lee «T es un tipo que sabe compararse con otro T», y ahí reaparece la interfaz `Comparable` de 1.1.4. La cota es lo que permite llamar a `compareTo` dentro del método: sin ella, `elemento` sería un `Object` y no tendría ese método. Con ella, `maximo(List.of(3, 1, 2))` devuelve `Optional[3]` y `maximo(listaDeDuraciones)` devuelve la mayor duración, con un único método comprobado para ambos casos.
 
 Los genéricos de la biblioteca estándar que más usarás son el **marco de colecciones** (`List<E>`, `Set<E>`, `Map<K, V>`, `Deque<E>`) y las interfaces funcionales de `java.util.function`, que veremos más adelante. Cuando diseñes una clase propia, la pregunta es: ¿tiene esta clase un comportamiento que no depende de qué tipo concreto guarda? Si sí, es candidata a ser genérica. Ejemplo: una ventana deslizante que conserva los últimos *n* elementos, útil para políticas de alerta que solo miran el pasado reciente y que no tiene ninguna razón para saber qué guarda:
 
@@ -2325,26 +2593,24 @@ Los genéricos de la biblioteca estándar que más usarás son el **marco de col
 // VentanaDeslizante.java
 package es.uib.prgava.tema1.genericos;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.ArrayList;
 import java.util.List;
 
 /** Conserva como máximo los últimos {@code capacidad} elementos añadidos, en orden de inserción. */
 public final class VentanaDeslizante<T> {
     private final int capacidad;
-    private final Deque<T> elementos;
+    private final List<T> elementos = new ArrayList<>();
 
     public VentanaDeslizante(int capacidad) {
         if (capacidad < 1) throw new IllegalArgumentException("capacidad ≥ 1");
         this.capacidad = capacidad;
-        this.elementos = new ArrayDeque<>(capacidad);
     }
 
     public void anadir(T elemento) {
         if (elementos.size() == capacidad) {
-            elementos.removeFirst();
+            elementos.remove(0);           // sale el más antiguo
         }
-        elementos.addLast(elemento);
+        elementos.add(elemento);           // entra el más nuevo, al final
     }
 
     public List<T> elementos() {
@@ -2356,6 +2622,12 @@ public final class VentanaDeslizante<T> {
     }
 }
 ```
+
+Observa que la clase no menciona `Resultado` por ninguna parte: sirve igual para una ventana de resultados, de latencias o de mensajes. Eso es lo que aporta el parámetro `<T>`.
+
+::: {.callout-tip appearance="simple"}
+`elementos.remove(0)` obliga a desplazar todos los demás una posición, así que esta implementación no es la más eficiente posible. Es la más sencilla de leer, que es lo que importa ahora; en el Tema 2 verás qué estructura de datos hace lo mismo sin desplazar nada y por qué.
+:::
 
 ### 1.3.3 Varianza y comodines
 
@@ -2390,7 +2662,16 @@ public final class Varianza {
 Sea `S` subtipo de `T`. Un constructor de tipos `C` es **covariante** si `C<S>` es subtipo de `C<T>` (la relación se conserva), **contravariante** si `C<T>` es subtipo de `C<S>` (se invierte) e **invariante** si no hay relación. La covarianza es segura para tipos de los que solo se **lee** (un productor); la contravarianza, para tipos en los que solo se **escribe** (un consumidor); y un tipo del que se lee y se escribe, como `List<E>`, solo puede ser invariante sin perder la seguridad. Los *arrays* de Java son covariantes y se leen y escriben, de ahí que necesiten la comprobación en tiempo de ejecución que produce `ArrayStoreException`. Los genéricos, invariantes por defecto, delegan en los comodines la elección de varianza en cada uso.
 :::
 
-La invarianza es segura pero demasiado restrictiva: un método que solo *lee* de una lista de resultados debería aceptar también una lista de un subtipo. Para eso están los **comodines** (*wildcards*), que introducen varianza **en el punto de uso**:
+La invarianza es segura pero demasiado restrictiva: un método que solo *lee* de una lista de resultados debería aceptar también una lista de un subtipo, y con la invarianza a secas no puede. Para eso están los **comodines** (*wildcards*), esos signos de interrogación que habrás visto en firmas de la biblioteca: `List<? extends T>` y `List<? super T>` piden «una lista de algún subtipo de `T`» y «de algún supertipo de `T`», y permiten elegir la varianza en cada uso. La regla para decidir cuál va en cada sitio cabe en una línea:
+
+::: {#imp-pecs .callout-important title="PECS: *producer extends, consumer super*"}
+Regla de Bloch para decidir el comodín [@bloch2018, ítem 31]: si un parámetro **produce** valores de tipo `T` para tu método (lees de él), decláralo `? extends T`; si **consume** valores de tipo `T` (escribes en él), decláralo `? super T`; si hace las dos cosas, no uses comodín.
+
+Los comodines van en los **parámetros** de los métodos, casi nunca en los tipos de retorno: devolver `List<? extends Resultado>` solo obliga a quien llama a lidiar con el comodín. La firma de `Collections.copy(List<? super T> dest, List<? extends T> src)` es PECS al pie de la letra.
+:::
+
+::: {.callout-note collapse="true" title="Ampliación: qué se puede hacer con cada comodín"}
+El detalle de por qué la regla es esa:
 
 - `List<? extends T>`: una lista de *algún* subtipo de `T`, desconocido. Se puede **leer** de ella (lo que salga es al menos un `T`), pero no se puede **añadir** nada salvo `null` (no sabemos qué subtipo exacto admite). Es una vista **covariante**: sirve para **productores**.
 - `List<? super T>`: una lista de *algún* supertipo de `T`. Se puede **añadir** un `T` (cabe en cualquier supertipo), pero al **leer** solo se obtiene `Object`. Es una vista **contravariante**: sirve para **consumidores**.
@@ -2428,13 +2709,16 @@ public final class Copias {
 
 Sin comodines, `copiar(Collection<T>, Collection<T>)` obligaría a que ambas listas fueran exactamente del mismo tipo, y `copiar(enteros, numeros)` no compilaría. Con ellos, el método acepta cualquier combinación segura y rechaza las inseguras.
 
-::: {#imp-pecs .callout-important title="PECS: *producer extends, consumer super*"}
-Regla de Bloch para decidir el comodín [@bloch2018, ítem 31]: si un parámetro **produce** valores de tipo `T` para tu método (lees de él), decláralo `? extends T`; si **consume** valores de tipo `T` (escribes en él), decláralo `? super T`; si hace las dos cosas, no uses comodín. Los comodines van en los **parámetros** de los métodos, casi nunca en los tipos de retorno: devolver `List<? extends Resultado>` solo obliga a quien llama a lidiar con el comodín. La firma de `Collections.copy(List<? super T> dest, List<? extends T> src)` es PECS al pie de la letra, y `Comparable<? super T>` en `maximo` es PECS también: el comparador *consume* elementos.
+Una aplicación que ya has visto: la biblioteca declara `maximo` (su equivalente, `Collections.max`) como `<T extends Comparable<? super T>>`, no como `<T extends Comparable<T>>`. El motivo es PECS: el `compareTo` *consume* elementos, así que basta con que `T` sepa compararse con algún supertipo suyo. Nuestra versión simplificada funciona con cualquier tipo razonable; la de la biblioteca acepta además jerarquías donde la comparación se hereda.
 :::
 
 ### 1.3.4 Borrado de tipos
 
-Los genéricos se implementan en Java mediante **borrado** (*type erasure*): el compilador comprueba los tipos y luego los elimina; en tiempo de ejecución, `List<Resultado>` y `List<String>` son la misma clase, `List`. Fue la forma de introducir genéricos en 2004 sin romper la compatibilidad con el código y las bibliotecas existentes, y tiene consecuencias que conviene conocer porque explican varios errores de compilación desconcertantes:
+Los genéricos se implementan en Java mediante **borrado** (*type erasure*): el compilador comprueba los tipos y luego los elimina; en tiempo de ejecución, `List<Resultado>` y `List<String>` son la misma clase, `List`. Fue la forma de introducir genéricos en 2004 sin romper la compatibilidad con el código y las bibliotecas existentes.
+
+En la práctica esto te afectará poco, pero explica un puñado de errores de compilación que, sin saberlo, resultan incomprensibles: no se puede crear un *array* de `T`, no se puede preguntar `instanceof List<String>` y no se pueden sobrecargar dos métodos que solo difieran en el argumento de tipo. Si alguna vez te topas con uno, la explicación está aquí:
+
+::: {.callout-note collapse="true" title="Ampliación: qué impide exactamente el borrado"}
 
 ```java
 // Fragmento: lo que el borrado impide
@@ -2451,7 +2735,6 @@ static void sobrecarga(List<Integer> l) { }      // error: ambas se borran a sob
 
 Lo que sí se puede es preguntar `o instanceof List<?>`, porque no afirma nada sobre el tipo de elementos. Cuando de verdad se necesita el tipo en tiempo de ejecución (para crear un *array* o para deserializar), el idioma es pasar un **testigo de tipo** (*type token*).
 
-::: {.callout-note collapse="true" title="Ampliación: testigos de tipo"}
 Un objeto `Class<T>` conserva en tiempo de ejecución el tipo que el borrado elimina, y permite hacer lo que el genérico solo no puede:
 
 ```java
@@ -2544,7 +2827,9 @@ public final class Composicion {
 }
 ```
 
-`PoliticaDeAlerta.o` y `PoliticaDeAlerta.y`, que escribimos en 1.2, son exactamente `Predicate.or` y `Predicate.and` para nuestro tipo. De hecho, `PoliticaDeAlerta` podría haberse declarado como `Predicate<List<Resultado>>`; la interfaz propia se justifica porque tiene nombre de dominio, documentación y un `toString` útil, no porque haga nada distinto.
+Las dos últimas líneas usan ya un *stream*, que es lo que viene a continuación; de momento léelas como «de estos resultados, quédate con los problemáticos y dame su etiqueta».
+
+Vuelve ahora un momento a 1.2. La clase `CualquieraDeDos` que escribimos allí para combinar dos políticas de alerta es, exactamente, `Predicate.or` aplicado a nuestro tipo: veinte líneas para lo que la biblioteca resuelve con un método `default`. De hecho, `PoliticaDeAlerta` podría haberse declarado como `Predicate<List<Resultado>>` y nos habríamos ahorrado la clase; la interfaz propia se justifica porque tiene nombre de dominio, documentación y un `toString` útil, no porque haga nada distinto. Reconocer que un tipo tuyo *es* una interfaz funcional de la biblioteca —aunque decidas no declararlo así— es lo que te permite reutilizar sus combinadores en lugar de reinventarlos.
 
 ### 1.3.6 La Stream API
 
@@ -2566,6 +2851,8 @@ flowchart LR
 
 Lo que distingue un *pipeline* de una cadena de bucles no es solo la brevedad. Como las operaciones intermedias son perezosas, el stream procesa los elementos **uno a uno a través de toda la cadena**, no etapa a etapa: el primer elemento pasa por `filter`, luego por `map`, luego por `sorted`, y solo entonces entra el segundo. Con `limit(3)` al final, el stream deja de pedir elementos a la fuente en cuanto tiene tres, aunque la fuente sea infinita.
 
+Las dos tablas que siguen son material de consulta, no de memorización: sirven para saber qué existe y volver a mirarlo cuando haga falta. Lo que sí hay que entender es el ejemplo que viene después.
+
 Las operaciones intermedias más usadas, con su tipo:
 
 | Operación | Firma (simplificada) | Efecto |
@@ -2581,7 +2868,7 @@ Las operaciones intermedias más usadas, con su tipo:
 
 Y los **colectores** (`Collectors`), que dan forma al resultado de `collect`: `toList()` y `toSet()`; `toMap(clave, valor)`; `joining(separador)` para cadenas; `groupingBy(clasificador)` para un `Map<K, List<T>>`, opcionalmente con un colector *aguas abajo* (`counting()`, `averagingLong(...)`, `mapping(...)`) para resumir cada grupo; `partitioningBy(predicado)` para un `Map<Boolean, List<T>>`; y `summarizingLong` para obtener recuento, suma, media, mínimo y máximo de una vez.
 
-Todo esto se entiende mejor con el monitor. El repositorio acumula un historial, y queremos informes: disponibilidad de cada servicio, recuento por estado, los últimos fallos, latencia media, y un resumen ordenado de peor a mejor. Es exactamente el tipo de consulta para el que se diseñaron los streams, y depende solo de `LectorResultados` (principio I):
+Todo esto se entiende mejor con el monitor. El repositorio acumula un historial, y queremos informes: [disponibilidad]{.glos} (*availability*) de cada servicio, recuento por estado, los últimos fallos, [latencia]{.glos} media, y un resumen ordenado de peor a mejor. Es exactamente el tipo de consulta para el que se diseñaron los streams, y depende solo de `LectorResultados` (principio I):
 
 ```java
 // Informes.java
@@ -2751,7 +3038,13 @@ Una prueba rápida de legibilidad: si al leer el *pipeline* de arriba abajo pued
 
 Hasta ahora hemos comprobado que el monitor funciona ejecutando `Principal` y mirando la consola. Eso tiene tres problemas. No es **repetible**: la próxima vez que cambies algo tendrás que volver a mirar, y no recordarás qué salida era la correcta. No es **preciso**: la salida mezcla el comportamiento de la sonda, la política, el repositorio y el notificador, y si algo va mal no sabes cuál de ellos falla. Y no es **automático**: nadie lo ejecutará por ti antes de cada entrega.
 
-Una **prueba unitaria** (*unit test*) resuelve los tres: es un programa que ejercita **una unidad** de código (una clase o un método) **aislada** de las demás, comprueba su resultado contra el esperado y lo hace de forma **determinista**, sin depender de la red, del reloj, de ficheros ni de números aleatorios. Se escribe una vez y se ejecuta miles de veces, en tu máquina y en el servidor de integración continua.
+::: {#imp-prueba-unitaria .callout-important title="Prueba unitaria"}
+Una **prueba unitaria** (*unit test*) es un programa que ejercita **una unidad** de código —una clase o un método— **aislada** de las demás, compara su resultado con el esperado y falla si no coinciden. Es un concepto independiente del lenguaje y del marco de pruebas que se use.
+
+Tres propiedades la definen. Es **automática**: no hay que mirar una salida ni interpretar nada, la prueba se pronuncia sola. Es **aislada**: prueba una pieza, de modo que cuando falla ya sabes cuál. Y es **determinista**: da siempre el mismo resultado, lo que obliga a que no dependa de la red, del reloj, de ficheros ni de números aleatorios —y eso, como veremos, es una exigencia sobre el **diseño** del código probado, no sobre la prueba.
+
+Se escribe una vez y se ejecuta miles de veces, en tu máquina y en el servidor de integración continua. Su valor no está en encontrar el error de hoy, sino en avisarte el día que un cambio rompa algo que funcionaba.
+:::
 
 Las pruebas cambian, además, la forma de escribir código. La guía docente de esta asignatura describe el trabajo con asistentes de generación de código como un ciclo de **especificar, generar y verificar**; las pruebas unitarias son la forma ejecutable de las dos puntas de ese ciclo. Especificar qué debe hacer `FallosConsecutivos(2)` es escribir la prueba que lo comprueba; verificar que el código (lo hayas escrito tú o un copiloto) hace lo que debe es ejecutarla. Kent Beck formalizó este orden como **desarrollo dirigido por pruebas** (*test-driven development*, TDD): escribir primero la prueba, ver que falla, escribir el mínimo código que la hace pasar, y limpiar [@beck2002]. No es obligatorio seguirlo al pie de la letra, pero su idea central (que la prueba es la especificación) es la que adoptamos.
 
@@ -2988,18 +3281,16 @@ Los dos tipos que más usarás: un **fingido** (*fake*) es una implementación f
 package es.uib.prgava.tema1.monitor;
 
 import java.time.Duration;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
 /** Devuelve, en orden, los estados indicados; repite el último indefinidamente. */
 final class SondaFalsa implements Sonda {
-    private final Deque<Estado> pendientes;
-    private Estado ultimo;
+    private final List<Estado> estados;
+    private int siguiente = 0;
 
     SondaFalsa(List<Estado> estados) {
         if (estados.isEmpty()) throw new IllegalArgumentException("al menos un estado");
-        this.pendientes = new ArrayDeque<>(estados);
+        this.estados = List.copyOf(estados);
     }
 
     static SondaFalsa con(Estado... estados) {
@@ -3008,10 +3299,11 @@ final class SondaFalsa implements Sonda {
 
     @Override
     public Resultado sondear(Servicio servicio) {
-        if (!pendientes.isEmpty()) {
-            ultimo = pendientes.removeFirst();
+        var actual = estados.get(siguiente);
+        if (siguiente < estados.size() - 1) {
+            siguiente++;                      // el último se repite indefinidamente
         }
-        return switch (ultimo) {
+        return switch (actual) {
             case ACTIVO    -> Resultado.activo(servicio, Duration.ofMillis(100));
             case DEGRADADO -> Resultado.degradado(servicio, Duration.ofMillis(900));
             case CAIDO     -> Resultado.caido(servicio);
