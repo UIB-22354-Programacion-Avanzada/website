@@ -141,3 +141,14 @@ span.glos-sin-definicion {
 .glos-entrada.glos-destacada {
   background-color: #2a3a4a;
 }
+
+// ---------------------------------------------------------------------------
+// Resaltado de líneas de código (resaltar.js)
+// ---------------------------------------------------------------------------
+
+.linea-resaltada {
+  display: inline-block;
+  width: 100%;
+  background-color: #3a3520;          // ámbar apagado, no deslumbra
+  box-shadow: inset 3px 0 0 #b8860b;
+}

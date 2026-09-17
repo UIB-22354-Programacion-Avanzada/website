@@ -122,6 +122,7 @@ format:
         <script src="/logo-href.js"></script>
         <script src="/full-view.js"></script>
         <script src="/glosario.js"></script>
+        <script src="/resaltar.js"></script>
 
 freeze: auto
 editor: source
