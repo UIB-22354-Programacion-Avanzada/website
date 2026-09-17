@@ -138,3 +138,12 @@ span.glos-sin-definicion {
   background-color: #fff3cd;          // amarillo suave
   box-shadow: inset 3px 0 0 #e0a800;  // franja a la izquierda, visible sin color
 }
+
+// La salida de un programa no es código fuente: se muestra sin numerar.
+pre.sourceCode.text.numberSource {
+  padding-left: 0 !important;
+
+  code > span > a:first-child::before {
+    content: none !important;
+  }
+}

@@ -152,3 +152,12 @@ span.glos-sin-definicion {
   background-color: #3a3520;          // ámbar apagado, no deslumbra
   box-shadow: inset 3px 0 0 #b8860b;
 }
+
+// La salida de un programa no es código fuente: se muestra sin numerar.
+pre.sourceCode.text.numberSource {
+  padding-left: 0 !important;
+
+  code > span > a:first-child::before {
+    content: none !important;
+  }
+}
