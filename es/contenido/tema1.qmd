@@ -68,12 +68,12 @@ Un objeto tiene **identidad**, **estado** y **comportamiento**:
 ::: {#imp-atrimet .callout-important title="Atributos, métodos y constructores de una clase"}
 - Un **atributo de instancia** (*instance field*) es una variable que pertenece a cada objeto: en la clase `DispositivoRed` del @nte-dispositivo-red cada dispositivo tiene su propio `nombre`y su `direccionIp`. 
 
-- Un **atributo de clase** **(declarado con la palabra clave `static`)** es una variable que pertenece a la clase y es compartido por todos sus objetos: en la clase `DispositivoRed` del @nte-dispositivo-red `dispositivosCreados` es un contador de dispositivos creados. Lo mismo vale para los métodos: un método `static` no opera sobre ningún objeto concreto y se invoca sobre la clase (`Math.max(2, 3)`).
+- Un **atributo de clase (declarado con la palabra clave `static`)** (*static field*) es una variable que pertenece a la clase y es compartido por todos sus objetos: en la clase `DispositivoRed` del @nte-dispositivo-red `dispositivosCreados` es un contador de dispositivos creados. Lo mismo vale para los métodos: un método `static` no opera sobre ningún objeto concreto y se invoca sobre la clase (`Math.max(2, 3)`).
 
-- Un **método de instancia** se diferencia de una función en que está asociado a un objeto y recibe **implícitamente** ese objeto, accesible como `this`, además de sus parámetros explícitos. Por eso puede leer y modificar los atributos del objeto sin que se los pasen.
+- Un **método de instancia** es una operación definida dentro de una clase que se ejecuta sobre un objeto. Se diferencia de una función en que está asociado a un objeto y recibe **implícitamente** ese objeto, accesible como `this`, además de sus parámetros explícitos. Por eso puede leer y modificar los atributos del objeto sin que se los pasen.
 
-- Un **método de clase** en Java **(declarado con la palabra clave `static`)** es un método que **pertenece a la clase en sí misma**, y no a los objetos individuales (instancias) creados a partir de ella.
-    - **No requiere objetos:** Puedes llamarlo directamente usando el nombre de la clase, sin necesidad de usar `new`. Dado el @nte-dispositivo-red podemos llamar `DispositivoRed.getDispositivosCreados()`.
+- Un **método de clase (declarado con la palabra clave `static`)** es un método que **pertenece a la clase en sí misma**, y no a los objetos individuales (instancias) creados a partir de ella.
+    - **No requiere objetos:** Puedes llamarlo directamente usando el nombre de la clase, sin necesidad de usar `new`. Dado el @nte-dispositivo-red podemos emplear `DispositivoRed.getDispositivosCreados()`.
     - **Aislamiento:** Al no pertenecer a un objeto, **no puede usar la palabra clave `this**` ni acceder a variables o métodos de la clase que no sean estáticos.
     - **Propósito:** Se utilizan habitualmente para crear funciones de utilidad, herramientas globales o constantes que no dependen del estado particular de ningún objeto.
 
@@ -88,11 +88,18 @@ Los **modificadores de acceso** controlan desde dónde es visible cada miembro (
 | *(ninguno)* | la propia clase y las clases del mismo paquete (*package-private*) |
 | `private` | solo la propia clase |
 
+El modificador **`final`** indica que un elemento no puede ser modificado de determinadas formas después de su definición. Su significado depende de dónde se utilice:
+
+- **Atributo:** Un atributo declarado como `final` no puede ser reasignado después de su inicialización.
+- **Método:** Un método declarado como `final` no puede ser sobrescrito por subclases.
+- **Clase:** Una clase declarada como `final` no puede ser extendida (no puede tener subclases).
+- **Variable local:** Una variable local declarada como `final` no puede ser reasignada después de su inicialización.
+
 :::
 
-La práctica habitual, que seguiremos siempre, es declarar los atributos `private` y exponer solo los métodos necesarios. Cuando hace falta leer o modificar un atributo desde fuera se escriben **métodos de acceso** (*getters*) y **de modificación** (*setters*), que permiten a la clase controlar cómo se accede a su estado: validar, calcular, o negarse.
+La práctica habitual, que seguiremos siempre, es declarar los atributos `private` y exponer solo los métodos necesarios. Cuando hace falta leer o modificar un atributo desde fuera se escriben **métodos de acceso** (*getters*) y **de modificación** (*setters*), que permiten a la clase controlar cómo se accede a su estado: validar, calcular, o negarse. Esto se verá en la sección de encapsulación e invariantes.
 
-Veamos todo esto reunido en un ejemplo del dominio del curso: un dispositivo de red con nombre y dirección IPv4, que puede estar activo o inactivo, y cuya clase lleva la cuenta de cuántos dispositivos se han creado.
+Veamos todo esto reunido en un ejemplo del dominio de la telemática: un dispositivo de red (*Network Device*) con nombre y dirección IPv4, que puede estar activo o inactivo, y cuya clase lleva la cuenta de cuántos dispositivos se han creado.
 
 ::: {#nte-dispositivo-red .callout-note title="Una clase completa: `DispositivoRed`"}
 ```java
@@ -177,7 +184,12 @@ Lo que hay que observar en la clase:
 - Actualmente, la forma más limpia, segura y recomendada de sobrescribir `hashCode()` en una clase de Java es utilizando el método `Objects.hash()` de la clase de utilidad **`java.util.Objects`** (disponible desde Java 7). Le pasas **exactamente los mismos atributos** que utilizas dentro de tu método `equals()`
 :::
 
-Todas las clases de Java descienden de `Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la [API de Java](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html)). La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
+
+::: {#imp-objeto .callout-important title="Todas las clases descienden de `Object`"}
+Todas las clases de Java heredan de `java.lang.Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la [API de Java](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html)). 
+
+La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
+:::
 
 #### Crear objetos y referencias
 
@@ -239,7 +251,7 @@ La regla de oro en Java dice lo siguiente: ***Si dos objetos son iguales según 
 
 Si sobrescribes `equals()` para que compare los datos del objeto, pero no haces lo mismo con `hashCode()`, este último seguirá usando su comportamiento por defecto (que genera el número basándose en la dirección de memoria del objeto).
 
-Si haces esto, **las colecciones basadas en tablas hash (`HashSet`, `HashMap`, `Hashtable`) dejarán de funcionar correctamente**. Las colecciones basadas en tablas *hash* localizan un elemento en dos pasos: primero usan `hashCode` para elegir el «cajón» donde buscar, y solo después usan `equals` dentro de ese cajón. Si dos objetos son iguales según `equals` pero tienen `hashCode` distintos, la colección los buscará en cajones diferentes y no los encontrará.
+Si haces esto, **las colecciones basadas en tablas hash (`HashSet`, `HashMap`, `Hashtable`) dejarán de funcionar correctamente** (se verán en el tema 2). Las colecciones basadas en tablas *hash* localizan un elemento en dos pasos: primero usan `hashCode` para elegir el «cajón» donde buscar, y solo después usan `equals` dentro de ese cajón. Si dos objetos son iguales según `equals` pero tienen `hashCode` distintos, la colección los buscará en cajones diferentes y no los encontrará.
 
 ```java
 // PuntoRoto.java
@@ -369,6 +381,7 @@ En el monitor, ¿qué significa que dos servicios sean «el mismo»? Un servicio
 Si hubiera que quedarse con una sola idea de la orientación a objetos, sería esta: **un objeto es
 responsable de su propia coherencia**, no lo son quienes lo instancian y lo usan.
 
+::: {#imp-encapsulación .callout-important title="Encapsulación"}
 La **encapsulación** (*encapsulation*) es la ocultación del estado de un objeto tras una interfaz
 de métodos. Con los modificadores de acceso que vimos en 1.1.1 ya tienes el mecanismo; lo que
 importa ahora es para qué sirve.
@@ -381,12 +394,10 @@ entre todos los que tocan el objeto — es decir, no sería de nadie.
 Y esa responsabilidad, una vez asumida, vale mucho. Si nadie puede modificar un objeto sin pasar
 por sus métodos, y sus métodos comprueban lo que hace falta, entonces la clase puede afirmar que
 ciertas propiedades se cumplen **siempre**, pase lo que pase fuera de ella: que el puerto está
-entre 1 y 65 535, que la latencia nunca es negativa, que la lista de servicios no está vacía. Quien
-use la clase no tiene que comprobarlo, ni acordarse de comprobarlo, ni desconfiar. Esas promesas se
-llaman **invariantes**.
+entre 1 y 65 535, que la latencia nunca es negativa, que la lista de servicios no está vacía. Quien use la clase no tiene que comprobarlo, ni acordarse de comprobarlo, ni desconfiar. Esas promesas se llaman **invariantes**.
+:::
 
-De ahí se sigue una consecuencia que conviene asumir pronto, porque contradice una costumbre muy
-extendida: **un atributo privado con su `get` y su `set` generados automáticamente no está
+De lo anterior sigue una consecuencia que conviene asumir pronto, porque contradice una costumbre muy extendida: **un atributo privado con su `get` y su `set` generados automáticamente no está
 encapsulado**.
 
 ```java
@@ -400,16 +411,15 @@ public class Umbral {
 ```
 
 Esta clase ofrece exactamente las mismas garantías que si el campo fuera `public`: ninguna. El
-`private` solo ha añadido dos métodos y la ilusión de control. Generar un par de accesores por cada
-campo, que es lo que hacen los asistentes de los IDE con un par de clics, produce clases así con
-mucha facilidad. La pregunta que hay que hacerse ante cada clase no es «¿he puesto los atributos en
-`private`?», sino **«¿qué tiene que ser siempre cierto aquí, y qué camino podría romperlo?»**.
+`private` solo ha añadido dos métodos y la ilusión de control. Generar un par de accesores por cada campo, que es lo que hacen los asistentes de los IDE con un par de clics, produce clases así con mucha facilidad. La pregunta que hay que hacerse ante cada clase no es «¿he puesto los atributos en `private`?», sino **«¿qué tiene que ser siempre cierto aquí, y qué camino podría romperlo?»**.
 
 ::: {#imp-invariante .callout-important title="Invariante de clase"}
 Un **invariante de clase** es una condición sobre el estado de un objeto que se cumple siempre que el objeto es observable desde fuera: al terminar el constructor y al terminar cada método público. Ejemplos: «la latencia nunca es negativa», «el puerto está entre 1 y 65535», «la lista de servicios no contiene `null`». La clase es responsable de establecer el invariante en el constructor y de preservarlo en cada método. Si un invariante puede violarse desde fuera, la encapsulación está rota.
 :::
 
-La idea de invariante viene del *diseño por contrato* de Meyer [@meyer1997]: cada método tiene precondiciones (lo que exige a quien lo llama), postcondiciones (lo que garantiza al terminar) y la clase entera tiene invariantes. Java no tiene sintaxis para expresarlos, pero el lugar natural para comprobarlos es el constructor y los métodos que cambian el estado. En un `record`, ese lugar es el **constructor compacto**:
+La idea de invariante viene del *diseño por contrato* de Meyer [@meyer1997]: cada método tiene precondiciones (lo que exige a quien lo llama), postcondiciones (lo que garantiza al terminar) y la clase entera tiene invariantes. Java no tiene sintaxis para expresarlos, pero el lugar natural para comprobarlos es el constructor y los métodos que cambian el estado. En el @nte-dispositivo-red, el constructor comprueba que la IP es válida y la corrige si no lo es; los métodos `activar` y `desactivar` no pueden violar ningún invariante, así que no hacen comprobaciones.
+
+En un `record` los invariantes se definen en el **constructor compacto**. Dado que los Records son portadores de datos inmutables, el compilador genera automáticamente un constructor canónico con todos sus campos. El constructor compacto sirve para interceptar ese proceso de creación. Se declara únicamente con el modificador de acceso, el nombre del Record y las llaves, omitiendo por completo la lista de argumentos. Dentro de las llaves se puede escribir código que valide los argumentos y lance excepciones si no cumplen el invariante. En el ejemplo siguiente, un `Puerto` válido está entre 1 y 65535:
 
 ```java
 // Puerto.java
@@ -428,36 +438,23 @@ El constructor compacto se ejecuta antes de asignar los campos y recibe los par�
 
 Esto nos lleva a una regla de diseño que en Java moderno se ha convertido en la opción por defecto: **la inmutabilidad**. Un objeto inmutable no cambia de estado tras su construcción. Sus ventajas son sustanciales: el invariante se comprueba una sola vez; el objeto puede compartirse libremente entre partes del programa (y, como veremos en el Tema 3, entre hilos) sin riesgo de que una parte lo modifique a espaldas de otra; y su comportamiento es más fácil de razonar y de probar. Bloch lo resume en «minimiza la mutabilidad» [@bloch2018, ítem 17].
 
-Para que una clase sea inmutable de verdad hay que vigilar un detalle: si contiene referencias a objetos mutables (una lista, un *array*, una fecha antigua de `java.util`), no basta con declarar el campo `final`. Hay que hacer **copias defensivas** al entrar y al salir, o usar colecciones inmutables:
-
-```java
-// Configuracion.java
-package es.uib.prgava.tema1.poo;
-
-import java.time.Duration;
-import java.util.List;
-
-public record Configuracion(Duration intervalo, List<String> servicios) {
-    public Configuracion {
-        if (intervalo.isNegative() || intervalo.isZero()) {
-            throw new IllegalArgumentException("El intervalo debe ser positivo");
-        }
-        servicios = List.copyOf(servicios);   // copia inmutable; rechaza null y elementos null
-    }
-}
-```
-
-`List.copyOf` devuelve una lista inmutable independiente de la original: aunque quien llamó al constructor modifique después su lista, la configuración no cambia. Y como la lista devuelta por el método de acceso `servicios()` es esa misma lista inmutable, quien la reciba no podrá alterarla (obtendrá `UnsupportedOperationException` si lo intenta). Observa que en el constructor compacto se puede **reasignar el parámetro** (`servicios = ...`) para normalizarlo antes de que se copie al campo.
-
 ::: {.callout-tip appearance="simple"}
 Regla práctica: haz cada clase inmutable salvo que tengas una razón concreta para no hacerlo. Si necesita ser mutable, restringe al mínimo los métodos que cambian el estado y comprueba el invariante (@imp-invariante) en cada uno de ellos.
 :::
 
-En el monitor, el resultado de una comprobación es el candidato perfecto: una vez producido, un resultado no cambia. Lo definiremos como un `record` con constructor compacto que rechaza latencias negativas y referencias nulas.
-
 ### 1.1.3 Herencia y composición
 
-La **herencia** permite definir una clase a partir de otra: la **subclase** (o clase hija) recibe los atributos y métodos de la **superclase** (o clase padre), puede añadir otros y puede redefinir (*override*) los heredados. Se declara con `extends`, y expresa una relación **es-un**: un enrutador *es un* dispositivo de red. La mecánica en Java tiene tres piezas: `extends` en la declaración, `super(...)` en el constructor para inicializar la parte heredada, y `@Override` en los métodos que se redefinen.
+::: {#imp-herencia .callout-important title="Herencia"}
+La **herencia** es otro de los pilares fundamentales de la POO. Es el mecanismo que permite que una nueva clase (llamada *subclase* o clase hija) se construya basándose en una clase ya existente (llamada *superclase* o clase padre). La **subclase** (o clase hija) recibe los atributos y métodos de la **superclase** (o clase padre), puede añadir otros y puede redefinir (*override*) los heredados. Entre las ventajas de la herencia destacan: 
+
+- **La relación "es un" (is-a):** La herencia modela conceptualmente el mundo real, pero solo tiene sentido lógico si puedes afirmar que el hijo "es un" tipo del padre. Por ejemplo, un `Gato` *es un* `Animal`. Un `Enrutador` (*router*) *es un* `DispositivoRed` y un `Conmutador` (*switch*) *es un* `DispositivoRed`.
+- **Reutilización de código:** Es su beneficio más inmediato. Si todos los dispositivos de red tienen un método `activar()`, lo programas una sola vez en la superclase `DispositivoRed`, y tanto las clases `Enrutador` como `Conmutador` lo obtienen gratis.
+- **Especialización:** Permite diseñar sistemas partiendo de lo general (el padre) y especializando o refinando el comportamiento a medida que desciendes en la jerarquía (los hijos).
+- **Polimorfismo:** La herencia es el cimiento que permite que un programa trate a un objeto de la clase hija exactamente como si fuera de la clase padre, facilitando un código mucho más flexible.
+:::
+
+::: {#nte-herenciaejemplo .callout-note title="Clases `Enrutador` y `Conmutador` que heredan de `DispositivoRed`"}
+En Java el concepto de herencia se declara con `extends`. La mecánica tiene tres piezas: `extends` en la declaración, `super(...)` en el constructor para inicializar la parte heredada, y `@Override` en los métodos que se redefinen. Por ejemplo, un enrutador con clase `Enrutador` tiene todo lo que tiene un `DispositivoRed`, más un número de puertos y un comportamiento de enrutamiento:
 
 ```java
 // Enrutador.java
@@ -486,7 +483,7 @@ public class Enrutador extends DispositivoRed {
 }
 ```
 
-Un conmutador se escribe de la misma manera, con su propio comportamiento:
+Un conmutador con clase `Conmutador` tiene todo lo que tiene un `DispositivoRed`, más un número de puertos y un comportamiento de reenvío de tramas (*frame forwarding*):
 
 ```java
 // Conmutador.java
@@ -509,9 +506,13 @@ public class Conmutador extends DispositivoRed {
 }
 ```
 
-Un `Enrutador` tiene todo lo que tiene un `DispositivoRed` (`activar`, `getNombre`, `equals`...) más lo suyo. Observa que accede a los atributos heredados a través de los *getters* y no directamente: son `private` en `DispositivoRed`, y `private` significa privado también para las subclases. La llamada `super(nombre, direccionIp)` debe ser la primera instrucción del constructor; si la omites, Java intenta llamar al constructor sin parámetros de la superclase, y si este no existe, el código no compila.
+- Un `Enrutador` tiene todo lo que tiene un `DispositivoRed` (`activar`, `getNombre`, `equals`...) más el mecanismo de encaminamiento con el método `encaminar`. 
+- Observa que accede a los atributos heredados a través de los *getters* y no directamente: son `private` en `DispositivoRed`, y `private` significa privado también para las subclases. 
+- La llamada `super(nombre, direccionIp)` debe ser la primera instrucción del constructor; si la omites, Java intenta llamar al constructor sin parámetros de la superclase, y si este no existe, el código no compila. 
+- Lo mismo ocurre con un `Conmutador`: tiene todo lo que tiene un `DispositivoRed`, más el mecanismo de reenvío de tramas con el método `reenviarTrama`.
+:::
 
-Hasta aquí, la herencia tal como probablemente la viste en Programación I: un mecanismo para «reutilizar código». Esa visión es incompleta y, a menudo, perjudicial. La herencia es, ante todo, una relación de **subtipo**: declara que cualquier objeto de la subclase puede usarse donde se espera uno de la superclase. Esa promesa es fuerte, y solo debe hacerse cuando es cierta. En términos prácticos: usa herencia cuando exista una relación es-un auténtica, cuando las subclases compartan atributos e implementación (no solo una interfaz) y cuando la superclase esté bajo tu control. `Enrutador extends DispositivoRed` cumple las tres. El ejemplo siguiente no.
+Hasta aquí, la herencia como un mecanismo para «reutilizar código». Esa visión es incompleta y, a menudo, perjudicial. La herencia es, ante todo, una relación de **subtipo**: declara que cualquier objeto de la subclase puede usarse donde se espera uno de la superclase. Esa promesa es fuerte, y solo debe hacerse cuando es cierta. En términos prácticos: usa herencia cuando exista una relación es-un auténtica, cuando las subclases compartan atributos e implementación (no solo una interfaz) y cuando la superclase esté bajo tu control. `Enrutador extends DispositivoRed` cumple las tres. El ejemplo siguiente no.
 
 Considera un ejemplo clásico [@bloch2018, ítem 18]. Queremos un conjunto que cuente cuántos elementos se han intentado añadir a lo largo de su vida. Heredar de `HashSet` parece lo más directo:
 
