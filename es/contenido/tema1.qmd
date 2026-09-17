@@ -1632,7 +1632,7 @@ En 1.1 elogiamos el `switch` exhaustivo sobre una interfaz sellada (@tip-tipos-a
 
 > Si S es un subtipo de T, los objetos de tipo T pueden sustituirse por objetos de tipo S sin alterar las propiedades deseables del programa.
 
-Es la definición formal de lo que en @imp-composicion llamábamos «relación es-un sustituible» [@liskov1994]. El énfasis está en el **comportamiento**: no basta con que la subclase compile donde se espera la superclase; debe respetar su contrato. En términos de diseño por contrato, una subclase no puede **fortalecer las precondiciones** (exigir más), no puede **debilitar las postcondiciones** (garantizar menos) y debe **preservar los invariantes** de la superclase.
+Es la definición formal de lo que en @imp-composicion-concepto llamábamos «relación es-un sustituible» [@liskov1994]. El énfasis está en el **comportamiento**: no basta con que la subclase compile donde se espera la superclase; debe respetar su contrato. En términos de diseño por contrato, una subclase no puede **fortalecer las precondiciones** (exigir más), no puede **debilitar las postcondiciones** (garantizar menos) y debe **preservar los invariantes** de la superclase.
 
 El ejemplo canónico es engañosamente simple. Matemáticamente, todo cuadrado es un rectángulo; en un diseño mutable, `Cuadrado extends Rectangulo` es un error (nada que ver con el `Cuadrado` inmutable de 1.1: el de aquí es deliberadamente mutable, que es justamente de donde viene el problema):
 
