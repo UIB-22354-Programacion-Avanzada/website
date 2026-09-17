@@ -512,7 +512,7 @@ public class Conmutador extends DispositivoRed {
 - Lo mismo ocurre con un `Conmutador`: tiene todo lo que tiene un `DispositivoRed`, más el mecanismo de reenvío de tramas con el método `reenviarTrama`.
 :::
 
-Hasta aquí, la herencia como un mecanismo para «reutilizar código». Esa visión es incompleta y, a menudo, perjudicial. La herencia es, ante todo, una relación de **subtipo**: declara que cualquier objeto de la subclase puede usarse donde se espera uno de la superclase. Esa promesa es fuerte, y solo debe hacerse cuando es cierta. En términos prácticos: usa herencia cuando exista una relación es-un auténtica, cuando las subclases compartan atributos e implementación (no solo una interfaz) y cuando la superclase esté bajo tu control. `Enrutador extends DispositivoRed` cumple las tres. El ejemplo siguiente no.
+Hasta aquí, la herencia como un mecanismo para «reutilizar código». Esa visión es incompleta y, a menudo, perjudicial. La herencia es, ante todo, una relación de **subtipo**: declara que cualquier objeto de la subclase puede usarse donde se espera uno de la superclase. Esa promesa es fuerte, y solo debe hacerse cuando es cierta. En términos prácticos: **usa herencia cuando exista una relación es-un auténtica**, cuando las subclases compartan atributos e implementación (no solo una interfaz) y cuando la superclase esté bajo tu control. `Enrutador extends DispositivoRed` cumple las tres. El ejemplo siguiente no.
 
 Considera un ejemplo clásico [@bloch2018, ítem 18]. Queremos un conjunto que cuente cuántos elementos se han intentado añadir a lo largo de su vida. Heredar de `HashSet` parece lo más directo:
 
