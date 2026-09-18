@@ -58,10 +58,10 @@ Por último, dado que la documentación técnica, las interfaces de programació
 
 **Tema 4: Bases de Datos: SQL, JDBC y Panorámica NoSQL (16h presenciales, 24 h no presenciales)**
 
-- 5.1. Fundamentos de bases de datos y modelado de datos.
-- 5.2. Lenguaje SQL.
-- 5.3. Interacción con bases de datos relacionales desde Java (JDBC).
--5.4. Panorámica de bases de datos no relacionales (NoSQL).
+- 4.1. Fundamentos de bases de datos y modelado de datos.
+- 4.2. Lenguaje SQL.
+- 4.3. Interacción con bases de datos relacionales desde Java (JDBC).
+- 4.4. Panorámica de bases de datos no relacionales (NoSQL).
 
 ## Metodología docente
 

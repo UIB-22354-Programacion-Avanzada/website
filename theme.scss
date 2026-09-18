@@ -140,8 +140,18 @@ span.glos-sin-definicion {
 }
 
 // La salida de un programa no es código fuente: se muestra sin numerar.
+//
+// Pandoc numera desplazando cada línea 4em a la izquierda y reponiéndola con el
+// pseudoelemento del número, que es un inline-block de 4em haciendo de separador.
+// Por eso no basta con quitar el número: hay que deshacer también el desplazamiento,
+// o el texto se sale de su caja por la izquierda y se ve cortado.
 pre.sourceCode.text.numberSource {
+  margin-left: 0 !important;
   padding-left: 0 !important;
+
+  code > span {
+    left: 0 !important;
+  }
 
   code > span > a:first-child::before {
     content: none !important;
