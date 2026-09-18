@@ -32,8 +32,8 @@ Solicitar por correo electrónico a través del servicio de correo [**del Aula D
 
 | Actividad | Grupo | Fecha | Peso (\%) | Nota de validación |
 | :--- | :--- | :--- | :--- | :--- |
-| Primer Taller | G4 | 30/09/2026 | 10\% | - |
-| Examen Parcial | G4 | 11/11/2026 | 40\% | 5 |
-| Segundo Taller | G4 | 08/12/2026 | 10\% | - |
+| Primer Taller | G4 | 07/10/2026 | 10\% | - |
+| Examen Parcial | G4 | 25/11/2026 | 40\% | 5 |
+| Segundo Taller | G4 | 21/12/2026 | 10\% | - |
 | Examen Global | G4 | Enero 2027 | 40\% | 5 |
 

@@ -36,14 +36,14 @@ Por último, dado que la documentación técnica, las interfaces de programació
 
 ## Contenidos
 
-**Tema 1: POO, Principios SOLID y Diseño (12 h presenciales, 18 h no presenciales)**
+**Tema 1: POO, Principios SOLID y Diseño (16 h presenciales, 24 h no presenciales)**
 
 - 1.1. Conceptos fundamentales de la POO en Java.
 - 1.2. Principios SOLID y patrones de diseño canónicos.
 - 1.3. Genericidad en Java y Stream API.
 - 1.4. Pruebas unitarias (JUnit) como primer contacto con la verificación.
 
-**Tema 2: Algoritmos, Complejidad y Estructuras de Datos (8h presenciales, 12h no presenciales)**
+**Tema 2: Algoritmos, Complejidad y Estructuras de Datos (12h presenciales, 18h no presenciales)**
 
 - 2.1. Eficiencia de algoritmos.
 - 2.2. Estructuras de datos fundamentales y la Java Collections Framework.
@@ -56,14 +56,7 @@ Por último, dado que la documentación técnica, las interfaces de programació
 - 3.3. Hilos virtuales y concurrencia estructurada.
 - 3.4. Panorámica de programación reactiva.
 
-**Tema 4: Programación de Red y Servicios Distribuidos (12 h presenciales, 18 h no presenciales)**
-
-- 4.1. Sockets TCP/UDP.
-- 4.2. Modelo cliente/servidor y servidor concurrente.
-- 4.3. Serialización y formatos de intercambio.
-- 4.4. Validación de entrada, autenticación básica y seguridad de E/S.
-
-**Tema 5: Bases de Datos: SQL, JDBC y Panorámica NoSQL (12h presenciales, 18 h no presenciales)**
+**Tema 4: Bases de Datos: SQL, JDBC y Panorámica NoSQL (16h presenciales, 24 h no presenciales)**
 
 - 5.1. Fundamentos de bases de datos y modelado de datos.
 - 5.2. Lenguaje SQL.
