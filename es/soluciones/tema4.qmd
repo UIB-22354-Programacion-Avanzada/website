@@ -1,5 +1,5 @@
 ---
-title: "Soluciones — Tema 4: Programación de Red y Servicios Distribuidos"
+title: "Soluciones — Tema 4: Bases de Datos: SQL, JDBC y NoSQL"
 lang: es
 sidebar: barra-es
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Tema 4: Programación de Red y Servicios Distribuidos"
+title: "Tema 4: Bases de Datos: SQL, JDBC y Panorámica NoSQL"
 lang: es
 sidebar: barra-es
 bibliography: tema4.bib

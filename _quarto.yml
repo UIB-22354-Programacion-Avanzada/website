@@ -50,9 +50,7 @@ website:
             - href: es/contenido/tema3.qmd
               text: "3. Programación Concurrente"
             - href: es/contenido/tema4.qmd
-              text: "4. Red y Servicios Distribuidos"
-            - href: es/contenido/tema5.qmd
-              text: "5. Bases de Datos: SQL, JDBC y NoSQL"
+              text: "4. Bases de Datos: SQL, JDBC y NoSQL"
 
         - section: "Ejercicios"
           contents:
@@ -64,8 +62,6 @@ website:
               text: "Ejercicios — Tema 3"
             - href: es/ejercicios/tema4.qmd
               text: "Ejercicios — Tema 4"
-            - href: es/ejercicios/tema5.qmd
-              text: "Ejercicios — Tema 5"
 
         - section: "Recursos"
           contents:
@@ -83,8 +79,6 @@ website:
               text: "Soluciones Ejercicios T3"
             - href: es/soluciones/tema4.qmd
               text: "Soluciones Ejercicios T4"
-            - href: es/soluciones/tema5.qmd
-              text: "Soluciones Ejercicios T5"
 
         - section: "Bibliografía"
           contents:
@@ -117,13 +111,11 @@ format:
     css: styles.css
     toc: true
     callout-icon: false
-    code-line-numbers: true
     include-after-body:
       text: |
         <script src="/logo-href.js"></script>
         <script src="/full-view.js"></script>
         <script src="/glosario.js"></script>
-        <script src="/resaltar.js"></script>
 
 freeze: auto
 editor: source
