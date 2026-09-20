@@ -157,3 +157,15 @@ pre.sourceCode.text.numberSource {
     content: none !important;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Material de ampliación: se lee si interesa, pero no hace falta para seguir
+// ---------------------------------------------------------------------------
+
+.ampliacion {
+  border-left: 3px solid #9aa0a6;
+  padding: 0.1rem 0 0.1rem 1rem;
+  margin: 1.5rem 0;
+
+  > :last-child { margin-bottom: 0; }
+}
