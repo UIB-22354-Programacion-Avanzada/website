@@ -14,9 +14,35 @@ En Programación I aprendiste a escribir programas que funcionan. En esta asigna
 El tema tiene cuatro secciones, que siguen los acápites de la guía docente. En la primera (1.1) revisamos los conceptos fundamentales de la orientación a objetos, pero con la mirada del diseñador y con los recursos del Java moderno (`record`, `var`, *pattern matching* para `instanceof`). En la segunda (1.2) presentamos los principios SOLID y seis patrones de diseño que los ponen en práctica. En la tercera (1.3) estudiamos la genericidad y la Stream API, que permiten escribir código reutilizable y expresivo sobre colecciones. En la cuarta (1.4) damos el primer paso hacia la verificación con pruebas unitarias en JUnit 5.
 
 ::: {.callout-tip appearance="simple"}
-A lo largo del tema verás dos tipos de ejemplos de código, **ejemplos breves** y el **ejemplo motivador**. Los **ejemplos breves**, autocontenidos, sirven para presentar cada concepto de la forma más limpia posible. 
+A lo largo del tema verás dos tipos de ejemplos de código, **ejemplos breves** y el **ejemplo unificador**. Los **ejemplos breves**, autocontenidos, sirven para presentar cada concepto de la forma más limpia posible. 
 
-El **ejemplo motivador** es un **monitor de servicios de red** e irá evolucionando a lo largo del tema. Se trata de una pequeña aplicación que mantiene una lista de servicios a vigilar (un servidor web, un servidor DNS, un puerto TCP), los comprueba, guarda los resultados y avisa cuando alguno falla. Es un problema pequeño, pero tiene todo lo necesario para hablar de diseño: varios tipos de servicios, varias formas de avisar, políticas de alerta que cambian, un historial sobre el que hacer informes y una parte (la comprobación real) que conviene aislar para poder probar el resto.
+Todo el código del tema es Java 25, se organiza en proyectos Maven y vive en el paquete `es.uib.prgava.tema1` (el ejemplo unificador, por ejemplo, en `es.uib.prgava.tema1.monitor`). Los listados son completos y compilables salvo cuando se indica lo contrario.
+:::
+
+::: {#nte-ejemplo-unificador .callout-note title="Monitor de servicios de red (planteamiento)"}
+El **ejemplo unificador** es un **monitor de servicios de red** que irá evolucionando a lo largo del tema y de la asignatura. 
+
+:::: {.ampliacion}
+Se motiva por el siguiente requerimiento que el COO (Chief Operating Officer) le envía a tu jefe el CTO (Chief Technology Officer):
+
+> **De:** Director de Operaciones (COO)
+> **Para:** Director de Tecnología (CTO)
+> **Asunto:** Asignación prioritaria: avisos de caída — necesitamos algo nuestro
+>
+> Por medio del presente, te hago llegar un requerimiento prioritario derivado de que ayer el portal de un cliente estuvo caído cuarenta minutos y nos enteramos porque llamó él. Hoy «vigilar» en nuesro sistema consiste en que quien está de guardia abre el navegador cada tanto y mira. Quiero un programa que lo haga solo.
+>
+> De momento son tres cosas: el portal del cliente, el servidor DNS que resuelve su dominio y el puerto 25 de su servidor de correo. Cada pocos minutos, comprobar si responden y cuánto tardan. Si algo falla, que avise: por ahora con que lo escriba por consola me vale, la semana que viene querré correo, y en cuanto funcione el cliente pedirá que le llegue al móvil.
+>
+> Dos cosas más. No quiero un aviso por cada fallo suelto, porque la red tiene microcortes y nos saturaríamos; quiero avisar cuando falle **de verdad**. Qué significa «de verdad» lo hablamos, porque no lo tengo claro y seguramente cambie con cada cliente. Y hay que guardar lo que se mida: a fin de mes tenemos que decirle a cada cliente qué disponibilidad le hemos dado.
+>
+> Y sí, ya sé lo que me vas a preguntar: que si Nagios, Zabbix o Prometheus. Es la pregunta correcta y ya me la he planteado. Para vigilar nuestra propia red los usamos y los seguiremos usando. Lo que no nos resuelven es esto: el informe de disponibilidad con el que facturamos sale de nuestro sistema, con nuestros umbrales y nuestro formato, y tiene que ir dentro del equipo que instalamos en casa del cliente, donde no vamos a meter un Zabbix. Así que la parte que mide y decide la escribimos nosotros.
+>
+> Del plazo ya hablaremos. Lo que no quiero es que dentro de dos meses, cuando te pida lo del correo, me contestes que hay que rehacerlo entero.
+::::
+
+Se trata entonces de una pequeña aplicación que mantiene una lista de servicios a vigilar (un servidor web, un servidor DNS, un puerto TCP), los comprueba, guarda los resultados y avisa cuando alguno falla. Es un problema pequeño, pero tiene todo lo necesario para hablar de diseño: varios tipos de servicios, varias formas de avisar, políticas de alerta que cambian, un historial sobre el que hacer informes y una parte (la comprobación real) que conviene aislar para poder probar el resto.
+
+Un primer esquema de cómo se reparte el trabajo entre las piezas del monitor es el siguiente:
 
 ```{mermaid}
 %%| label: fig-monitor
@@ -40,8 +66,6 @@ flowchart TB
 Así queda repartido el trabajo cuando el monitor esté terminado: una pieza por responsabilidad, y ninguna sabe cómo trabajan las demás. No hace falta que entiendas todavía cómo se construye; vuelve a este esquema cuando cada caja vaya apareciendo a lo largo del tema, porque el reparto **es** el contenido de 1.2. Los nombres están en castellano a propósito: en el código serán `Monitor`, `Sonda`, `Repositorio…`, `PoliticaDeAlerta` y `Notificador`.
 
 La comprobación de un servicio la hará una interfaz `Sonda` cuyas implementaciones simulan la respuesta: simular es lo que permite que una prueba sepa qué debe ocurrir (1.4). En el Tema 3, la `Sonda` ejecutará las comprobaciones concurrentemente; y en el Tema 4, el historial se podrá guardar en una base de datos. Al acabar el curso se habrá construido el sistema completo, pieza a pieza.
-
-Todo el código del tema es Java 25, se organiza en proyectos Maven y vive en el paquete `es.uib.prgava.tema1` (el ejemplo motivador, en `es.uib.prgava.tema1.monitor`). Los listados son completos y compilables salvo cuando se indica lo contrario.
 :::
 
 ::: {.callout-tip appearance="simple"}
