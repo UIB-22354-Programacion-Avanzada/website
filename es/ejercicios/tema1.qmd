@@ -6,10 +6,14 @@ sidebar: barra-es
 
 ## Cómo trabajar estos ejercicios
 
-Los 28 ejercicios de esta página acompañan al [contenido del Tema 1](https://uib-22354-programacion-avanzada.github.io/website/es/contenido/tema1.html) y se
-numeran `1.X.k`, donde `X` es el subapartado del tema al que corresponden. Cada enunciado indica
-con precisión qué clase escribir, en qué paquete, con qué firma y qué comportamiento debe tener:
-lo que se te pide es exactamente eso, ni más ni menos.
+Los 26 ejercicios de esta página acompañan al [contenido del Tema 1](../contenido/tema1.qmd) y se
+numeran `1.X.k`, donde `X` es el subapartado del tema al que corresponden. Cada enunciado te dice
+qué escribir y en qué orden, y te da las pistas necesarias para que el trabajo esté en diseñar y
+programar, no en adivinar qué se pide.
+
+Todo lo que hace falta para resolverlos está en el tema, y solo en el tema: ningún enunciado usa
+nada que no se haya explicado antes. Si un ejercicio te pide algo que no reconoces, vuelve al
+apartado que se enlaza en el propio enunciado.
 
 No empiezas desde una carpeta vacía. En la organización del curso tienes el repositorio
 **`t1-ejercicios`**, una plantilla con la misma estructura que
@@ -24,17 +28,30 @@ No empiezas desde una carpeta vacía. En la organización del curso tienes el re
 El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que
 completas el código. El flujo de trabajo es el habitual: crea tu copia con **Use this template**,
 abre un Codespace, ejecuta `mvn test`, y ve resolviendo ejercicios hasta que la construcción pase
-en verde. Las soluciones no se publican; en clase se comentan las que más dudas generen.
+en verde.
 
-Sobre los paquetes: las clases que **implementan una interfaz del monitor** (`FallosEnVentana`,
-`NotificadorFichero`, `SondaConRegistro`, `ServicioPing`) viven en `es.uib.prgava.tema1.monitor`,
-junto a sus compañeras; todas las demás, en `es.uib.prgava.tema1.ejercicios`. El esqueleto ya trae
-cada fichero en su sitio, así que basta con que respetes el que te encuentres.
+Sobre los paquetes: las clases que **implementan o extienden un tipo del monitor**
+(`FallosEnVentana`, `NotificadorSinRepetir`, `SondaDeterminista`) viven en
+`es.uib.prgava.tema1.monitor`, junto a sus compañeras; todas las demás, en
+`es.uib.prgava.tema1.ejercicios`. El esqueleto ya trae cada fichero en su sitio, así que basta con
+que respetes el que te encuentres.
 
 Dos ejercicios de la sección 1.4 consisten en escribir las pruebas de clases que ya has construido
 antes (1.4.1 las de `FallosEnVentana`, 1.4.2 las de `DireccionIpv4`). Para que no te quedes sin
 comprobación mientras tanto, la plantilla incluye un puñado de pruebas mínimas de esas dos clases,
 en `FallosEnVentanaBasicoTest` y `DireccionIpv4BasicoTest`. No las repitas en las tuyas.
+
+::: {.callout-tip appearance="simple"}
+**Cómo están escritos.** Cada enunciado empieza explicando para qué sirve lo que se pide, sigue
+con los pasos, y termina con dos cosas que no puntúan pero que son la mitad del ejercicio: qué
+comprueban las pruebas y una pregunta para pensar. Las preguntas que aparecen **dentro** de los
+pasos tienen respuesta en el tema y se enlaza dónde; la de **Para pensar** no la tiene, y se
+responde decidiendo.
+
+Verás que los primeros enunciados son muy detallados y los últimos mucho más escuetos. Es
+deliberado: para cuando llegues a 1.3 ya no necesitarás que se te diga qué método de la biblioteca
+usar, y lo que quedará por decidir será el diseño.
+:::
 
 ::: {.callout-tip appearance="simple"}
 Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la
@@ -45,207 +62,437 @@ de diseño, no que el código funcione.
 ## 1.1. Conceptos fundamentales de la POO en Java
 
 Ejercicios sobre [1.1 del tema](../contenido/tema1.qmd#conceptos-fundamentales-de-la-poo-en-java):
-clases y objetos, encapsulación e invariantes, herencia, polimorfismo, jerarquías selladas y
-excepciones.
+objetos y estado, igualdad, encapsulación e invariantes, herencia, composición, clases abstractas,
+interfaces y orden natural.
+
+Los ocho van en el paquete `es.uib.prgava.tema1.ejercicios` y **no usan colecciones**: con
+atributos, arrays y parámetros variables (`String...`) hay de sobra. Las listas llegan en 1.2.
 
 :::: {.callout-note title="1.1.1 Registro `DireccionIpv4`" collapse="true"}
-Escribe un `record DireccionIpv4(int primero, int segundo, int tercero, int cuarto)` que
-represente una dirección IPv4 como cuatro octetos.
+Una dirección IPv4 es el ejemplo más limpio de lo que 1.1.1 llama un **objeto-valor**: no tiene
+identidad propia —dos direcciones con los mismos cuatro octetos son la misma dirección— y una vez
+creada no cambia. Es exactamente el caso para el que sirve un
+[`record`](../contenido/tema1.qmd#imp-javarecords). La vas a usar en varios ejercicios
+posteriores, así que conviene que quede sólida.
 
-1. **Constructor compacto.** Cada octeto debe estar entre 0 y 255. Si alguno no lo está, lanza
-   `IllegalArgumentException` con el mensaje `"Octeto fuera de rango: " + valor` (el valor
-   inválido, no la dirección entera).
-2. **Fábrica estática** `public static DireccionIpv4 desde(String texto)`. Acepta cuatro números
-   separados por puntos. Si no hay exactamente cuatro partes, o alguna no es un entero, lanza
-   `IllegalArgumentException` con un mensaje que incluya el texto recibido.
-3. **`toString()`** redefinido para devolver la forma habitual `192.168.1.1` (el `toString`
-   generado por el `record` no sirve aquí).
-4. **`public boolean esPrivada()`**: devuelve `true` para los rangos privados `10.x.x.x`,
-   `172.16.x.x`–`172.31.x.x` y `192.168.x.x`.
+Escribe `record DireccionIpv4(int primero, int segundo, int tercero, int cuarto)`.
 
-No escribas `equals` ni `hashCode`: parte del ejercicio es entender por qué no hacen falta.
+1. **El invariante, en el constructor compacto.** Cada octeto va de 0 a 255, porque ocupa un byte.
+   Un objeto con un octeto de 300 no debe llegar a existir nunca: por eso la comprobación va en el
+   constructor y no en un método `validar()` que alguien pueda olvidarse de llamar
+   ([invariante de clase](../contenido/tema1.qmd#imp-invariante)). Cuando un octeto se salga del
+   rango, lanza `IllegalArgumentException` con el mensaje `"Octeto fuera de rango: " + valor`,
+   nombrando el octeto culpable y no la dirección entera, que es lo que de verdad ayuda a quien
+   lee el error.
+
+   En un constructor compacto se escriben **solo** las comprobaciones: los parámetros ya están ahí
+   con el nombre de los componentes, y la asignación a los campos la añade el compilador al final.
+   Son cuatro comprobaciones iguales, así que piensa si te compensa escribirlas cuatro veces o
+   sacar un método de clase privado que las haga.
+
+2. **`toString()` redefinido** para devolver la forma habitual, `192.168.1.1`. El que genera el
+   `record` es correcto pero aquí no sirve, así que redefínelo con `@Override` y constrúyelo
+   concatenando los cuatro componentes con puntos.
+
+No escribas `equals` ni `hashCode`. Y sin embargo, en el ejemplo de abajo se comparan dos
+direcciones creadas por separado y la comparación responde `true`: **¿de dónde sale esa igualdad,
+si tú no la has programado, y qué habría pasado si `DireccionIpv4` fuera una clase normal en lugar
+de un `record`?** La respuesta está en el
+[Concepto Clave del `record`](../contenido/tema1.qmd#imp-javarecords), y es la mitad de la razón
+por la que este tipo es un registro.
 
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
-var ip = DireccionIpv4.desde("192.168.1.1");
-System.out.println(ip);                                  // 192.168.1.1
-System.out.println(ip.esPrivada());                      // true
-System.out.println(ip.equals(new DireccionIpv4(192, 168, 1, 1)));   // true
-DireccionIpv4.desde("192.168.1.300");                    // IllegalArgumentException
+var ip = new DireccionIpv4(192, 168, 1, 1);
+System.out.println(ip);                                            // 192.168.1.1
+System.out.println(ip.primero());                                  // 192
+System.out.println(ip.equals(new DireccionIpv4(192, 168, 1, 1)));  // true
+System.out.println(ip == new DireccionIpv4(192, 168, 1, 1));       // false
+
+new DireccionIpv4(192, 168, 1, 300);                               // IllegalArgumentException
 ```
 :::
+
+**Cómo saber si va bien.** Las pruebas de la plantilla comprueban los límites del rango —0 y 255
+valen, −1 y 256 no—, el formato del `toString` y que dos direcciones con los mismos octetos sean
+iguales entre sí aunque sean objetos distintos.
+
+**Para pensar.** ¿Qué le tendrías que añadir a esta clase para poder ordenar un conjunto de
+direcciones de menor a mayor? Vuelve a esta pregunta cuando acabes el ejercicio 1.1.8.
 ::::
 
 :::: {.callout-note title="1.1.2 Clase `Servidor`" collapse="true"}
-Escribe una clase `Servidor` **tradicional** (no un `record`) que modele un servidor con nombre,
-dirección y puerto. El objetivo es practicar la encapsulación con todas sus piezas.
+El ejercicio anterior era un objeto-valor. Este es lo contrario: un objeto con **identidad**, que
+tiene estado que cambia a lo largo del tiempo y del que interesa saber cuántos hay. Escríbelo como
+una **clase tradicional**, no como un `record`, y fíjate en cuánto más hay que escribir a cambio
+de poder cambiar de estado.
 
-1. Atributos **privados**: `nombre` (`String`), `direccion` (`DireccionIpv4`), `puerto` (`int`) y
-   `enServicio` (`boolean`).
-2. Un atributo **de clase** `private static int servidoresCreados`, que cuenta cuántos objetos
-   `Servidor` se han construido, con su método de acceso `public static int getServidoresCreados()`.
-3. Constructor `Servidor(String nombre, DireccionIpv4 direccion, int puerto)` que rechaza nombres
-   nulos o en blanco y direcciones nulas (`Objects.requireNonNull` o `IllegalArgumentException`,
-   según proceda), valida que el puerto esté entre 1 y 65 535, deja el servidor **fuera de
-   servicio** e incrementa el contador.
-4. Constructor sobrecargado `Servidor(String nombre, DireccionIpv4 direccion)` que use el puerto
-   443 delegando en el anterior con `this(...)`. No repitas la validación.
-5. Comportamiento: `arrancar()` y `parar()`, que cambian `enServicio`.
-6. Métodos de acceso `getNombre()`, `getDireccion()`, `getPuerto()`, `isEnServicio()`.
-7. `equals` y `hashCode` basados **solo** en dirección y puerto (dos servidores con el mismo
-   nombre en máquinas distintas no son el mismo servidor), y un `toString()` legible.
+Escribe `public class Servidor` siguiendo el modelo de
+[`DispositivoRed`](../contenido/tema1.qmd#nte-dispositivo-red).
 
-**No escribas** `setDireccion` ni `setPuerto`. Añade un comentario de dos líneas explicando qué
-invariante te permite mantener esa decisión.
+1. **Atributos de instancia**: `nombre` (un `String`) y `enMantenimiento` (un `boolean`). Los dos
+   `private`, que es lo que significa
+   [encapsular](../contenido/tema1.qmd#imp-encapsulación): nadie de fuera toca el estado
+   directamente, solo a través de los métodos que tú ofrezcas.
+
+2. **Un atributo de clase** `private static int servidoresCreados`, que cuente cuántos objetos
+   `Servidor` se han construido desde que arrancó el programa. Va acompañado de un **método de
+   clase** `public static int servidoresCreados()`. Pertenece a la clase y no a cada objeto
+   ([atributos y métodos](../contenido/tema1.qmd#imp-atrimet)), así que se incrementa en el
+   constructor y se consulta como `Servidor.servidoresCreados()`.
+
+3. **Constructor** `Servidor(String nombre)`. Un servidor nace fuera de mantenimiento. Si el
+   nombre es `null` o está en blanco, `IllegalArgumentException`: es el mismo criterio del
+   ejercicio anterior, un objeto inválido no debe llegar a existir.
+
+4. **Comportamiento**: `entrarEnMantenimiento()`, `salirDeMantenimiento()` y los métodos de
+   consulta `nombre()` y `estaEnMantenimiento()`. Fíjate en que no hay ningún método que permita
+   cambiar el nombre: un servidor que cambia de nombre es otro servidor.
+
+5. **`toString()`** que devuelva algo como `"web01 (operativo)"` o `"web01 (en mantenimiento)"`.
 
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
-var web = new Servidor("web", DireccionIpv4.desde("10.0.0.1"), 80);
-var otro = new Servidor("web-replica", DireccionIpv4.desde("10.0.0.1"), 80);
-web.arrancar();
-System.out.println(web.isEnServicio());                  // true
-System.out.println(web.equals(otro));                    // true: misma dirección y puerto
-System.out.println(Servidor.getServidoresCreados());     // 2
+var web = new Servidor("web01");
+var correo = new Servidor("mail01");
+System.out.println(web);                           // web01 (operativo)
+web.entrarEnMantenimiento();
+System.out.println(web);                           // web01 (en mantenimiento)
+System.out.println(Servidor.servidoresCreados());  // 2
 ```
 :::
+
+**Cómo saber si va bien.** Las pruebas construyen varios servidores y comprueban el contador, el
+cambio de estado y el rechazo de los nombres vacíos.
+
+**Para pensar.** El contador nunca baja, ni siquiera cuando un `Servidor` deja de usarse. ¿Es un
+error o es lo que queremos? ¿Qué haría falta para que contara los servidores «vivos» en lugar de
+los creados?
 ::::
 
 :::: {.callout-note title="1.1.3 Corregir la clase `Etiqueta`" collapse="true"}
-La plantilla incluye una clase `Etiqueta` con dos campos (`nombre` y `valor`) que redefine
-`equals` correctamente pero **no** redefine `hashCode`.
+La plantilla trae `Etiqueta`, una clase que representa una etiqueta de inventario con un texto y
+un color. Alguien le redefinió `equals` y se olvidó de `hashCode`, que es el error más silencioso
+de la POO en Java: el programa compila, funciona en las pruebas fáciles y falla el día que la
+etiqueta se guarda en una estructura que use el resumen (*hash*).
 
-1. Escribe un `main` que **demuestre el fallo**: mete una etiqueta en un `HashSet`, comprueba con
-   `contains` una etiqueta igual pero distinta, y añade la misma etiqueta dos veces mostrando el
-   tamaño resultante. Haz lo mismo con un `HashMap` usando etiquetas como clave.
-2. Compila con `mvn -DcompilerArgument=-Xlint:all compile` o activa las inspecciones de tu IDE y
-   localiza el aviso que ya te estaba avisando del problema.
-3. **Corrige** la clase añadiendo `hashCode` con `Objects.hash`, y comprueba que el `main`
-   anterior pasa a comportarse como esperabas.
-4. Escribe además `record EtiquetaRecord(String nombre, String valor)` y repite el `main` con
-   ella. En un comentario, indica cuántas líneas te ha ahorrado y qué restricción impone el
-   `record` que la clase original no tenía.
+Antes de tocar nada, ejecuta la clase `DemoEtiqueta` que viene en la plantilla y mira lo que
+imprime. Después arréglalo.
 
-Repasa el error frecuente sobre `equals` y `hashCode` en
-[la sección 1.1.1 del tema](../contenido/tema1.qmd#objetos-clases-y-estado).
+1. **Redefine `hashCode`** de forma coherente con el `equals` que ya existe: dos etiquetas iguales
+   deben tener el mismo código, y el cálculo debe usar exactamente los mismos atributos que usa
+   `equals`, ni uno más ni uno menos. Te servirá `java.util.Objects.hash(...)`.
+
+2. **Revisa el `equals` existente** contra el contrato: ¿es reflexivo, simétrico y transitivo?
+   ¿Qué devuelve si le pasas `null`? ¿Y si le pasas un objeto de otra clase? Corrige lo que haga
+   falta.
+
+3. **Explica en un comentario** de tres líneas, al principio de la clase, cuál era la consecuencia
+   práctica del fallo. El [Error Frecuente sobre `equals` sin
+   `hashCode`](../contenido/tema1.qmd#cau-equals-sin-hashcode) tiene la respuesta y el ejemplo.
+
+Cuando termines, plantéate esta pregunta: **si `Etiqueta` fuese un `record`, ¿cuántos de los tres
+pasos anteriores habrían hecho falta?**
+
+::: {.callout-tip title="Lo que debe cumplirse al final"}
+```java
+var a = new Etiqueta("rack-3", "rojo");
+var b = new Etiqueta("rack-3", "rojo");
+System.out.println(a.equals(b));                     // true
+System.out.println(a.hashCode() == b.hashCode());    // true
+System.out.println(a.equals(null));                  // false
+System.out.println(a.equals("rack-3"));              // false
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el contrato completo, incluido el caso de `null`
+y el de un objeto de otra clase, y que dos etiquetas iguales compartan código de resumen.
+
+**Para pensar.** El contrato dice que dos objetos iguales deben tener el mismo `hashCode`, pero no
+al revés. ¿Por qué se permite que dos objetos distintos compartan código? ¿Qué pasaría si se
+exigiera que fueran siempre distintos?
 ::::
 
 :::: {.callout-note title="1.1.4 Clase `PuntoAcceso` (herencia)" collapse="true"}
-Escribe `PuntoAcceso` como subclase de `es.uib.prgava.tema1.poo.DispositivoRed`, que modele un
-punto de acceso inalámbrico.
+Un punto de acceso inalámbrico **es un** dispositivo de red: tiene nombre y dirección IP como
+cualquier otro, se activa y se desactiva igual, y además tiene cosas propias. Esa frase —«es un»—
+es la que autoriza a usar herencia ([Concepto
+Clave](../contenido/tema1.qmd#imp-herencia)), y el modelo a seguir está en
+[`Enrutador` y `Conmutador`](../contenido/tema1.qmd#nte-herenciaejemplo).
 
-1. Declara `public enum Banda { GHZ_24, GHZ_5 }` (puede ser un fichero aparte o un tipo anidado).
-2. Atributos propios: `banda` (`Banda`) y `canal` (`int`).
-3. Constructor `PuntoAcceso(String nombre, String direccionIp, Banda banda, int canal)` que llame
-   a `super(nombre, direccionIp)` **como primera instrucción** y valide el canal: de 1 a 14 en
-   `GHZ_24`, de 36 a 165 en `GHZ_5`. Si no es válido, `IllegalArgumentException` indicando la
-   banda y el canal.
-4. Método `cambiarCanal(int nuevoCanal)` con la misma validación (extrae la comprobación a un
-   método `private` para no duplicarla).
-5. `@Override public String toString()` que incluya el nombre, la IP, la banda y el canal.
+Escribe `public class PuntoAcceso extends DispositivoRed`, en el paquete de ejercicios, importando
+`DispositivoRed` del paquete `poo`.
 
-Responde en un comentario al final de la clase: ¿por qué tienes que usar `getNombre()` en
-`toString()` en lugar de leer directamente el campo `nombre` de la superclase?
+1. **Atributos propios**: `ssid` (el nombre de la red inalámbrica) y `canal` (un entero de 1 a
+   13). Son de `PuntoAcceso` y no de `DispositivoRed`, porque un conmutador no tiene ni SSID ni
+   canal.
+
+2. **Constructor** `PuntoAcceso(String nombre, String direccionIp, String ssid, int canal)`. Lo
+   primero que hace es llamar al constructor de la superclase con `super(nombre, direccionIp)`;
+   esa llamada tiene que ser la primera instrucción del constructor. Después valida el canal y
+   asigna lo suyo.
+
+3. **Un método propio**, `cambiarCanal(int nuevo)`, con la misma validación. Piensa si te compensa
+   escribirla dos veces o extraerla a un método privado.
+
+4. **Redefine `toString()`** para que incluya lo heredado y lo propio. Dentro de la redefinición
+   puedes llamar a `super.toString()` para reutilizar lo que ya sabe hacer la superclase en lugar
+   de repetirlo.
+
+5. **Comprueba el contador heredado**: crea un `Enrutador` y un `PuntoAcceso` y mira qué devuelve
+   `DispositivoRed.getDispositivosCreados()`. **¿Por qué cuenta los dos, si el contador está
+   declarado en la superclase y `PuntoAcceso` no lo toca?** La respuesta está en la distinción
+   entre [atributo de instancia y atributo de
+   clase](../contenido/tema1.qmd#imp-atrimet).
 
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
-var ap = new PuntoAcceso("ap-aulario", "10.0.1.20", PuntoAcceso.Banda.GHZ_5, 44);
+var ap = new PuntoAcceso("ap-planta2", "10.0.2.15", "UIB-Invitados", 6);
 ap.activar();
-System.out.println(ap);                    // PuntoAcceso[ap-aulario, ip=10.0.1.20, 5 GHz, canal 44]
-ap.cambiarCanal(11);                       // IllegalArgumentException: canal 11 inválido en GHZ_5
+System.out.println(ap.isActivo());          // true   (heredado)
+System.out.println(ap);                     // incluye nombre, IP, SSID y canal
+ap.cambiarCanal(14);                        // IllegalArgumentException
 ```
 :::
+
+**Cómo saber si va bien.** Las pruebas comprueban que lo heredado sigue funcionando sin haberlo
+reescrito, que el canal se valida en el constructor y en `cambiarCanal`, y que el `toString`
+contiene los cuatro datos.
+
+**Para pensar.** Un punto de acceso también hace de conmutador para los equipos que tiene
+conectados. Si mañana necesitaras que `PuntoAcceso` tuviera además el comportamiento de
+`Conmutador`, ¿podrías heredar de los dos? ¿Qué te ofrece Java en su lugar?
 ::::
 
-:::: {.callout-note title="1.1.5 Añadir `ServicioPing` a la jerarquía sellada" collapse="true"}
-Este ejercicio **sí modifica** el código del monitor incluido en la plantilla
-(paquete `es.uib.prgava.tema1.monitor`).
+:::: {.callout-note title="1.1.5 Clase `PanelDeEstado` (composición)" collapse="true"}
+En 1.1.3 viste que `RegistroContador` empezó **heredando** de `RegistroEventos` y acabó
+**conteniendo** uno, porque heredar la ataba a decisiones internas de la superclase ([la clase base
+frágil](../contenido/tema1.qmd#tip-clase-base-fragil)). Este ejercicio recorre ese camino con tus
+manos.
 
-1. Crea `public record ServicioPing(String host) implements Servicio`, con un constructor compacto
-   que rechace hosts nulos o en blanco y normalice a minúsculas, y con
-   `nombre()` devolviendo `"ping:" + host`.
-2. Añade `ServicioPing` a la cláusula `permits` de la interfaz sellada `Servicio`.
-3. **Compila sin tocar nada más** y anota qué clases dejan de compilar y con qué mensaje exacto.
-4. Arréglalas. Como mínimo tendrás que actualizar `Descripciones.describir`.
-5. Extiende la fábrica `Servicio.desde` para que interprete `ping:host`.
-6. En un comentario de tres líneas, responde: si `Servicio` fuera una interfaz normal (no
-   `sealed`), ¿qué habría ocurrido en el paso 3, y cuándo te habrías enterado del problema?
+La plantilla incluye `PanelDeEstadoHeredado extends RegistroEventos`, que añade un `resumen()` y
+lleva la cuenta de los eventos registrados. Tiene el mismo fallo que tenía `RegistroContador`: si
+alguien cambia `RegistroEventos` para que `registrarVarios` deje de llamar a `registrar`, la
+cuenta deja de salir. No la corrijas; déjala como testigo.
 
-Consulta [1.1.5 del tema](../contenido/tema1.qmd#jerarquías-cerradas-clases-selladas-y-pattern-matching)
-si necesitas repasar la exhaustividad del `switch`.
-::::
+Escribe `public final class PanelDeEstado` que haga lo mismo **sin heredar de nada**.
 
-:::: {.callout-note title="1.1.6 Clase `LectorUmbrales` y excepción propia" collapse="true"}
-Cada servicio puede tener su propio umbral de latencia. Escribe el lector de ese fichero de
-configuración, practicando `try-with-resources`, excepciones propias y encadenamiento de causas.
+1. **Un atributo de instancia** `private final RegistroEventos interno = new RegistroEventos();`.
+   Esa línea es toda la diferencia: el panel **tiene** un registro en lugar de **ser** uno
+   ([composición](../contenido/tema1.qmd#imp-composicion-concepto)).
 
-1. `public class UmbralInvalidoException extends RuntimeException` con un campo `linea` (`int`),
-   dos constructores (con y sin causa) y un método de acceso `linea()`. El mensaje debe empezar
-   por `"Línea N: "`.
-2. `public final class LectorUmbrales` con
-   `public static Map<String, Duration> leer(Path fichero)`:
-   - lee el fichero con `Files.lines` dentro de un **try-with-resources**;
-   - ignora las líneas vacías y las que empiezan por `#`;
-   - cada línea válida tiene la forma `nombreServicio=milisegundos`;
-   - una línea sin `=`, con el nombre vacío, con un número no entero o con un valor negativo o
-     cero produce `UmbralInvalidoException` indicando el número de línea (empezando en 1) y,
-     cuando exista, **encadenando la causa** original;
-   - una clave repetida también es un error;
-   - devuelve un mapa inmutable.
-3. Escribe un `main` que lea un fichero con un error deliberado, deje escapar la excepción y
-   copie en un comentario el *stack trace* resultante, señalando la línea de **tu** código y la
-   línea de la causa.
+2. **Delega lo que quieras ofrecer.** Escribe `registrar(String evento)` y
+   `registrarVarios(String... eventos)` apoyándote en el objeto interno. Fíjate en que
+   `registrarVarios` debe llamar a **tu propio** `registrar`, no al del interno: así controlas tú
+   que la cuenta se incremente, que es justamente lo que la herencia no garantizaba. El
+   [ejemplo de `RegistroContador`](../contenido/tema1.qmd#nte-composicion-ejemplo) lo hace así.
 
-::: {.callout-tip title="Fichero de ejemplo (`umbrales.txt`)"}
-```text
-# umbrales en milisegundos
-https://www.uib.es=300
-dns:uib.es=150
-tcp:mail.uib.es:25=500
+3. **Lo que no delegues, no existe.** No añadas métodos que `RegistroEventos` ofrezca y que el
+   panel no necesite. Ese es el beneficio que se paga escribiendo métodos de delegación: la
+   interfaz pública es exactamente la que tú decides, ni más ni menos.
+
+4. **`public String resumen()`** que devuelva algo como `"3 eventos registrados"`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var panel = new PanelDeEstado();
+panel.registrarVarios("enlace caído", "enlace restaurado", "latencia alta");
+System.out.println(panel.resumen());     // 3 eventos registrados
 ```
 :::
+
+**Cómo saber si va bien.** Las pruebas registran eventos por los dos caminos y comprueban la
+cuenta, con `PanelDeEstado` y con `PanelDeEstadoHeredado`. La segunda falla a propósito después de
+que la prueba altere `RegistroEventos`; el enunciado te pide leer esa prueba y entender por qué
+una aguanta y la otra no.
+
+**Para pensar.** Has escrito dos métodos que no hacen más que pasar la llamada. Si
+`RegistroEventos` tuviera treinta métodos y los necesitaras todos, ¿seguirías prefiriendo la
+composición? ¿Dónde está el punto en que la balanza cambia?
+::::
+
+:::: {.callout-note title="1.1.6 Clase abstracta `Sensor` y dos subclases" collapse="true"}
+Una clase abstracta sirve cuando varias clases comparten atributos y parte del comportamiento,
+pero hay un trozo que cada una tiene que resolver a su manera y que **no tiene sentido** en la
+clase general ([Concepto Clave](../contenido/tema1.qmd#imp-clase-abstracta)). El modelo es
+[`Figura` con `Circulo`](../contenido/tema1.qmd#nte-clase-abstracta-ejemplo).
+
+Escribe `public abstract class Sensor` y dos subclases concretas.
+
+1. **En `Sensor`**: un atributo `private final String ubicacion`, un constructor `protected`
+   que lo reciba, un método de consulta `ubicacion()` y un método **abstracto**
+   `public abstract double leer();`, sin cuerpo, porque «leer» significa algo distinto en cada
+   sensor y no hay una lectura genérica razonable.
+
+2. **Un método concreto en la clase abstracta**: `public String describir()`, que devuelva algo
+   como `"temperatura en sala-3: 21.5"`. Llama a `leer()` desde ahí, aunque `leer()` no tenga
+   cuerpo en esta clase. **¿Cómo puede funcionar eso?** La respuesta la acabas de ver en 1.1.3, al
+   final: cuando la subclase redefine un método heredado, el código de la superclase ejecuta la
+   versión de la subclase.
+
+3. **`SensorTemperatura`** y **`SensorHumedad`**, cada una con su constructor y su `leer()`
+   propio. Para que las pruebas puedan comprobar algo, que la lectura no sea aleatoria: pásasela
+   al constructor y devuélvela.
+
+4. **Comprueba que no se puede instanciar** `new Sensor("sala-3")`. Deja la línea escrita y
+   comentada, con una nota de qué dice el compilador.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+Sensor s = new SensorTemperatura("sala-3", 21.5);
+System.out.println(s.leer());        // 21.5
+System.out.println(s.describir());   // temperatura en sala-3: 21.5
+// Sensor roto = new Sensor("sala-3");   // no compila
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban las dos subclases y, sobre todo, que
+`describir()` —escrito una sola vez, en la clase abstracta— devuelve el texto correcto para las
+dos.
+
+**Para pensar.** La variable del ejemplo se declara `Sensor` y contiene un `SensorTemperatura`.
+¿Qué gana el código escrito así frente a declararla `SensorTemperatura`?
+::::
+
+:::: {.callout-note title="1.1.7 Interfaz `Identificable`" collapse="true"}
+La herencia solo sirve cuando las clases pertenecen a la misma familia. Una **interfaz** no exige
+parentesco: declara un tipo y cualquier clase puede comprometerse a cumplirlo
+([Concepto Clave](../contenido/tema1.qmd#imp-interfaz)). El modelo es
+[`Describible`](../contenido/tema1.qmd#nte-describible), implementado por una figura geométrica y
+un puerto TCP, que no tienen nada en común.
+
+Escribe `public interface Identificable` y haz que dos clases tuyas la cumplan.
+
+1. **La interfaz**, con un único método abstracto `String identificador();`.
+
+2. **Un método `default`** `public default String etiqueta()`, que devuelva
+   `"[" + identificador() + "]"`. Es comportamiento derivado del método abstracto: quien implemente
+   la interfaz lo recibe sin escribirlo, como `mostrar()` en `Describible`.
+
+3. **Impleméntala en `Servidor`** (1.1.2), devolviendo su nombre, **y en `DireccionIpv4`** (1.1.1),
+   devolviendo su forma con puntos. Fíjate en que un registro también puede implementar interfaces:
+   lo que no puede es heredar de una clase.
+
+4. **Escribe un método de clase** `public static void mostrarTodos(Identificable... cosas)` en una
+   clase `Inventario`, que recorra el parámetro variable e imprima la etiqueta de cada uno. Un
+   único método que funciona con un servidor y con una dirección IP a la vez: eso es
+   [polimorfismo de subtipo](../contenido/tema1.qmd#imp-polimorfismo).
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+Inventario.mostrarTodos(
+        new Servidor("web01"),
+        new DireccionIpv4(10, 0, 0, 1));
+// [web01]
+// [10.0.0.1]
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el `identificador()` de las dos clases y que
+`etiqueta()` funciona en ambas sin que ninguna lo haya escrito.
+
+**Para pensar.** `mostrarTodos` no sabe si recibe servidores, direcciones o algo que todavía no
+existe. ¿Qué habría que cambiar en ese método el día que añadas una tercera clase
+`Identificable`?
+::::
+
+:::: {.callout-note title="1.1.8 `DireccionIpv4` ordenable (`Comparable`)" collapse="true"}
+Java trae interfaces ya definidas que su propia biblioteca usa, y `Comparable` es la más útil para
+empezar ([Concepto Clave](../contenido/tema1.qmd#imp-javainterfaces)). Implementarla es declarar
+el **orden natural** de tu tipo, y a partir de ese momento las operaciones de ordenación de la
+biblioteca —que se escribieron años antes que tu clase— saben ordenar tus objetos.
+
+Vuelve a `DireccionIpv4` (1.1.1) y haz que implemente `Comparable<DireccionIpv4>`.
+
+1. **Declara el compromiso**: `public record DireccionIpv4(...) implements Comparable<DireccionIpv4>`.
+   Una clase puede implementar tantas interfaces como quiera, así que si ya implementaste
+   `Identificable` en 1.1.7, esta se añade a la lista.
+
+2. **Implementa `compareTo`** con el orden natural de una dirección: primero se compara el primer
+   octeto; si empatan, el segundo, y así sucesivamente. Devuelve negativo, cero o positivo, y
+   recuerda que lo único que se mira es el **signo**, no el valor.
+
+3. **No restes.** Escribir `return primero - otro.primero()` parece equivalente y casi siempre lo
+   es; el [Error Frecuente](../contenido/tema1.qmd#cau-resta-compareto) explica cuándo deja de
+   serlo y qué usar en su lugar.
+
+4. **Comprueba el orden** con un array de direcciones y `java.util.Arrays.sort(array)`. Ese método
+   no conoce tu clase: solo sabe llamar a `compareTo`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var direcciones = new DireccionIpv4[] {
+        new DireccionIpv4(10, 0, 0, 5),
+        new DireccionIpv4(10, 0, 0, 1),
+        new DireccionIpv4(9, 255, 255, 255)
+};
+java.util.Arrays.sort(direcciones);
+System.out.println(direcciones[0]);   // 9.255.255.255
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas ordenan varios arrays, incluidos casos con empates en los
+primeros octetos, y comprueban además que `compareTo` devuelve cero exactamente cuando `equals`
+devuelve `true`.
+
+**Para pensar.** Esa última comprobación de las pruebas no es un capricho: el contrato de
+`Comparable` recomienda que el orden sea coherente con la igualdad. ¿Qué podría salir mal en una
+estructura ordenada si `compareTo` dijera «iguales» de dos objetos que `equals` considera
+distintos?
 ::::
 
 ## 1.2. Principios SOLID y patrones de diseño canónicos
 
-Ejercicios sobre [1.2 del tema](../contenido/tema1.qmd#principios-solid-y-patrones-de-diseño-canónicos).
-En varios de ellos la plantilla incluye una versión **mal diseñada** que debes refactorizar: no la
-reescribas desde cero, transfórmala paso a paso comprobando que el comportamiento observable no
-cambia.
+Ejercicios sobre [1.2 del tema](../contenido/tema1.qmd#principios-solid-y-patrones-de-diseño-canónicos):
+los cinco principios y los patrones que los ponen en práctica. A partir de aquí se trabaja sobre el
+**monitor de servicios**, cuyo código tienes completo en la plantilla, y aparecen las listas
+(`List`), presentadas en
+[1.2.2](../contenido/tema1.qmd#el-monitor-de-servicios-vocabulario-y-versión-0).
+
+Los enunciados son algo más escuetos que los de 1.1: ya sabes buscar en el tema.
 
 :::: {.callout-note title="1.2.1 Refactorizar `RegistroSensores` (principio S)" collapse="true"}
-La plantilla incluye `RegistroSensores`, una clase que almacena lecturas de sensores, calcula
-estadísticas sobre ellas y además las exporta a un fichero CSV.
+La plantilla trae `RegistroSensores`, una clase que guarda lecturas de sensores, calcula la media,
+decide si hay que avisar y compone el texto del aviso. Cuatro cosas, y por tanto cuatro razones
+para cambiar: es el olor de la
+[clase que lo sabe todo](../contenido/tema1.qmd#cau-clase-dios).
 
-1. Enumera en un comentario **cuántas razones para cambiar** tiene la clase y quién pediría cada
-   uno de esos cambios.
-2. Sepárala en dos clases con una única responsabilidad cada una:
-   - `EstadisticasSensor`, que solo calcula (media, máximo, mínimo, número de lecturas) y no toca
-     el sistema de ficheros;
-   - `ExportadorCsv`, con un único método `escribir(Path destino, List<String> filas)`, que solo
-     escribe lo que recibe y no conoce la lógica de cálculo.
+1. **Antes de tocar el código**, escribe en un comentario cuántas responsabilidades ves y quién
+   pediría cada cambio. El criterio del principio S no es «hacer una sola cosa» sino «tener una
+   sola razón para cambiar».
 
-   `EstadisticasSensor` ofrece además `List<String> comoFilas()`, que prepara las filas del CSV
-   empezando por la cabecera `metrica;valor`: así el exportador sigue sin saber nada de sensores.
-3. Escribe un `main` que las use juntas y produzca exactamente la misma salida que la clase
-   original.
-4. Comprueba lo que has ganado: escribe **una** aserción sobre la media sin crear ningún fichero.
+2. **Sepáralas en clases distintas**, cada una con su nombre. Las lecturas por un lado, el cálculo
+   por otro, la decisión por otro y el texto por otro; tú decides los nombres y las firmas.
+
+3. **Mantén el comportamiento.** Las pruebas existentes deben seguir pasando sin que las toques:
+   esa es la definición de refactorizar.
+
+**Cómo saber si va bien.** Las pruebas son las mismas antes y después. Si tienes que cambiarlas,
+no has refactorizado: has reescrito.
+
+**Para pensar.** Ahora hay cuatro clases donde había una, y alguien tiene que conectarlas. ¿Dónde
+pondrías ese cableado, y por qué no dentro de ninguna de las cuatro?
 ::::
 
 :::: {.callout-note title="1.2.2 Clase `FallosEnVentana` (principio O + Strategy)" collapse="true"}
 Añade una política de alerta nueva **sin modificar** `Monitor` ni la interfaz `PoliticaDeAlerta`.
+Si lo consigues, has comprobado el principio abierto/cerrado en tus manos: el monitor queda
+abierto a políticas nuevas y cerrado a modificaciones.
 
-Escribe `public final class FallosEnVentana implements PoliticaDeAlerta`:
+Escribe `public final class FallosEnVentana implements PoliticaDeAlerta`, en el paquete `monitor`.
 
-1. Constructor `FallosEnVentana(int minimoFallos, int tamanoVentana)`. Valida que
-   `1 ≤ minimoFallos ≤ tamanoVentana`; en otro caso, `IllegalArgumentException`.
+1. Constructor `FallosEnVentana(int minimoFallos, int tamanoVentana)`, que valide
+   `1 ≤ minimoFallos ≤ tamanoVentana`.
+
 2. `debeAlertar(List<Resultado> historial)` devuelve `true` si entre las **últimas
-   `tamanoVentana` comprobaciones** hay al menos `minimoFallos` fallos. Si el historial tiene
-   menos elementos que la ventana, considera los que haya. A diferencia de `FallosConsecutivos`,
-   los fallos **no** tienen que ser seguidos.
-3. `toString()` descriptivo, por ejemplo `"2 fallos en las últimas 5 comprobaciones"`.
-4. En `Principal`, sustituye la política actual por
-   `new FallosEnVentana(2, 5).o(new LatenciaExcesiva(Duration.ofMillis(500), 5))` y comprueba que
-   `Monitor` no ha necesitado ni una línea de cambio.
+   `tamanoVentana`** comprobaciones hay al menos `minimoFallos` fallos. A diferencia de
+   `FallosConsecutivos`, no tienen que ser seguidos. Si el historial es más corto que la ventana,
+   considera los que haya.
+
+3. `toString()` descriptivo, porque el `Monitor` lo usa al componer el mensaje de la alerta.
+
+4. En `Principal`, sustituye la política por la tuya y comprueba que `Monitor` no necesita ni una
+   línea de cambio.
 
 ::: {.callout-tip title="Casos que debe cumplir"}
 ```java
@@ -255,408 +502,301 @@ politica.debeAlertar(List.of(FALLO, OK, OK, OK, FALLO));      // true  (2 fallos
 politica.debeAlertar(List.of(FALLO, OK, OK, OK, OK, OK));     // false (el fallo quedó fuera)
 ```
 :::
+
+**Cómo saber si va bien.** Las pruebas cubren el historial vacío, el más corto que la ventana, el
+límite exacto y el fallo que acaba de salirse de la ventana.
+
+**Para pensar.** `FallosConsecutivos(2)` y `FallosEnVentana(2, 2)` no son la misma política.
+¿Puedes construir un historial que distinga una de otra?
 ::::
 
 :::: {.callout-note title="1.2.3 Diagnosticar y rediseñar `ListaSoloLectura` (principio L)" collapse="true"}
 La plantilla incluye `ListaSoloLecturaHeredada extends ArrayList<String>`, que redefine `add` y
-`remove` para lanzar `UnsupportedOperationException`. No la corrijas: úsala para el diagnóstico y
-escribe la versión buena en el esqueleto `ListaSoloLectura`.
+`remove` para lanzar `UnsupportedOperationException`. Compila, y aun así está mal: una subclase
+que promete menos que su superclase rompe a quien escribió código contra la superclase.
 
-1. Escribe un método `static void rellenar(List<String> destino, int cuantos)` que añada elementos
-   a la lista recibida. Comprueba que funciona con un `ArrayList` y falla con
-   `ListaSoloLecturaHeredada`.
-2. En un comentario, explica **qué parte del contrato** de `List` rompe la subclase y por qué eso
-   viola el principio de sustitución de Liskov. Cita la precondición o la postcondición concreta.
-3. Escribe la versión buena **con composición**: `ListaSoloLectura implements Iterable<String>`, con un
-   `List<String>` interno recibido por constructor (copiado defensivamente), y solo los métodos de
-   lectura que tenga sentido ofrecer (`obtener(int)`, `tamano()`, `contiene(Object)`, `iterator()`).
-4. Comprueba que ahora `rellenar` **ni siquiera compila** con la nueva clase, y explica por qué eso
-   es mejor que fallar en tiempo de ejecución.
+1. **Diagnostica.** Escribe un método que reciba una `List<String>`, le añada un elemento y
+   devuelva su tamaño. Pásale una `ArrayList` normal y después una `ListaSoloLecturaHeredada`.
+   Explica en un comentario qué ocurre y por qué es una violación del principio de sustitución.
+
+2. **Rediseña.** Escribe `ListaSoloLectura` que ofrezca solo lo que de verdad cumple —consultar y
+   recorrer— **sin heredar** de `ArrayList`. Contén una lista en lugar de ser una.
+
+3. No corrijas la clase heredada: déjala como testigo del antes.
+
+**Cómo saber si va bien.** Las pruebas comprueban que tu clase no ofrece ningún método que
+mienta, y que el método del paso 1 ni siquiera compila si se le pasa una `ListaSoloLectura`.
+
+**Para pensar.** La biblioteca estándar tiene el mismo problema: `List.of(...)` devuelve una lista
+cuyo `add` lanza excepción. ¿Es entonces una violación del principio L en la propia biblioteca de
+Java, o hay una diferencia?
 ::::
 
 :::: {.callout-note title="1.2.4 Dividir la interfaz `GestorDispositivos` (principio I)" collapse="true"}
-La plantilla incluye una interfaz `GestorDispositivos` con ocho métodos que mezclan consulta
-(`buscarPorNombre`, `listarTodos`, `contar`), alta y baja (`registrar`, `eliminar`) y
-administración (`reiniciar`, `actualizarFirmware`, `restaurarValoresDeFabrica`).
+La plantilla trae `GestorDispositivos`, una interfaz con ocho métodos: dar de alta, borrar,
+consultar, exportar. Sus tres implementaciones tienen métodos vacíos o que lanzan excepción porque
+«no aplican», que es el síntoma exacto del principio I.
 
-1. Divídela en tres interfaces por **rol**: `ConsultaDispositivos`, `AltaDispositivos` y
-   `AdministracionDispositivos`. La plantilla te las da **vacías**, con un comentario indicando qué
-   métodos van en cada una; tú los trasladas desde `GestorDispositivos`, que debe quedar
-   extendiendo a las tres para quien necesite todo.
-2. Completa `CatalogoEnMemoria`, que implementa solo `ConsultaDispositivos` y `AltaDispositivos`
-   (un catálogo no reinicia nada). Cuando hayas movido los métodos a las interfaces, añade
-   `@Override` a los cinco: si alguno no compila, lo has colocado en la interfaz equivocada.
-3. Escribe un método `static String resumen(ConsultaDispositivos consulta)` y comprueba que puedes
-   llamarlo con `CatalogoEnMemoria` sin que exista ningún método de administración.
-4. En un comentario, indica qué habría tenido que hacer `CatalogoEnMemoria` con los métodos de
-   administración si no hubieras dividido la interfaz, y con qué otro principio SOLID choca esa
-   solución.
+1. **Divídela por roles**, no por tamaño: la pregunta no es cuántos métodos tiene cada una sino
+   qué necesita cada cliente. El modelo es cómo se partió `RepositorioResultados` en
+   `LectorResultados` y `EscritorResultados`.
+
+2. **Ajusta las implementaciones** para que cada una declare solo las interfaces que cumple de
+   verdad.
+
+3. **Ajusta los clientes** para que dependan de la interfaz más pequeña que les sirva.
+
+**Cómo saber si va bien.** Ninguna implementación debe quedar con un método vacío ni con uno que
+lance `UnsupportedOperationException`. Las pruebas lo comprueban por reflexión.
+
+**Para pensar.** Si divides demasiado acabas con una interfaz por método y un cableado imposible.
+¿Qué criterio te dice que has dividido bastante?
 ::::
 
 :::: {.callout-note title="1.2.5 Invertir las dependencias de `InformeDiario` (principio D)" collapse="true"}
-La plantilla incluye `InformeDiarioAcoplado`, que se fabrica su propio `RepositorioEnMemoria` y
-escribe el informe con `System.out.println`. No la modifiques: escribe la versión buena en el
-esqueleto `InformeDiario`.
+La plantilla trae `InformeDiarioAcoplado`, que dentro de sus métodos hace `new` de un repositorio
+concreto y escribe por `System.out`. No se puede probar sin ejecutarlo entero y mirar la consola:
+es el [`new` de colaboradores dentro de la clase](../contenido/tema1.qmd#cau-new-dentro-de-la-clase).
 
-1. Explica en un comentario por qué esta clase es imposible de probar tal como está.
-2. Escribe `InformeDiario` recibiendo sus colaboradores **por el constructor**: un
-   `LectorResultados` (no un `RepositorioResultados`: solo lee, aplica también el principio I) y un
-   `Consumer<String>` como destino del texto. Debe emitir una cabecera y una línea por servicio,
-   con la misma información que la versión acoplada.
-3. Deja el cableado en un `main`: `new InformeDiario(repositorio, System.out::println)`.
-4. Demuestra la ganancia: en un `main` de prueba, construye el informe con un repositorio de
-   mentira y un `Consumer` que acumule las líneas en una lista, y comprueba el contenido sin
-   escribir en consola.
+1. **Escribe `InformeDiario`** que reciba sus colaboradores por el constructor, declarados con el
+   tipo de la **interfaz** y no de la clase concreta.
 
-Repasa el error frecuente sobre el uso de `new` con colaboradores en
-[1.2.3 del tema](../contenido/tema1.qmd#los-principios-solid).
+2. **Saca la salida** a un colaborador también, para que una prueba pueda capturar lo que se
+   escribe sin tocar la consola.
+
+3. **Cablea en `Principal`**, y solo ahí, las implementaciones concretas.
+
+**Cómo saber si va bien.** Las pruebas construyen `InformeDiario` con un repositorio de mentira y
+un receptor de salida de mentira, y comprueban el texto sin ejecutar nada más. Si necesitas leer
+la consola para probarlo, la inversión no está hecha.
+
+**Para pensar.** El constructor de `InformeDiario` tiene ahora tres parámetros. Si llegara a tener
+siete, ¿sería un problema de la inyección de dependencias o una señal sobre la clase?
 ::::
 
-:::: {.callout-note title="1.2.6 Clase `NotificadorFichero` (Observer)" collapse="true"}
-Escribe `public final class NotificadorFichero implements Notificador`, que registre cada alerta
-en un fichero de texto.
+:::: {.callout-note title="1.2.6 Clase `NotificadorSinRepetir` (Observer)" collapse="true"}
+El encargo del que nace el monitor decía que no quería un aviso por cada fallo suelto. Una forma
+de conseguirlo, sin tocar la política de alerta, es poner un notificador que **filtre lo
+repetido**: del mismo servicio, solo el primer aviso.
 
-1. Constructor `NotificadorFichero(Path destino)`.
-2. `notificar(Alerta alerta)` añade una línea al final del fichero con el instante, el nombre del
-   servicio y el mensaje, separados por punto y coma. Abre y cierra el fichero en cada llamada,
-   con `try-with-resources` y `Files.newBufferedWriter(..., StandardOpenOption.APPEND,
-   StandardOpenOption.CREATE)`.
-3. La `IOException` es un problema de infraestructura del que el monitor no puede recuperarse:
-   tradúcela a `UncheckedIOException`. Justifica esa decisión en un comentario.
-4. En un `main`, suscribe al monitor **tres** notificadores a la vez (`NotificadorConsola`,
-   `NotificadorRegistro` y el tuyo) y comprueba que los tres reciben exactamente las mismas
-   alertas, comparando el número de líneas del fichero con `registro.alertas().size()`.
+Escribe `public final class NotificadorSinRepetir implements Notificador`, en el paquete
+`monitor`.
 
-Añade también un método `desuscribir` en tu `main`: quita el notificador de consola a mitad de la
-ejecución y comprueba que el fichero sigue creciendo.
+1. Recuerda qué servicios han sido ya notificados. Un `Set<Servicio>` es justo el tipo para
+   «¿está este ya?», y funciona porque los servicios son registros y traen `equals` y `hashCode`
+   escritos.
+
+2. `notificar(Alerta alerta)` reenvía la alerta a **otro** notificador solo la primera vez que ve
+   ese servicio. Recibe ese notificador por el constructor.
+
+3. Añade `olvidar(Servicio servicio)`, para que un servicio que se recupera vuelva a poder avisar.
+
+4. Suscríbelo en `Principal` junto a `NotificadorConsola` y compara la salida con la de antes.
+
+**Cómo saber si va bien.** Las pruebas le pasan varias alertas del mismo servicio y de servicios
+distintos, y comprueban cuántas llegan al notificador de destino.
+
+**Para pensar.** Esta clase recibe un `Notificador` y **es** un `Notificador`. ¿Te recuerda a algo
+de lo que se contó en 1.2.4? ¿Qué patrón acabas de escribir sin que el enunciado lo nombre?
 ::::
 
-:::: {.callout-note title="1.2.7 Clase `SondaConRegistro` (Decorator)" collapse="true"}
-Escribe un decorador de `Sonda` que cuente cuántas veces se ha sondeado cada servicio.
+:::: {.callout-note title="1.2.7 Método de clase `DireccionIpv4.desde` (fábrica estática)" collapse="true"}
+En 1.1.1 construiste direcciones con sus cuatro octetos. En un programa real llegan como texto, de
+un fichero o de la línea de órdenes, y quien las recibe no debería tener que partir la cadena. El
+modelo es `Servicio.desde`, en 1.2.4.
 
-1. `public final class SondaConRegistro implements Sonda`, con una `Sonda interna` recibida por
-   constructor (no nula).
-2. `sondear(Servicio)` incrementa el contador de ese servicio y **siempre** delega en la sonda
-   interna, devolviendo su resultado sin alterarlo.
-3. `public Map<Servicio, Integer> conteos()` devuelve una copia inmutable de los recuentos.
-4. Monta dos sondas apilando los decoradores en **órdenes distintos** y sondea el mismo servicio
-   veinte veces con la misma semilla:
+1. **Escribe `public static DireccionIpv4 desde(String texto)`** en `DireccionIpv4`. Parte por los
+   puntos, convierte cada parte y construye el registro. Te servirán `split` y `Integer.parseInt`;
+   fíjate en cómo trata `Servicio.desde` un texto mal formado.
 
-   ```java
-   Sonda a = new SondaConRegistro(new SondaConReintentos(base, 3));
-   Sonda b = new SondaConReintentos(new SondaConRegistro(base), 3);
-   ```
+2. **Decide qué hacer con los errores** y justifícalo en un comentario: qué pasa si hay tres
+   partes, si una no es un número, si el número se sale del rango. Ten en cuenta que el
+   constructor ya valida el rango: no dupliques esa comprobación.
 
-5. Explica en un comentario por qué los conteos son distintos y qué mide cada uno de los dos
-   montajes. Este es el punto del ejercicio: en Decorator, **el orden es una decisión de diseño**.
+3. **Añade `Servicio.desde` un tipo nuevo**: `ping:host`, que construya un `ServicioPing` que
+   escribirás implementando `Servicio`. Comprueba que `Monitor` no cambia.
+
+**Cómo saber si va bien.** Las pruebas cubren textos válidos e inválidos de los dos métodos, y que
+`Servicio.desde("ping:uib.es")` devuelve un servicio cuyo `nombre()` es el esperado.
+
+**Para pensar.** ¿Por qué `desde` tiene que ser un método de clase y no puede ser de instancia?
 ::::
 
-:::: {.callout-note title="1.2.8 Fábrica `PoliticaDeAlerta.desde(String)` (Factory)" collapse="true"}
-Añade a la interfaz `PoliticaDeAlerta` una fábrica estática que construya políticas a partir de su
-descripción textual, para poder elegirlas desde un fichero de configuración.
+:::: {.callout-note title="1.2.8 Clase `SondaDeterminista` (Template Method y `Optional`)" collapse="true"}
+`SondaSimulada` usa números aleatorios, lo que la hace inútil para probar: una prueba no puede
+afirmar nada sobre un resultado que cambia en cada ejecución. Escribe una sonda cuyo
+comportamiento decidas tú por completo, extendiendo el esqueleto que ya existe.
 
-1. `static PoliticaDeAlerta desde(String texto)` reconoce cuatro formas:
-   - `simple` → `FalloSimple`
-   - `consecutivos:N` → `FallosConsecutivos(N)`
-   - `ventana:K:N` → `FallosEnVentana(K, N)` (del ejercicio 1.2.2)
-   - `latencia:MS:N` → `LatenciaExcesiva(Duration.ofMillis(MS), N)`
-2. Cualquier otra forma, o un número mal escrito, produce `IllegalArgumentException` con un
-   mensaje que incluya el texto recibido y enumere las formas válidas.
-3. Añade al fichero de configuración del monitor una línea `politica=ventana:2:5`, léela y úsala
-   en `Principal`.
-4. Responde en un comentario: ¿por qué una fábrica estática con nombre es preferible aquí a cuatro
-   constructores sobrecargados?
+Escribe `public final class SondaDeterminista extends SondaBase`, en el paquete `monitor`.
 
-::: {.callout-tip title="Ejemplo de uso"}
-```java
-PoliticaDeAlerta p = PoliticaDeAlerta.desde("consecutivos:3");
-System.out.println(p);                       // 3 fallos consecutivos
-PoliticaDeAlerta.desde("consecutivos:x");    // IllegalArgumentException
-```
-:::
-::::
+1. Recibe por el constructor el umbral —que pasa a `super`— y la lista de latencias que debe
+   devolver, una por llamada y en orden.
 
-:::: {.callout-note title="1.2.9 `ConfiguracionInforme` con Builder, y `Optional` como retorno" collapse="true"}
-Los informes del monitor admiten varias opciones, casi todas con un valor razonable por defecto:
-el caso perfecto para un *builder*.
+2. Implementa **solo** `medir`. El algoritmo —clasificar en activo, degradado o caído— ya está
+   escrito en `sondear`, que es `final` y no debes tocar: eso es Template Method.
 
-1. Escribe `public record ConfiguracionInforme(String titulo, int maximoServicios,
-   boolean incluirLatencias, boolean soloConFallos)` con un constructor compacto que exija título
-   no vacío y `maximoServicios ≥ 1`.
-2. Añade una clase anidada `public static final class Builder` con constructor privado, obtenida
-   mediante `ConfiguracionInforme.builder()`, con métodos fluidos para cada opción y estos valores
-   por defecto: título `"Informe de disponibilidad"`, `maximoServicios` 10, `incluirLatencias`
-   `true`, `soloConFallos` `false`. `build()` delega toda la validación en el constructor del
-   `record`.
-3. Escribe `public final class InformeResumen`, que recibe por constructor un `LectorResultados` y
-   una `ConfiguracionInforme`, y ofrece:
-   - `public String texto()`, que respeta las opciones de la configuración;
-   - `public Optional<Servicio> peorServicio()`, que devuelve el servicio con menor disponibilidad
-     o **vacío** si el repositorio no tiene datos.
-4. Prohibido devolver `null` en `peorServicio` y prohibido usar `Optional` como tipo de un campo o
-   de un parámetro. Consulta el error frecuente sobre `Optional` en
-   [1.2.5 del tema](../contenido/tema1.qmd#objetos-ausentes-y-optional).
+3. `medir` devuelve `Optional<Duration>`. Devuelve `Optional.of(...)` cuando haya latencia y
+   `Optional.empty()` para simular que el servicio no responde; deja `Optional.empty()` como
+   valor para las llamadas que excedan la lista.
 
-::: {.callout-tip title="Ejemplo de uso"}
-```java
-var configuracion = ConfiguracionInforme.builder()
-        .titulo("Informe semanal")
-        .maximoServicios(3)
-        .soloConFallos(true)
-        .build();
+**Cómo saber si va bien.** Las pruebas construyen la sonda con una secuencia conocida y comprueban
+que los estados salen en el orden esperado, incluido el caído del final.
 
-var informe = new InformeResumen(repositorio, configuracion);
-System.out.println(informe.texto());
-informe.peorServicio().ifPresentOrElse(
-        s -> System.out.println("Revisar: " + s.nombre()),
-        () -> System.out.println("Sin datos todavía"));
-```
-:::
+**Para pensar.** `sondear` es `final` y `medir` es `protected abstract`. ¿Qué está diciendo esa
+pareja de modificadores a quien vaya a extender la clase?
 ::::
 
 ## 1.3. Genericidad en Java y Stream API
 
-Ejercicios sobre [1.3 del tema](../contenido/tema1.qmd#genericidad-en-java-y-stream-api).
-En los que usan la Stream API, **no se admiten bucles** `for` ni `while` salvo que el enunciado lo
-autorice expresamente.
+Ejercicios sobre [1.3 del tema](../contenido/tema1.qmd#genericidad-en-java-y-stream-api). Van en
+el paquete de ejercicios y se apoyan en el historial que el monitor acumula.
+
+A partir de aquí los enunciados dan el qué y no el cómo: lo que se pide es que decidas.
 
 :::: {.callout-note title="1.3.1 Clase genérica `Historial<T>`" collapse="true"}
-Escribe `public final class Historial<T>`, una colección que conserva como máximo los últimos `n`
-elementos añadidos.
+Escribe `public final class Historial<T>`, un almacén de los últimos `n` elementos de cualquier
+tipo, con `añadir(T elemento)`, `ultimos(int cuantos)` que devuelva una `List<T>` inmutable, y
+`tamaño()`. Cuando se supera la capacidad, se descarta el más antiguo.
 
-1. Constructor `Historial(int capacidad)` que rechace capacidades menores que 1.
-2. `public void anadir(T elemento)`: si el historial está lleno, descarta el más antiguo antes de
-   añadir. Usa un `ArrayDeque<T>` como almacén interno.
-3. `public List<T> ultimos(int n)`: devuelve como máximo los `n` elementos más recientes,
-   **ordenados del más reciente al más antiguo**, en una lista inmutable. Si `n` supera el número
-   de elementos disponibles, devuelve todos los que haya.
-4. `public int tamano()`, `public boolean vacio()`, `public boolean lleno()`.
-5. En un comentario, explica por qué `ultimos` devuelve `List.copyOf(...)` y qué podría ocurrir si
-   devolviera directamente la colección interna.
+El parámetro de tipo se declara una vez, en la clase, y a partir de ahí `T` es un tipo más.
 
-::: {.callout-tip title="Ejemplo de uso"}
-```java
-var historial = new Historial<String>(3);
-historial.anadir("a"); historial.anadir("b");
-historial.anadir("c"); historial.anadir("d");
-System.out.println(historial.ultimos(2));    // [d, c]
-System.out.println(historial.tamano());      // 3: "a" se descartó
-```
-:::
+**Cómo saber si va bien.** Las pruebas lo usan con `String` y con `Resultado`, y comprueban el
+descarte al llegar a la capacidad.
+
+**Para pensar.** ¿Qué se pierde y qué se gana frente a guardar `Object` y convertir al sacar?
 ::::
 
-:::: {.callout-note title="1.3.2 Métodos genéricos con cotas en `UtilidadesEjercicio`" collapse="true"}
-Escribe una clase de utilidades, no instanciable (constructor privado), con tres métodos genéricos
-**estáticos**:
+:::: {.callout-note title="1.3.2 Métodos genéricos con cota en `UtilidadesEjercicio`" collapse="true"}
+Escribe dos métodos genéricos:
 
-1. `public static <T extends Comparable<? super T>> Optional<T> minimo(Collection<? extends T> elementos)`,
-   que devuelve el menor elemento, o vacío si la colección lo está.
-2. `public static <T> long contarSi(Collection<? extends T> elementos, Predicate<? super T> criterio)`.
-3. `public static <T extends Comparable<? super T>> List<T> ordenadoDescendente(Collection<? extends T> elementos)`,
-   que devuelve una lista nueva e inmutable.
+- `public static <T extends Comparable<T>> T mayor(T a, T b)`.
+- `public static <T> int contarIguales(T[] elementos, T buscado)`, que use `equals`.
 
-Comprueba que los tres funcionan con `List<Integer>`, `List<String>` y `List<Duration>` sin
-modificarlos.
+La cota del primero es lo que permite llamar a `compareTo` dentro del método. Pruébalos con tus
+`DireccionIpv4` de 1.1.8.
 
-Responde en un comentario, con una frase cada uno: (a) por qué la cota es
-`Comparable<? super T>` y no `Comparable<T>`; (b) por qué el parámetro es `Collection<? extends T>`
-y no `Collection<T>`; (c) qué error de compilación aparecería si intentaras hacer
-`elementos.add(...)` dentro de `minimo`.
+**Cómo saber si va bien.** Las pruebas los invocan con `Integer`, con `String` y con
+`DireccionIpv4`.
+
+**Para pensar.** El segundo método no tiene cota y aun así puede llamar a `equals`. ¿Por qué?
 ::::
 
-:::: {.callout-note title="1.3.3 PECS: `copiarSi` y corrección de una firma" collapse="true"}
-1. Escribe
-   `public static <T> int copiarSi(Collection<? extends T> origen, Collection<? super T> destino, Predicate<? super T> filtro)`,
-   que copia al destino los elementos del origen que cumplen el filtro y devuelve cuántos copió.
-2. La plantilla incluye el método `static <T> void fusionar(List<T> a, List<T> b, List<T> destino)`,
-   con las firmas mal puestas. Corrígelas aplicando **PECS** y añade en un comentario tres llamadas
-   que **antes no compilaban** y ahora sí, por ejemplo mezclar una `List<Integer>` y una
-   `List<Double>` en una `List<Number>`.
-3. Escribe un `main` que copie los resultados con fallo de una `List<Resultado>` a una
-   `List<Object>` y explique en un comentario por qué el comodín `? super T` lo permite.
+:::: {.callout-note title="1.3.3 PECS: corregir una firma" collapse="true"}
+La plantilla trae `CopiasEjercicio` con un método `copiarTodo(List<Resultado> origen, List<Resultado> destino)`
+que no acepta copiar de una lista de un subtipo ni a una de un supertipo.
+
+Corrige la firma aplicando la regla [PECS](../contenido/tema1.qmd#imp-pecs), y escribe en un
+comentario por qué cada parámetro lleva el comodín que lleva.
+
+**Cómo saber si va bien.** Las pruebas incluyen llamadas que hoy no compilan y que deben compilar
+después.
+
+**Para pensar.** Con la firma corregida, ¿puedes añadir elementos a la lista de origen dentro del
+método? ¿Por qué no?
 ::::
 
-:::: {.callout-note title="1.3.4 Borrado de tipos y testigos de tipo" collapse="true"}
-La plantilla incluye la clase `Borrado` con cinco líneas comentadas que **no compilan**, más un
-par de sobrecargas que tampoco pueden coexistir.
+:::: {.callout-note title="1.3.4 Políticas de alerta como lambdas" collapse="true"}
+`PoliticaDeAlerta` tiene un único método abstracto, así que es una interfaz funcional y se puede
+implementar sin escribir una clase.
 
-1. Descoméntalas de una en una y anota, junto a cada una, el mensaje del compilador y la razón en
-   términos de borrado de tipos (*type erasure*). Vuelve a comentarlas al terminar, para que el
-   proyecto siga compilando.
-2. En la clase `TestigoDeTipo`, implementa
-   `public static <T> List<T> filtrarPorTipo(List<?> lista, Class<T> tipo)`,
-   que devuelva los elementos de la lista que son del tipo indicado, usando `tipo.isInstance` y
-   `tipo.cast`. No debe producir ningún aviso del compilador ni contener ningún *cast* con
-   paréntesis.
-3. Pruébalo con una `List<Servicio>` que mezcle `ServicioHttp`, `ServicioDns` y `PuertoTcp`,
-   extrayendo solo los `PuertoTcp`.
-4. En un comentario, explica por qué `filtrarPorTipo(lista, List.class)` no puede devolver una
-   `List<List<String>>` comprobada.
+1. Escribe en `Criterios` tres políticas como lambdas asignadas a variables: siempre alertar, no
+   alertar nunca, y alertar si el último resultado es un fallo.
+2. Escribe `public static PoliticaDeAlerta alMenos(int fallos)`, que **devuelva** una política.
+3. Sustituye en `Principal` la política por una de las tuyas.
+
+**Cómo saber si va bien.** Las pruebas las usan igual que usarían una clase: el `Monitor` no
+distingue.
+
+**Para pensar.** ¿Cuándo preferirías una clase con nombre a una lambda para lo mismo?
 ::::
 
-:::: {.callout-note title="1.3.5 Interfaces funcionales y composición" collapse="true"}
-Escribe una clase `Criterios` con constantes y métodos que construyan comportamiento a base de
-componer funciones. Ninguno de sus métodos debe tener un `if`.
+:::: {.callout-note title="1.3.5 Informes con la Stream API" collapse="true"}
+En `InformesEjercicio`, sobre una `List<Resultado>`:
 
-1. `public static final Predicate<Resultado> ES_FALLO` y
-   `public static Predicate<Resultado> masLentoQue(Duration umbral)`.
-2. `public static Predicate<Resultado> problematico(Duration umbral)`, definido **componiendo** los
-   dos anteriores con `or`.
-3. `public static final Comparator<Resultado> POR_SERVICIO_Y_LATENCIA`: ordena por nombre de
-   servicio ascendente y, a igualdad de servicio, por latencia **descendente**. Usa
-   `Comparator.comparing`, `thenComparing` y `reverseOrder`.
-4. `public static Function<Resultado, String> etiqueta()`, que produzca el nombre del servicio en
-   mayúsculas seguido de la latencia, como `DNS:UIB.ES (123 ms)`, componiendo dos funciones con
-   `andThen`.
-5. `public static Sonda sondaConstante(Estado estado)`, que devuelva una **lambda** que implemente
-   `Sonda` y responda siempre con ese estado.
+- `long fallos(List<Resultado> historial)`.
+- `double latenciaMediaEnMilisegundos(List<Resultado> historial)`.
+- `List<Servicio> serviciosConAlgunFallo(List<Resultado> historial)`, sin repeticiones.
 
-::: {.callout-tip title="Ejemplo de uso"}
-```java
-var problematicos = resultados.stream()
-        .filter(Criterios.problematico(Duration.ofMillis(500)))
-        .sorted(Criterios.POR_SERVICIO_Y_LATENCIA)
-        .map(Criterios.etiqueta())
-        .toList();
-```
-:::
+Escribe cada uno como una tubería que se lea de arriba abajo. El modelo es la clase `Informes` del
+tema.
+
+**Cómo saber si va bien.** Las pruebas incluyen el historial vacío, que es donde las medias dan
+guerra.
+
+**Para pensar.** Elige uno de los tres y escríbelo también con un bucle. ¿Cuál de las dos
+versiones defenderías en una revisión de código?
 ::::
 
-:::: {.callout-note title="1.3.6 Informes con la Stream API" collapse="true"}
-Escribe `public final class InformesEjercicio` con tres métodos estáticos que operen sobre una
-`List<Resultado>`, **sin bucles**:
+:::: {.callout-note title="1.3.6 Agrupar con colectores" collapse="true"}
+Añade a `InformesEjercicio` un método que devuelva, para un historial dado, cuántas comprobaciones
+hay de cada estado, y otro que devuelva los servicios agrupados por su estado más reciente.
 
-1. `public static Map<Estado, Long> recuentoGlobal(List<Resultado> historial)`: cuántos resultados
-   hay de cada estado. El mapa debe iterarse en el orden de declaración del `enum`.
-2. `public static OptionalDouble latenciaMediaDe(List<Resultado> historial, Servicio servicio)`:
-   latencia media en milisegundos de ese servicio, **excluyendo los fallos**; vacío si no hay
-   ninguna comprobación correcta.
-3. `public static List<Servicio> serviciosConAlMenos(List<Resultado> historial, int minimoFallos)`:
-   servicios que acumulan al menos ese número de fallos, ordenados de más a menos fallos y, a
-   igualdad, por nombre.
+Te bastan `groupingBy` y `counting`.
 
-Añade en un comentario, para cada método, cuál es la operación terminal y por qué la elegiste.
-::::
+**Cómo saber si va bien.** Las pruebas comprueban el contenido del resultado, no su orden.
 
-:::: {.callout-note title="1.3.7 Colectores: partición, agrupación y resumen" collapse="true"}
-Amplía `InformesEjercicio` con cuatro métodos más, cada uno construido con un colector distinto:
-
-1. `public static Map<Boolean, List<Resultado>> particionPorFallo(List<Resultado> historial)`
-   con `partitioningBy`.
-2. `public static Map<Servicio, Double> disponibilidades(List<Resultado> historial)`: fracción de
-   comprobaciones correctas por servicio, con `groupingBy` y un colector *aguas abajo*.
-3. `public static Map<Servicio, LongSummaryStatistics> estadisticasLatencia(List<Resultado> historial)`,
-   excluyendo los fallos.
-4. `public static String tabla(List<Resultado> historial)`: una línea por servicio con nombre,
-   disponibilidad en tanto por ciento y latencia media, construida con `joining` y
-   `String.format`, ordenada de peor a mejor disponibilidad. Pasa `Locale.of("es", "ES")` como
-   primer argumento de `String.format`: sin él, el separador decimal depende de la configuración
-   regional de la máquina y la salida cambia entre tu ordenador y GitHub Actions.
-
-::: {.callout-tip title="Formato esperado de `tabla`"}
-```text
-mail.uib.es:25                 82,0 %   latencia media   238 ms
-dns:uib.es                     84,0 %   latencia media   227 ms
-https://www.uib.es             86,0 %   latencia media   246 ms
-```
-:::
-::::
-
-:::: {.callout-note title="1.3.8 `flatMap`, y cuándo un bucle es mejor" collapse="true"}
-1. Escribe `public static List<Resultado> todos(LectorResultados lector)`, que devuelva todos los
-   resultados de todos los servicios en una sola lista ordenada por instante, usando `flatMap`.
-2. Escribe `public static int rachaMaximaDeFallos(List<Resultado> historial)`, que devuelva la
-   longitud de la mayor secuencia de fallos consecutivos. Impleméntalo **con un bucle**.
-3. Escribe `public static int rachaMaximaConReduce(List<Resultado> historial)` con `reduce` o con
-   un colector. Consérvala aunque quede peor: las dos deben dar el mismo resultado.
-4. En un comentario de cinco líneas, compara las dos versiones y justifica cuál pondrías en
-   producción. Relaciónalo con lo que dice el tema en
-   [1.3.7](../contenido/tema1.qmd#cuándo-no-usar-streams) sobre el estado entre iteraciones.
+**Para pensar.** El primer método devuelve un diccionario de `Estado` a `Long`. ¿Qué tipo
+devolverías si los estados posibles fueran cientos en lugar de tres?
 ::::
 
 ## 1.4. Pruebas unitarias (JUnit)
 
 Ejercicios sobre [1.4 del tema](../contenido/tema1.qmd#pruebas-unitarias-junit-como-primer-contacto-con-la-verificación).
-Aquí **las pruebas son el entregable**: la plantilla trae las clases ya implementadas y los
-ficheros de prueba vacíos. Recuerda las convenciones: un comportamiento por prueba, nombres que
-describan ese comportamiento, y las tres fases *preparar, actuar, comprobar* separadas por una
-línea en blanco.
+Aquí las pruebas son el entregable: van en `src/test/java` y no hay pruebas que te digan si están
+bien. El criterio es el de 1.4.3: particiones de equivalencia y valores límite.
 
 :::: {.callout-note title="1.4.1 Pruebas de `FallosEnVentana`" collapse="true"}
-Escribe `FallosEnVentanaTest` para la clase del ejercicio 1.2.2, con **al menos seis** métodos
-`@Test`, uno por partición de equivalencia:
+Escribe `FallosEnVentanaTest` con las pruebas de la clase que hiciste en 1.2.2.
 
-1. historial vacío;
-2. historial más corto que la ventana, sin fallos suficientes;
-3. exactamente el mínimo de fallos dentro de la ventana (valor límite);
-4. un fallo menos del mínimo (valor límite);
-5. fallos suficientes pero **no consecutivos** dentro de la ventana;
-6. fallos suficientes que quedan **fuera** de la ventana por ser demasiado antiguos.
+Cubre, como mínimo, las particiones: historial vacío, más corto que la ventana, justo en el
+límite, con los fallos fuera de la ventana, y con más fallos de los necesarios. Añade el rechazo
+de los parámetros inválidos del constructor con `assertThrows`.
 
-Usa `@BeforeEach` para construir la política y constantes `private static final` para los
-resultados de ejemplo. Añade además un `@ParameterizedTest` con `@CsvSource` que compruebe que los
-constructores inválidos (`0,5`, `6,5`, `-1,3`) lanzan `IllegalArgumentException`.
+**Cómo saber si va bien.** Rompe tu `FallosEnVentana` a propósito —cambia un `<` por un `<=`— y
+comprueba que alguna prueba falla. Si no falla ninguna, faltan casos.
+
+**Para pensar.** ¿Cuántas pruebas te han hecho falta? ¿Podrías quitar alguna sin perder
+cobertura?
 ::::
 
 :::: {.callout-note title="1.4.2 Pruebas parametrizadas de `DireccionIpv4`" collapse="true"}
-Escribe `DireccionIpv4Test` para la clase del ejercicio 1.1.1:
+Escribe `DireccionIpv4Test` usando `@ParameterizedTest`.
 
-1. `@ParameterizedTest` con `@ValueSource(strings = {...})` para textos inválidos
-   (`"1.2.3"`, `"1.2.3.4.5"`, `"a.b.c.d"`, `""`, `"1.2.3.256"`), comprobando con `assertThrows`
-   que `desde` los rechaza.
-2. `@ParameterizedTest` con `@CsvSource` que compruebe `esPrivada` sobre al menos seis
-   direcciones, incluyendo los **límites** de los rangos privados: `172.15.0.1` (pública),
-   `172.16.0.1` (privada), `172.31.255.255` (privada) y `172.32.0.1` (pública).
-3. Un `@Test` que compruebe con `assertAll` que `toString`, `equals` y `hashCode` se comportan como
-   se espera para una misma dirección construida de dos formas distintas.
-4. Un `@Test` con los valores límite de un octeto: 0 y 255 válidos, −1 y 256 rechazados.
+Con `@ValueSource` cubre los octetos inválidos; con `@CsvSource`, parejas de texto y resultado
+esperado para `desde` y para `toString`. Incluye los cuatro valores límite del rango.
+
+**Cómo saber si va bien.** Cada prueba parametrizada debe aparecer en el informe de Maven tantas
+veces como casos tenga.
+
+**Para pensar.** ¿Qué gana la prueba parametrizada frente a cinco métodos casi idénticos, y qué
+pierde cuando falla uno de los casos?
 ::::
 
 :::: {.callout-note title="1.4.3 Dobles de prueba: `SondaProgramada` y `NotificadorEspia`" collapse="true"}
-Escribe en `src/test/java` los dobles necesarios para probar `Monitor` de forma determinista.
+Escribe dos dobles en `src/test/java`, siguiendo el modelo de `SondaFalsa`: una sonda que
+devuelva resultados decididos por la prueba, y un notificador que en lugar de imprimir guarde las
+alertas recibidas para que la prueba las examine.
 
-1. `SondaProgramada implements Sonda`: se construye con un `Map<Servicio, List<Estado>>` y
-   devuelve, para cada servicio, los estados de su lista en orden, repitiendo el último cuando se
-   agota. Es un *stub*.
-2. `NotificadorEspia implements Notificador`: guarda las alertas recibidas **en orden** y ofrece
-   `List<Alerta> alertas()` y `int cuantas()`. Es un *espía*.
-3. `MonitorTest` (el tuyo, no el del tema) que compruebe:
-   - que dos servicios distintos alertan de forma independiente: si uno falla dos veces seguidas y
-     el otro no falla, solo se emite una alerta y es del primero;
-   - que el orden de las alertas recibidas por el espía coincide con el orden de comprobación;
-   - que un servicio que se recupera y vuelve a fallar no dispara la alerta hasta acumular de
-     nuevo los fallos necesarios.
+Con ellos, escribe `MonitorEjercicioTest` que compruebe que el monitor guarda cada resultado y que
+avisa exactamente cuando la política lo pide.
 
-Ninguna de estas pruebas puede tardar más de unos milisegundos ni usar números aleatorios.
+**Cómo saber si va bien.** La prueba no debe imprimir nada por consola ni depender del azar.
+
+**Para pensar.** El notificador espía guarda las alertas y no hace nada más. ¿Es eso una
+implementación de `Notificador` de pleno derecho o una trampa para probar?
 ::::
 
-:::: {.callout-note title="1.4.4 `assertAll` y `assertThrows` sobre `ConfiguracionMonitor`" collapse="true"}
-Escribe `ConfiguracionMonitorTest` con cuatro pruebas:
+:::: {.callout-note title="1.4.4 Refactorizar `DetectorDeCaidas` para poder probarlo" collapse="true"}
+`DetectorDeCaidas` usa `Instant.now()` por dentro y duerme con `Thread.sleep`. No se puede probar:
+el resultado depende de cuándo se ejecute y tarda segundos.
 
-1. Un `@Test` que compruebe con **un solo** `assertAll` los cuatro valores por defecto del
-   *builder* cuando solo se indica un servicio.
-2. Un `@Test` que compruebe que construir sin ningún servicio lanza `IllegalArgumentException`, y
-   que **el mensaje** es el esperado (captura la excepción con `assertThrows` e inspecciónala).
-3. Un `@ParameterizedTest` con `@ValueSource(ints = {-1, -10})` para reintentos negativos.
-4. Un `@Test` que compruebe que la lista de servicios devuelta es **inmutable**: intentar añadir un
-   elemento debe lanzar `UnsupportedOperationException`. Explica en un comentario qué decisión de
-   diseño del constructor compacto hace que esto se cumpla.
-::::
+Refactorízalo para que el tiempo entre por el constructor, y escribe sus pruebas. No añadas nada
+que no esté en el tema: te basta con pasar los `Instant` como parámetro.
 
-:::: {.callout-note title="1.4.5 Refactorizar `DetectorDeCaidas` para poder probarlo" collapse="true"}
-La plantilla incluye `DetectorDeCaidas`, una clase que decide si un servicio lleva demasiado tiempo
-caído. Es correcta pero **imposible de probar**: llama a `Instant.now()` dentro de sus métodos y
-crea su propia `SondaSimulada` con una semilla aleatoria.
+**Cómo saber si va bien.** Las pruebas deben ejecutarse en milisegundos y dar siempre el mismo
+resultado.
 
-1. Escribe en un comentario por qué no puedes escribir ni una sola prueba fiable sobre la clase tal
-   como está, y qué principio SOLID se está incumpliendo.
-2. Refactorízala **en su propio fichero**: inyecta por constructor un `java.time.Clock` y una
-   `Sonda`, y sustituye `Instant.now()` por `Instant.now(reloj)`.
-3. Escribe `DetectorDeCaidasTest` usando `Clock.fixed(...)` y una `SondaProgramada` (del ejercicio
-   1.4.3) para comprobar, de forma completamente determinista:
-   - que un servicio que responde no se marca como caído;
-   - que un servicio caído **menos** tiempo del umbral no se marca (valor límite);
-   - que un servicio caído exactamente el umbral sí se marca (valor límite).
-4. Comprueba que las pruebas tardan milisegundos aunque el umbral sea de horas. Explica en una
-   frase por qué.
+**Para pensar.** El [Concepto Clave de 1.4.4](../contenido/tema1.qmd#imp-disenar-para-probar) dice
+que el código difícil de probar suele estar mal diseñado. ¿Qué principio de 1.2 estaba violando
+esta clase?
 ::::
