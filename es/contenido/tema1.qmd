@@ -26,7 +26,9 @@ El **ejemplo unificador** es un **monitor de servicios de red** que irá evoluci
 Se motiva por el siguiente requerimiento que el COO (Chief Operating Officer) le envía a tu jefe el CTO (Chief Technology Officer):
 
 > **De:** Director de Operaciones (COO)
+>
 > **Para:** Director de Tecnología (CTO)
+>
 > **Asunto:** Asignación prioritaria: avisos de caída — necesitamos algo nuestro
 >
 > Por medio del presente, te hago llegar un requerimiento prioritario derivado de que ayer el portal de un cliente estuvo caído cuarenta minutos y nos enteramos porque llamó él. Hoy «vigilar» en nuestro sistema consiste en que quien está de guardia abre el navegador cada tanto y mira. Quiero un programa que lo haga solo.
