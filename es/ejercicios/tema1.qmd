@@ -19,7 +19,14 @@ No empiezas desde una carpeta vacía. En la organización del curso tienes el re
 **`t1-ejercicios`**, una plantilla con la misma estructura que
 [`t1-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos) que contiene:
 
-- un **esqueleto** de cada clase que se pide, con su firma y un comentario `// TODO` en el cuerpo;
+- un **esqueleto** de cada clase que se pide. El esqueleto trae las **declaraciones** —las firmas
+  de los métodos y las cláusulas `extends` e `implements` que hagan falta— para que el proyecto
+  compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes
+  que escribir, son los **cuerpos**, marcados con `// TODO 1.X.k`. Cuando un enunciado te diga
+  «declara que la clase implementa tal interfaz», encontrarás la declaración hecha: léela como
+  parte del enunciado y fíjate en por qué está donde está;
+- el **código de partida** de los ejercicios que consisten en corregir o rediseñar algo ya escrito;
+  ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;
 - una **copia del código del monitor** (paquete `es.uib.prgava.tema1.monitor`) que puedes usar y,
   cuando el enunciado lo pida, modificar libremente;
 - las **pruebas** que comprueban tu solución, en `src/test/java`, salvo en los ejercicios de la
@@ -69,7 +76,7 @@ Los ocho van en el paquete `es.uib.prgava.tema1.ejercicios` y **no usan coleccio
 atributos, arrays y parámetros variables (`String...`) hay de sobra. Las listas llegan en 1.2.
 
 :::: {.callout-note title="1.1.1 Registro `DireccionIpv4`" collapse="true"}
-Una dirección IPv4 es el ejemplo más limpio de lo que 1.1.1 llama un **objeto-valor**: no tiene
+Una dirección IPv4 es el ejemplo más limpio de lo que el tema llama un **objeto-valor**: no tiene
 identidad propia —dos direcciones con los mismos cuatro octetos son la misma dirección— y una vez
 creada no cambia. Es exactamente el caso para el que sirve un
 [`record`](../contenido/tema1.qmd#imp-javarecords). La vas a usar en varios ejercicios
@@ -171,13 +178,66 @@ los creados?
 ::::
 
 :::: {.callout-note title="1.1.3 Corregir la clase `Etiqueta`" collapse="true"}
-La plantilla trae `Etiqueta`, una clase que representa una etiqueta de inventario con un texto y
-un color. Alguien le redefinió `equals` y se olvidó de `hashCode`, que es el error más silencioso
-de la POO en Java: el programa compila, funciona en las pruebas fáciles y falla el día que la
-etiqueta se guarda en una estructura que use el resumen (*hash*).
+`Etiqueta` representa una etiqueta de inventario con un texto y un color. Alguien le redefinió
+`equals` y se olvidó de `hashCode`, que es el error más silencioso de la POO en Java: el programa
+compila, funciona en las pruebas fáciles y falla el día que la etiqueta se guarda en una
+estructura que use el resumen (*hash*).
 
-Antes de tocar nada, ejecuta la clase `DemoEtiqueta` que viene en la plantilla y mira lo que
-imprime. Después arréglalo.
+El código de `Etiqueta` y el de su programa de prueba `DemoEtiqueta`, que vienen en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// Etiqueta.java
+package es.uib.prgava.tema1.ejercicios;
+
+public class Etiqueta {
+
+    private final String texto;
+    private final String color;
+
+    public Etiqueta(String texto, String color) {
+        this.texto = texto;
+        this.color = color;
+    }
+
+    public String texto() { return texto; }
+
+    public String color() { return color; }
+
+    @Override
+    public boolean equals(Object otro) {
+        Etiqueta esa = (Etiqueta) otro;
+        return texto.equals(esa.texto) && color.equals(esa.color);
+    }
+
+    @Override
+    public String toString() {
+        return "Etiqueta[" + texto + ", " + color + "]";
+    }
+}
+```
+
+```java
+// DemoEtiqueta.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.util.HashSet;
+
+public final class DemoEtiqueta {
+    public static void main(String[] args) {
+        var a = new Etiqueta("rack-3", "rojo");
+        var b = new Etiqueta("rack-3", "rojo");
+        System.out.println(a.equals(b));
+
+        var conjunto = new HashSet<Etiqueta>();
+        conjunto.add(a);
+        System.out.println(conjunto.contains(b));
+        conjunto.add(b);
+        System.out.println(conjunto.size());
+    }
+}
+```
+
+Antes de tocar nada, ejecuta `DemoEtiqueta` y mira lo que imprime. Después arréglalo.
 
 1. **Redefine `hashCode`** de forma coherente con el `equals` que ya existe: dos etiquetas iguales
    deben tener el mismo código, y el cálculo debe usar exactamente los mismos atributos que usa
@@ -265,15 +325,39 @@ conectados. Si mañana necesitaras que `PuntoAcceso` tuviera además el comporta
 ::::
 
 :::: {.callout-note title="1.1.5 Clase `PanelDeEstado` (composición)" collapse="true"}
-En 1.1.3 viste que `RegistroContador` empezó **heredando** de `RegistroEventos` y acabó
+En el tema viste que `RegistroContador` empezó **heredando** de `RegistroEventos` y acabó
 **conteniendo** uno, porque heredar la ataba a decisiones internas de la superclase ([la clase base
 frágil](../contenido/tema1.qmd#tip-clase-base-fragil)). Este ejercicio recorre ese camino con tus
 manos.
 
-La plantilla incluye `PanelDeEstadoHeredado extends RegistroEventos`, que añade un `resumen()` y
-lleva la cuenta de los eventos registrados. Tiene el mismo fallo que tenía `RegistroContador`: si
-alguien cambia `RegistroEventos` para que `registrarVarios` deje de llamar a `registrar`, la
-cuenta deja de salir. No la corrijas; déjala como testigo.
+`PanelDeEstadoHeredado` añade un `resumen()` y lleva la cuenta de los eventos registrados. Hoy da
+la cuenta correcta, pero solo porque `registrarVarios` está implementado llamando a `registrar`:
+el día que alguien reescriba `RegistroEventos` sin ese detalle, la cuenta deja de salir. No la
+corrijas; déjala como testigo.
+
+El código de `PanelDeEstadoHeredado`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// PanelDeEstadoHeredado.java
+package es.uib.prgava.tema1.ejercicios;
+
+import es.uib.prgava.tema1.poo.RegistroEventos;
+
+public class PanelDeEstadoHeredado extends RegistroEventos {
+
+    private int registrados = 0;
+
+    @Override
+    public void registrar(String evento) {
+        registrados++;
+        super.registrar(evento);         // y `registrarVarios` se hereda tal cual
+    }
+
+    public int registrados() { return registrados; }
+
+    public String resumen() { return registrados + " eventos registrados"; }
+}
+```
 
 Escribe `public final class PanelDeEstado` que haga lo mismo **sin heredar de nada**.
 
@@ -322,13 +406,15 @@ Escribe `public abstract class Sensor` y dos subclases concretas.
 1. **En `Sensor`**: un atributo `private final String ubicacion`, un constructor `protected`
    que lo reciba, un método de consulta `ubicacion()` y un método **abstracto**
    `public abstract double leer();`, sin cuerpo, porque «leer» significa algo distinto en cada
-   sensor y no hay una lectura genérica razonable.
+   sensor y no hay una lectura genérica razonable. Hay un segundo método abstracto,
+   `protected abstract String magnitud()`, que cada subclase responde con una palabra
+   («temperatura», «humedad»); el paso siguiente explica para qué hace falta.
 
 2. **Un método concreto en la clase abstracta**: `public String describir()`, que devuelva algo
    como `"temperatura en sala-3: 21.5"`. Llama a `leer()` desde ahí, aunque `leer()` no tenga
-   cuerpo en esta clase. **¿Cómo puede funcionar eso?** La respuesta la acabas de ver en 1.1.3, al
-   final: cuando la subclase redefine un método heredado, el código de la superclase ejecuta la
-   versión de la subclase.
+   cuerpo en esta clase, y a `magnitud()`, que tampoco. **¿Cómo puede funcionar eso?** La
+   respuesta la acabas de ver en 1.1.5: cuando la subclase redefine —o implementa— un método, el
+   código de la superclase ejecuta la versión de la subclase.
 
 3. **`SensorTemperatura`** y **`SensorHumedad`**, cada una con su constructor y su `leer()`
    propio. Para que las pruebas puedan comprobar algo, que la lectura no sea aleatoria: pásasela
@@ -452,10 +538,68 @@ los cinco principios y los patrones que los ponen en práctica. A partir de aqu�
 Los enunciados son algo más escuetos que los de 1.1: ya sabes buscar en el tema.
 
 :::: {.callout-note title="1.2.1 Refactorizar `RegistroSensores` (principio S)" collapse="true"}
-La plantilla trae `RegistroSensores`, una clase que guarda lecturas de sensores, calcula la media,
-decide si hay que avisar y compone el texto del aviso. Cuatro cosas, y por tanto cuatro razones
-para cambiar: es el olor de la
-[clase que lo sabe todo](../contenido/tema1.qmd#cau-clase-dios).
+`RegistroSensores` guarda lecturas de sensores, calcula la media, decide si hay que avisar y
+compone y emite el texto del aviso. Cuatro cosas, y por tanto cuatro razones para cambiar: es el
+olor de la [clase que lo sabe todo](../contenido/tema1.qmd#cau-clase-dios).
+
+El código de `RegistroSensores`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// RegistroSensores.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class RegistroSensores {
+
+    private final List<Double> lecturas = new ArrayList<>();
+    private final String sensor;
+    private final double umbral;
+
+    public RegistroSensores(String sensor, double umbral) {
+        this.sensor = sensor;
+        this.umbral = umbral;
+    }
+
+    public void anadir(double lectura) {
+        if (lectura < -50 || lectura > 150) {
+            throw new IllegalArgumentException("lectura fuera de rango: " + lectura);
+        }
+        lecturas.add(lectura);
+    }
+
+    public List<Double> lecturas() {
+        return List.copyOf(lecturas);
+    }
+
+    public double media() {
+        if (lecturas.isEmpty()) {
+            return 0.0;
+        }
+        double suma = 0.0;
+        for (double lectura : lecturas) {
+            suma += lectura;
+        }
+        return suma / lecturas.size();
+    }
+
+    public boolean hayQueAvisar() {
+        return lecturas.size() >= 3 && media() > umbral;
+    }
+
+    public String textoDelAviso() {
+        return "[AVISO] " + sensor + ": media " + String.format("%.1f", media())
+                + ", por encima del umbral " + umbral;
+    }
+
+    public void avisar() {
+        if (hayQueAvisar()) {
+            System.out.println(textoDelAviso());
+        }
+    }
+}
+```
 
 1. **Antes de tocar el código**, escribe en un comentario cuántas responsabilidades ves y quién
    pediría cada cambio. El criterio del principio S no es «hacer una sola cosa» sino «tener una
@@ -463,6 +607,9 @@ para cambiar: es el olor de la
 
 2. **Sepáralas en clases distintas**, cada una con su nombre. Las lecturas por un lado, el cálculo
    por otro, la decisión por otro y el texto por otro; tú decides los nombres y las firmas.
+   `RegistroSensores` se queda, pero sin hacer el trabajo: mantiene sus métodos públicos y los
+   delega en las clases nuevas. Así quien la usaba sigue usándola igual, que es la condición del
+   paso siguiente.
 
 3. **Mantén el comportamiento.** Las pruebas existentes deben seguir pasando sin que las toques:
    esa es la definición de refactorizar.
@@ -511,9 +658,38 @@ límite exacto y el fallo que acaba de salirse de la ventana.
 ::::
 
 :::: {.callout-note title="1.2.3 Diagnosticar y rediseñar `ListaSoloLectura` (principio L)" collapse="true"}
-La plantilla incluye `ListaSoloLecturaHeredada extends ArrayList<String>`, que redefine `add` y
-`remove` para lanzar `UnsupportedOperationException`. Compila, y aun así está mal: una subclase
-que promete menos que su superclase rompe a quien escribió código contra la superclase.
+`ListaSoloLecturaHeredada` hereda de `ArrayList<String>` y redefine `add` y `remove` para lanzar
+`UnsupportedOperationException`. Compila, y aun así está mal: una subclase que promete menos que
+su superclase rompe a quien escribió código contra la superclase.
+
+El código de `ListaSoloLecturaHeredada`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// ListaSoloLecturaHeredada.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+public class ListaSoloLecturaHeredada extends ArrayList<String> {
+
+    private static final long serialVersionUID = 1L;   // lo pide `javac -Xlint:all`
+
+    public ListaSoloLecturaHeredada(Collection<String> inicial) {
+        super(inicial);
+    }
+
+    @Override
+    public boolean add(String elemento) {
+        throw new UnsupportedOperationException("lista de solo lectura");
+    }
+
+    @Override
+    public boolean remove(Object elemento) {
+        throw new UnsupportedOperationException("lista de solo lectura");
+    }
+}
+```
 
 1. **Diagnostica.** Escribe un método que reciba una `List<String>`, le añada un elemento y
    devuelva su tamaño. Pásale una `ArrayList` normal y después una `ListaSoloLecturaHeredada`.
@@ -533,9 +709,55 @@ Java, o hay una diferencia?
 ::::
 
 :::: {.callout-note title="1.2.4 Dividir la interfaz `GestorDispositivos` (principio I)" collapse="true"}
-La plantilla trae `GestorDispositivos`, una interfaz con ocho métodos: dar de alta, borrar,
-consultar, exportar. Sus tres implementaciones tienen métodos vacíos o que lanzan excepción porque
-«no aplican», que es el síntoma exacto del principio I.
+`GestorDispositivos` es una interfaz con ocho métodos: dar de alta, borrar, consultar, exportar.
+Tiene tres implementaciones, las tres escritas y en la plantilla: `CatalogoEnMemoria`, que la
+cumple entera; `ConsultaDispositivos`, un inventario que se construye una vez y no cambia; y
+`ExportadorCsv`, que solo convierte a texto unas fichas que le dan hechas. Las dos últimas están
+llenas de métodos vacíos o que lanzan excepción porque «no aplican», que es el síntoma exacto del
+principio I.
+
+El código de la interfaz, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// GestorDispositivos.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.util.List;
+
+public interface GestorDispositivos {
+
+    void darDeAlta(String nombre, String direccionIp);
+
+    void borrar(String nombre);
+
+    void renombrar(String nombre, String nuevoNombre);
+
+    boolean existe(String nombre);
+
+    List<String> nombres();
+
+    int cuantos();
+
+    String exportarCsv();
+
+    String exportarJson();
+}
+```
+
+Y así es como una de las tres, la del inventario de solo consulta, se ve obligada a cumplirla:
+
+```java
+// GestorConsultaDispositivos.java  (fragmento)
+@Override
+public void darDeAlta(String nombre, String direccionIp) {
+    throw new UnsupportedOperationException("este inventario es de solo consulta");
+}
+
+@Override
+public String exportarJson() {
+    return "";                       // no aplica: nadie le pide JSON
+}
+```
 
 1. **Divídela por roles**, no por tamaño: la pregunta no es cuántos métodos tiene cada una sino
    qué necesita cada cliente. El modelo es cómo se partió `RepositorioResultados` en
@@ -547,22 +769,53 @@ consultar, exportar. Sus tres implementaciones tienen métodos vacíos o que lan
 3. **Ajusta los clientes** para que dependan de la interfaz más pequeña que les sirva.
 
 **Cómo saber si va bien.** Ninguna implementación debe quedar con un método vacío ni con uno que
-lance `UnsupportedOperationException`. Las pruebas lo comprueban por reflexión.
+lance `UnsupportedOperationException`. Las pruebas llaman a todos los métodos de cada
+implementación y fallan si alguno no hace nada o se queja.
 
 **Para pensar.** Si divides demasiado acabas con una interfaz por método y un cableado imposible.
 ¿Qué criterio te dice que has dividido bastante?
 ::::
 
 :::: {.callout-note title="1.2.5 Invertir las dependencias de `InformeDiario` (principio D)" collapse="true"}
-La plantilla trae `InformeDiarioAcoplado`, que dentro de sus métodos hace `new` de un repositorio
-concreto y escribe por `System.out`. No se puede probar sin ejecutarlo entero y mirar la consola:
-es el [`new` de colaboradores dentro de la clase](../contenido/tema1.qmd#cau-new-dentro-de-la-clase).
+`InformeDiarioAcoplado` construye por dentro un repositorio concreto y escribe por `System.out`.
+No se puede probar sin ejecutarlo entero y mirar la consola: es el [`new` de colaboradores dentro
+de la clase](../contenido/tema1.qmd#cau-new-dentro-de-la-clase).
+
+El código de `InformeDiarioAcoplado`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// InformeDiarioAcoplado.java
+package es.uib.prgava.tema1.ejercicios;
+
+import es.uib.prgava.tema1.monitor.RepositorioEnMemoria;
+import es.uib.prgava.tema1.monitor.Servicio;
+
+public class InformeDiarioAcoplado {
+
+    private final RepositorioEnMemoria repositorio = new RepositorioEnMemoria();
+
+    public void imprimir(Servicio servicio) {
+        var historial = repositorio.historial(servicio);
+        int fallos = 0;
+        for (var resultado : historial) {
+            if (resultado.esFallo()) {
+                fallos++;
+            }
+        }
+        System.out.println("Informe de " + servicio.nombre());
+        System.out.println("  comprobaciones: " + historial.size());
+        System.out.println("  fallos: " + fallos);
+    }
+}
+```
 
 1. **Escribe `InformeDiario`** que reciba sus colaboradores por el constructor, declarados con el
    tipo de la **interfaz** y no de la clase concreta.
 
 2. **Saca la salida** a un colaborador también, para que una prueba pueda capturar lo que se
-   escribe sin tocar la consola.
+   escribe sin tocar la consola. La plantilla trae para eso la interfaz `Salida`, de un solo
+   método; el programa le pasa una que imprime y la prueba una que guarda. El `emitir` escribe
+   tres líneas, en este orden: `servicio: <nombre>`, `comprobaciones: <n>` y `fallos: <n>`.
 
 3. **Cablea en `Principal`**, y solo ahí, las implementaciones concretas.
 
@@ -655,8 +908,9 @@ A partir de aquí los enunciados dan el qué y no el cómo: lo que se pide es qu
 
 :::: {.callout-note title="1.3.1 Clase genérica `Historial<T>`" collapse="true"}
 Escribe `public final class Historial<T>`, un almacén de los últimos `n` elementos de cualquier
-tipo, con `añadir(T elemento)`, `ultimos(int cuantos)` que devuelva una `List<T>` inmutable, y
-`tamaño()`. Cuando se supera la capacidad, se descarta el más antiguo.
+tipo, con `anadir(T elemento)`, `ultimos(int cuantos)` que devuelva una `List<T>` inmutable, y
+`tamano()`. Cuando se supera la capacidad, se descarta el más antiguo. La capacidad entra por el
+constructor.
 
 El parámetro de tipo se declara una vez, en la clase, y a partir de ahí `T` es un tipo más.
 
@@ -682,14 +936,40 @@ La cota del primero es lo que permite llamar a `compareTo` dentro del método. P
 ::::
 
 :::: {.callout-note title="1.3.3 PECS: corregir una firma" collapse="true"}
-La plantilla trae `CopiasEjercicio` con un método `copiarTodo(List<Resultado> origen, List<Resultado> destino)`
-que no acepta copiar de una lista de un subtipo ni a una de un supertipo.
+`CopiasEjercicio` tiene un método `copiarTodo` cuya firma no acepta copiar desde una lista de un
+subtipo ni hacia una lista de un supertipo.
+
+El código de `CopiasEjercicio`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// CopiasEjercicio.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.util.List;
+
+import es.uib.prgava.tema1.monitor.Servicio;
+
+public final class CopiasEjercicio {
+
+    private CopiasEjercicio() { }
+
+    /** Copia al final de `destino` todos los elementos de `origen`. */
+    public static void copiarTodo(List<Servicio> origen, List<Servicio> destino) {
+        for (Servicio servicio : origen) {
+            destino.add(servicio);
+        }
+    }
+}
+```
+
+Hoy `copiarTodo(unaListaDeServicioHttp, unaListaDeObject)` no compila, y debería.
 
 Corrige la firma aplicando la regla [PECS](../contenido/tema1.qmd#imp-pecs), y escribe en un
 comentario por qué cada parámetro lleva el comodín que lleva.
 
-**Cómo saber si va bien.** Las pruebas incluyen llamadas que hoy no compilan y que deben compilar
-después.
+**Cómo saber si va bien.** Al final de `CopiasEjercicioTest` hay dos pruebas comentadas, porque
+con la firma actual no compilan. Descoméntalas: con la firma corregida tienen que compilar y
+pasar. Aquí lo que se comprueba, antes que ningún resultado, es que el código compile.
 
 **Para pensar.** Con la firma corregida, ¿puedes añadir elementos a la lista de origen dentro del
 método? ¿Por qué no?
@@ -787,14 +1067,55 @@ implementación de `Notificador` de pleno derecho o una trampa para probar?
 ::::
 
 :::: {.callout-note title="1.4.4 Refactorizar `DetectorDeCaidas` para poder probarlo" collapse="true"}
-`DetectorDeCaidas` usa `Instant.now()` por dentro y duerme con `Thread.sleep`. No se puede probar:
-el resultado depende de cuándo se ejecute y tarda segundos.
+`DetectorDeCaidas` pregunta la hora por dentro, con `Instant.now()`, en dos sitios distintos. No
+se puede probar: el resultado depende del momento en que se ejecute la prueba, y una prueba que a
+veces pasa y a veces no es peor que no tenerla.
 
-Refactorízalo para que el tiempo entre por el constructor, y escribe sus pruebas. No añadas nada
-que no esté en el tema: te basta con pasar los `Instant` como parámetro.
+El código de `DetectorDeCaidas`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+
+```java
+// DetectorDeCaidas.java
+package es.uib.prgava.tema1.ejercicios;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+
+import es.uib.prgava.tema1.monitor.Resultado;
+
+public class DetectorDeCaidas {
+
+    private final Duration ventana;
+
+    public DetectorDeCaidas(Duration ventana) {
+        this.ventana = ventana;
+    }
+
+    /** Fallos ocurridos dentro de la ventana que termina ahora mismo. */
+    public int fallosRecientes(List<Resultado> historial) {
+        var desde = Instant.now().minus(ventana);
+        int fallos = 0;
+        for (var resultado : historial) {
+            if (resultado.esFallo() && resultado.instante().isAfter(desde)) {
+                fallos++;
+            }
+        }
+        return fallos;
+    }
+
+    /** ¿Ha pasado ya la ventana desde el último aviso? */
+    public boolean tocaAvisar(Instant ultimoAviso) {
+        return Duration.between(ultimoAviso, Instant.now()).compareTo(ventana) >= 0;
+    }
+}
+```
+
+Refactorízalo para que el instante actual **entre desde fuera** en lugar de leerse por dentro, y
+escribe sus pruebas. No añadas nada que no esté en el tema: te basta con pasar el `Instant` como
+un parámetro más.
 
 **Cómo saber si va bien.** Las pruebas deben ejecutarse en milisegundos y dar siempre el mismo
-resultado.
+resultado, hoy y dentro de un año.
 
 **Para pensar.** El [Concepto Clave de 1.4.4](../contenido/tema1.qmd#imp-disenar-para-probar) dice
 que el código difícil de probar suele estar mal diseñado. ¿Qué principio de 1.2 estaba violando
