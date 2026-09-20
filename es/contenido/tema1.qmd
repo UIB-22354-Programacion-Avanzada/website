@@ -14,9 +14,9 @@ En Programación I aprendiste a escribir programas que funcionan. En esta asigna
 El tema tiene cuatro secciones, que siguen los acápites de la guía docente. En la primera (1.1) revisamos los conceptos fundamentales de la orientación a objetos, pero con la mirada del diseñador y con los recursos del Java moderno (`record`, `var`, *pattern matching* para `instanceof`). En la segunda (1.2) presentamos los principios SOLID y seis patrones de diseño que los ponen en práctica. En la tercera (1.3) estudiamos la genericidad y la Stream API, que permiten escribir código reutilizable y expresivo sobre colecciones. En la cuarta (1.4) damos el primer paso hacia la verificación con pruebas unitarias en JUnit 5.
 
 ::: {.callout-tip appearance="simple"}
-A lo largo del tema verás dos tipos de ejemplos de código, **ejemplos breves** y el **ejemplo unificador**. Los **ejemplos breves**, autocontenidos, sirven para presentar cada concepto de la forma más limpia posible. 
+A lo largo del tema verás dos tipos de ejemplos de código, **ejemplos breves** y el **ejemplo unificador** que se plantea a continuación (@nte-ejemplo-unificador). Los **ejemplos breves**, autocontenidos, sirven para presentar cada concepto de la forma más limpia posible. 
 
-Todo el código del tema es Java 25, se organiza en proyectos Maven y vive en el paquete `es.uib.prgava.tema1` (el ejemplo unificador, por ejemplo, en `es.uib.prgava.tema1.monitor`). Los listados son completos y compilables salvo cuando se indica lo contrario.
+Todo el código del tema es Java 25, se organiza en proyectos Maven y vive en el paquete `es.uib.prgava.tema1` (el ejemplo unificador es `es.uib.prgava.tema1.monitor`). Los listados son completos y compilables salvo cuando se indica lo contrario.
 :::
 
 ::: {#nte-ejemplo-unificador .callout-note title="Monitor de servicios de red (planteamiento)"}
@@ -29,7 +29,7 @@ Se motiva por el siguiente requerimiento que el COO (Chief Operating Officer) le
 > **Para:** Director de Tecnología (CTO)
 > **Asunto:** Asignación prioritaria: avisos de caída — necesitamos algo nuestro
 >
-> Por medio del presente, te hago llegar un requerimiento prioritario derivado de que ayer el portal de un cliente estuvo caído cuarenta minutos y nos enteramos porque llamó él. Hoy «vigilar» en nuesro sistema consiste en que quien está de guardia abre el navegador cada tanto y mira. Quiero un programa que lo haga solo.
+> Por medio del presente, te hago llegar un requerimiento prioritario derivado de que ayer el portal de un cliente estuvo caído cuarenta minutos y nos enteramos porque llamó él. Hoy «vigilar» en nuestro sistema consiste en que quien está de guardia abre el navegador cada tanto y mira. Quiero un programa que lo haga solo.
 >
 > De momento son tres cosas: el portal del cliente, el servidor DNS que resuelve su dominio y el puerto 25 de su servidor de correo. Cada pocos minutos, comprobar si responden y cuánto tardan. Si algo falla, que avise: por ahora con que lo escriba por consola me vale, la semana que viene querré correo, y en cuanto funcione el cliente pedirá que le llegue al móvil.
 >
@@ -40,13 +40,13 @@ Se motiva por el siguiente requerimiento que el COO (Chief Operating Officer) le
 > Del plazo ya hablaremos. Lo que no quiero es que dentro de dos meses, cuando te pida lo del correo, me contestes que hay que rehacerlo entero.
 ::::
 
-Se trata entonces de una pequeña aplicación que mantiene una lista de servicios a vigilar (un servidor web, un servidor DNS, un puerto TCP), los comprueba, guarda los resultados y avisa cuando alguno falla. Es un problema pequeño, pero tiene todo lo necesario para hablar de diseño: varios tipos de servicios, varias formas de avisar, políticas de alerta que cambian, un historial sobre el que hacer informes y una parte (la comprobación real) que conviene aislar para poder probar el resto.
+Se trata de una pequeña aplicación que mantiene una lista de servicios a vigilar (un servidor web, un servidor DNS, un puerto TCP), los comprueba, guarda los resultados y avisa cuando alguno falla. Es un problema pequeño, pero tiene todo lo necesario para hablar de diseño: varios tipos de servicios, varias formas de avisar, políticas de alerta que cambian, un historial sobre el que hacer informes y una parte (la comprobación real) que conviene aislar para poder probar el resto.
 
 Un primer esquema de cómo se reparte el trabajo entre las piezas del monitor es el siguiente:
 
 ```{mermaid}
 %%| label: fig-monitor
-%%| fig-cap: "El monitor de servicios, el ejemplo que recorre todo el tema."
+%%| fig-cap: "Reparto de responsabilidades del monitor cuando esté terminado."
 flowchart TB
     S(["Servicios a vigilar:<br/>un servidor web, un DNS, un puerto TCP"])
     S --> M
@@ -422,7 +422,7 @@ public class DemoPunto {
 - **Puedes añadir métodos:** Si necesitas lógica adicional o validar datos al construirlos, puedes abrir las llaves `{}` y escribir tus propios métodos o constructores personalizados.
 :::
 
-**En el monitor de servicios** (@fig-monitor) ¿qué significa que dos servicios sean «el mismo»? Un servicio HTTP queda determinado por su URL; un servidor DNS, por su nombre; un puerto TCP, por el par anfitrión y puerto. Dos objetos que describen el mismo servicio deben ser iguales aunque se hayan creado por separado (por ejemplo, uno al leer la configuración y otro al consultar el historial). Son valores, y por tanto los modelaremos como registros en la sección sobre jerarquías cerradas, más adelante.
+En el monitor de servicios (@nte-ejemplo-unificador) ¿qué significa que dos servicios sean «el mismo»? Un servicio HTTP queda determinado por su URL; un servidor DNS, por su nombre; un puerto TCP, por el par anfitrión y puerto. Dos objetos que describen el mismo servicio deben ser iguales aunque se hayan creado por separado (por ejemplo, uno al leer la configuración y otro al consultar el historial). Son valores, y por tanto los modelaremos como registros en la sección sobre jerarquías cerradas, más adelante.
 
 ::: {#imp-identidad-vs-igualdad .callout-important title="Identidad e igualdad"}
 El operador de igualdad `==` compara identidad: retorna `true` si dos referencias apuntan al mismo objeto. El método `equals` compara igualdad según el criterio de la clase. 
@@ -1198,7 +1198,7 @@ El objetivo del diseño orientado a objetos no es que el programa funcione hoy, 
 
 Cuando el diseño empieza a degradarse aparecen síntomas reconocibles, que Fowler bautizó como **olores de código** (*code smells*) [@fowler2018]. Algunos de los más frecuentes: la *clase Dios* que lo hace todo (@cau-clase-dios); el *método largo* que necesita comentarios para separar sus fases; la *envidia de características*, un método que usa más datos de otra clase que de la suya; las *cadenas de `if`/`else if` sobre el tipo* que se repiten en varios sitios; y la *lista de parámetros larga*. Ninguno es un error, pero todos son señales de que el próximo cambio costará más de lo que debería.
 
-Nada de esto se puede juzgar en abstracto: el acoplamiento y la cohesión no se aprecian leyendo una definición, sino intentando cambiar un programa concreto y comprobando cuánto hay que tocar. Ese programa, de aquí al final del tema, es el **monitor de servicios** (@fig-monitor). La sección siguiente le da primero un vocabulario —los tipos con los que habla— y después una primera versión escrita a propósito de la peor manera, con todas las responsabilidades metidas en una sola clase. Funciona; lo que no resiste es el primer cambio. De ahí en adelante, cada principio y cada patrón aparecerá cuando haga falta para arreglar algo que ya hayamos visto fallar, y no como una regla que haya que memorizar.
+Nada de esto se puede juzgar en abstracto: el acoplamiento y la cohesión no se aprecian leyendo una definición, sino intentando cambiar un programa concreto y comprobando cuánto hay que tocar. Ese programa, de aquí al final del tema, es el monitor de servicios (@nte-ejemplo-unificador). La sección siguiente le da primero un vocabulario —los tipos con los que habla— y después una primera versión escrita a propósito de la peor manera, con todas las responsabilidades metidas en una sola clase. Funciona; lo que no resiste es el primer cambio. De ahí en adelante, cada principio y cada patrón aparecerá cuando haga falta para arreglar algo que ya hayamos visto fallar, y no como una regla que haya que memorizar.
 
 ### 1.2.2 El monitor de servicios: vocabulario y versión 0
 
@@ -2790,7 +2790,16 @@ Las operaciones intermedias más usadas, con su tipo:
 
 Y los **colectores** (`Collectors`), que dan forma al resultado de `collect`: `toList()` y `toSet()`; `toMap(clave, valor)`; `joining(separador)` para cadenas; `groupingBy(clasificador)` para un `Map<K, List<T>>`, opcionalmente con un colector *aguas abajo* (`counting()`, `averagingLong(...)`, `mapping(...)`) para resumir cada grupo; `partitioningBy(predicado)` para un `Map<Boolean, List<T>>`; y `summarizingLong` para obtener recuento, suma, media, mínimo y máximo de una vez.
 
-**En el monitor de servicios** (@fig-monitor). Todo esto se entiende mejor con un caso concreto: el repositorio acumula un historial, y queremos informes: [disponibilidad]{.glos} (*availability*) de cada servicio, recuento por estado, los últimos fallos, [latencia]{.glos} media, y un resumen ordenado de peor a mejor. Es exactamente el tipo de consulta para el que se diseñaron los streams, y depende solo de `LectorResultados` (principio I):
+En el monitor de servicios (@nte-ejemplo-unificador) esto se entiende mejor con un caso concreto: 
+
+- el repositorio acumula un historial, y queremos informes: 
+    - [disponibilidad]{.glos} (*availability*) de cada servicio, 
+    - recuento por estado, 
+    - los últimos fallos, 
+    - [latencia]{.glos} media, y 
+    - un resumen ordenado de peor a mejor. 
+    
+Es exactamente el tipo de consulta para el que se diseñaron los streams, y depende solo de `LectorResultados` (principio I):
 
 ```java
 // Informes.java
@@ -2966,7 +2975,7 @@ Una prueba rápida de legibilidad: si al leer el *pipeline* de arriba abajo pued
 
 ### 1.4.1 Por qué probar
 
-Hasta ahora hemos comprobado que el monitor de servicios (@fig-monitor) funciona ejecutando `Principal` y mirando la consola. Eso tiene tres problemas. No es **repetible**: la próxima vez que cambies algo tendrás que volver a mirar, y no recordarás qué salida era la correcta. No es **preciso**: la salida mezcla el comportamiento de la sonda, la política, el repositorio y el notificador, y si algo va mal no sabes cuál de ellos falla. Y no es **automático**: nadie lo ejecutará por ti antes de cada entrega.
+Hasta ahora hemos comprobado que el monitor de servicios (@nte-ejemplo-unificador) funciona ejecutando `Principal` y mirando la consola. Eso tiene tres problemas. No es **repetible**: la próxima vez que cambies algo tendrás que volver a mirar, y no recordarás qué salida era la correcta. No es **preciso**: la salida mezcla el comportamiento de la sonda, la política, el repositorio y el notificador, y si algo va mal no sabes cuál de ellos falla. Y no es **automático**: nadie lo ejecutará por ti antes de cada entrega.
 
 ::: {#imp-prueba-unitaria .callout-important title="Prueba unitaria"}
 Una **prueba unitaria** (*unit test*) es un programa que ejercita **una unidad** de código —una clase o un método— **aislada** de las demás, compara su resultado con el esperado y falla si no coinciden. Es un concepto independiente del lenguaje y del marco de pruebas que se use.
