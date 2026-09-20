@@ -75,7 +75,7 @@ window.GLOSARIO = {
     termino: "Puerto",
     ingles: "port",
     alias: ["puerto", "puertos", "puerto tcp", "puertos tcp"],
-    definicion: "Número de 16 bits (de 1 a 65 535) que identifica un extremo concreto de una comunicación dentro de un equipo, y permite que un mismo equipo atienda varios servicios a la vez. Algunos están reservados por convenio: 25 para SMTP, 53 para DNS, 80 para HTTP y 443 para HTTPS."
+    definicion: "Número de 16 bits (de 1 a 65 535) que identifica un extremo concreto de una comunicación dentro de un equipo, y permite que un mismo equipo atienda varios servicios a la vez. Algunos están reservados por convenio: sobre TCP, el 25 para SMTP, el 80 para HTTP y el 443 para HTTPS; sobre UDP, el 53 para DNS."
   },
 
   "socket": {
@@ -92,11 +92,18 @@ window.GLOSARIO = {
     definicion: "Protocolo de transporte que ofrece una conexión fiable y ordenada entre dos equipos: numera los datos, retransmite lo que se pierde y controla el ritmo de envío. Es la base de HTTP, SMTP y la mayoría de servicios de Internet. Su alternativa sin conexión ni garantías es UDP."
   },
 
+  "udp": {
+    termino: "UDP",
+    ingles: "User Datagram Protocol",
+    alias: ["udp"],
+    definicion: "Protocolo de transporte que envía datagramas sueltos sin establecer conexión: no numera, no retransmite y no garantiza ni el orden ni la entrega. A cambio se ahorra el coste de abrir y cerrar la conexión, lo que lo hace adecuado para intercambios breves en los que reintentar sale más barato que negociar (una consulta DNS es el caso típico) y para flujos en los que llegar tarde es peor que no llegar, como la voz y el vídeo."
+  },
+
   "dns": {
     termino: "DNS",
     ingles: "Domain Name System",
     alias: ["dns"],
-    definicion: "Sistema distribuido que traduce nombres de dominio legibles (uib.es) en direcciones IP. Funciona como una jerarquía de servidores que se consultan entre sí y guardan las respuestas en caché. Si el DNS falla, los servicios siguen en pie pero nadie los encuentra por su nombre."
+    definicion: "Sistema distribuido que traduce nombres de dominio legibles (uib.es) en direcciones IP. Funciona como una jerarquía de servidores que se consultan entre sí y guardan las respuestas en caché. Las consultas viajan normalmente sobre UDP en el puerto 53, y solo recurren a TCP cuando la respuesta no cabe en un datagrama o en las transferencias de zona entre servidores. Si el DNS falla, los servicios siguen en pie pero nadie los encuentra por su nombre."
   },
 
   "http": {
@@ -211,6 +218,36 @@ window.GLOSARIO = {
            "\">Ver en el glosario</a></p>";
   }
 
+  // La ventana emergente se gobierna a mano y no con el disparador "hover" de
+  // Bootstrap. Con "hover", salir del término la cierra al instante, de modo que
+  // el enlace "Ver en el glosario" es inalcanzable: al mover el ratón hacia él se
+  // sale del término y la ventana desaparece antes de llegar. Aquí se cierra con
+  // un retardo y se cancela el cierre si el puntero entra en la propia ventana,
+  // de forma que el trayecto entre una y otra no la destruya.
+  var RETARDO_CIERRE = 300;   // milisegundos de gracia para hacer el recorrido
+  var cierrePendiente = null;
+  var visible = null;         // popover actualmente mostrado
+
+  function cancelarCierre() {
+    if (cierrePendiente) { clearTimeout(cierrePendiente); cierrePendiente = null; }
+  }
+
+  function programarCierre(pop) {
+    cancelarCierre();
+    cierrePendiente = setTimeout(function () {
+      cierrePendiente = null;
+      pop.hide();
+      if (visible === pop) visible = null;
+    }, RETARDO_CIERRE);
+  }
+
+  function mostrar(pop) {
+    cancelarCierre();
+    if (visible && visible !== pop) visible.hide();
+    visible = pop;
+    pop.show();
+  }
+
   function activarPopovers() {
     var marcas = document.querySelectorAll("span.glos");
     if (!marcas.length) return;
@@ -236,14 +273,29 @@ window.GLOSARIO = {
       marca.setAttribute("aria-label", entrada.termino + ": " + entrada.definicion);
 
       if (hayBootstrap) {
-        new window.bootstrap.Popover(marca, {
+        var pop = new window.bootstrap.Popover(marca, {
           title: titulo,
           content: contenido(hallado.clave, entrada),
           html: true,
           sanitize: false,
-          trigger: "focus hover",
+          trigger: "manual",
           placement: "auto",
           customClass: "glos-popover"
+        });
+
+        marca.addEventListener("mouseenter", function () { mostrar(pop); });
+        marca.addEventListener("mouseleave", function () { programarCierre(pop); });
+        marca.addEventListener("focus", function () { mostrar(pop); });
+        marca.addEventListener("blur", function () { programarCierre(pop); });
+
+        // Mientras el puntero esté dentro de la ventana, no se cierra; y al salir
+        // de ella vuelve a programarse el cierre.
+        marca.addEventListener("shown.bs.popover", function () {
+          var id = marca.getAttribute("aria-describedby");
+          var ventana = id ? document.getElementById(id) : null;
+          if (!ventana) return;
+          ventana.addEventListener("mouseenter", cancelarCierre);
+          ventana.addEventListener("mouseleave", function () { programarCierre(pop); });
         });
       } else {
         // Sin Bootstrap disponible, al menos queda la definición en el tooltip nativo.
@@ -251,6 +303,15 @@ window.GLOSARIO = {
       }
     });
   }
+
+  // La tecla Escape cierra la ventana visible, para quien navegue con teclado.
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && visible) {
+      cancelarCierre();
+      visible.hide();
+      visible = null;
+    }
+  });
 
   // Listado completo, solo en es/recursos/glosario.qmd.
   function construirListado() {
