@@ -511,6 +511,8 @@ La **herencia** es otro de los pilares fundamentales de la POO. Es el mecanismo 
 - **Polimorfismo:** La herencia es el cimiento que permite que un programa trate a un objeto de la clase hija exactamente como si fuera de la clase padre, facilitando un código mucho más flexible.
 :::
 
+Veamos un ejemplo de herencia con dos nuevas clases que heredan de `DispositivoRed`: `Enrutador` y `Conmutador`. Ambas reciben los atributos y los métodos de la superclase `DispositivoRed`, y añaden los suyos propios. La relación es unidireccional: cada subclase conoce a su superclase, pero la superclase no sabe qué subclases tiene ni puede usar lo que estas añaden. Un método escrito en `DispositivoRed` no puede llamar a un método que solo exista en `Enrutador`, ni leer un atributo que solo tenga `Conmutador`. Lo que sí ocurre, y lo veremos en 1.1.4, es lo contrario de lo que podría parecer: cuando la subclase **redefine** un método heredado, el código de la superclase que lo llame ejecutará la versión de la subclase.
+
 ::: {#nte-herenciaejemplo .callout-note title="Clases `Enrutador` y `Conmutador` que heredan de `DispositivoRed`"}
 En Java el concepto de herencia se declara con `extends`. La mecánica tiene tres piezas: `extends` en la declaración, `super(...)` en el constructor para inicializar la parte heredada, y `@Override` en los métodos que se redefinen. 
 
