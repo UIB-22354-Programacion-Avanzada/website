@@ -205,11 +205,18 @@ window.GLOSARIO = {
   }
 
   // Ruta a la página del glosario, relativa a la profundidad de la página actual.
+  //
+  // El glosario vive en es/recursos/glosario.html, de modo que hay que subir
+  // hasta la carpeta del idioma y bajar por recursos/. Se cuentan solo las
+  // carpetas: el último segmento de la ruta es el fichero, salvo que la
+  // dirección acabe en barra.
   function rutaGlosario() {
-    var partes = window.location.pathname.split("/").filter(Boolean);
-    var i = partes.indexOf("es");
+    var ruta = window.location.pathname;
+    var partes = ruta.split("/").filter(Boolean);
+    var carpetas = /\/$/.test(ruta) ? partes : partes.slice(0, -1);
+    var i = carpetas.lastIndexOf("es");
     if (i === -1) return "es/recursos/glosario.html";
-    return "../".repeat(partes.length - i - 1) + "recursos/glosario.html";
+    return "../".repeat(carpetas.length - i - 1) + "recursos/glosario.html";
   }
 
   function contenido(clave, entrada) {
