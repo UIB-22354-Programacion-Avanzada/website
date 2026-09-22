@@ -16,7 +16,7 @@ nada que no se haya explicado antes. Si un ejercicio te pide algo que no reconoc
 apartado que se enlaza en el propio enunciado.
 
 No empiezas desde una carpeta vacía. En la organización del curso tienes el repositorio
-**`t1-ejercicios`**, una plantilla con la misma estructura que
+[**`t1-ejercicios`**](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), una plantilla con la misma estructura que
 [`t1-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos) que contiene:
 
 - un **esqueleto** de cada clase que se pide. El esqueleto trae las **declaraciones** —las firmas
