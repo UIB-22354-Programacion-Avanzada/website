@@ -424,7 +424,7 @@ public class DemoPunto {
 - **Puedes añadir métodos:** Si necesitas lógica adicional o validar datos al construirlos, puedes abrir las llaves `{}` y escribir tus propios métodos o constructores personalizados.
 :::
 
-En el monitor de servicios (@nte-ejemplo-unificador) ¿qué significa que dos servicios sean «el mismo»? Un servicio HTTP queda determinado por su URL; un servidor DNS, por su nombre; un puerto TCP, por el par anfitrión y puerto. Dos objetos que describen el mismo servicio deben ser iguales aunque se hayan creado por separado (por ejemplo, uno al leer la configuración y otro al consultar el historial). Son valores, y por tanto los modelaremos como registros al construir el vocabulario del monitor, en 1.2.2.
+En el monitor de servicios (@nte-ejemplo-unificador) ¿qué significa que dos servicios sean «el mismo»? Un servicio HTTP queda determinado por su URL; un servicio DNS, por el dominio que se consulta; un puerto TCP, por el par anfitrión y puerto. Dos objetos que describen el mismo servicio deben ser iguales aunque se hayan creado por separado (por ejemplo, uno al leer la configuración y otro al consultar el historial). Son valores, y por tanto los modelaremos como registros al construir el vocabulario del monitor, en 1.2.2.
 
 ::: {#imp-identidad-vs-igualdad .callout-important title="Identidad e igualdad"}
 El operador de igualdad `==` compara identidad: retorna `true` si dos referencias apuntan al mismo objeto. El método `equals` compara igualdad según el criterio de la clase. 
@@ -996,9 +996,18 @@ Una **interfaz** es un contrato: una lista de operaciones que quien la implement
 
 La diferencia con la herencia es de naturaleza, no de sintaxis. Una superclase describe **lo que un objeto es** y le transmite implementación; una interfaz describe **lo que un objeto sabe hacer**. Por eso una clase tiene una sola superclase pero puede implementar tantas interfaces como quiera, y dos clases sin ninguna relación entre sí pueden implementar la misma interfaz.
 
-Programar contra la interfaz y no contra la clase concreta es lo que permite sustituir una implementación por otra sin tocar el código que la usa: es la base de la inversión de dependencias (1.2) y de casi todo lo que puede comprobarse con pruebas.
+Programar **a través de la interfaz** en lugar de depender de una clase concreta permite sustituir una implementación por otra sin modificar el código cliente. Este principio sustenta la **inversión de dependencias (1.2)** y es la base de la mayoría de técnicas de verificación mediante pruebas.
 
 **En Java, una interfaz se declara con `interface` y una clase declara que la cumple con `implements`**. El compilador comprueba que la clase proporciona todos los métodos prometidos; si falta alguno, no compila.
+
+En el diseño orientado a objetos de Java, las interfaces existen para resolver varios problemas fundamentales:
+
+- **Alternativa a la herencia múltiple:** Java prohíbe que una clase herede de múltiples clases padre (para evitar el "problema del diamante", donde hay ambigüedad sobre qué método heredar). Sin embargo, una clase puede implementar múltiples interfaces, permitiéndole adquirir diferentes comportamientos sin los problemas de la herencia múltiple de estado.
+- **Polimorfismo puro:** Permiten agrupar objetos de clases completamente distintas bajo un mismo tipo. Si tanto un `Pajaro` como un `Avion` implementan la interfaz `Volador`, puedes tratarlos de la misma manera en tu código (ej. iterar sobre una lista de `Volador` y llamar al método `volar()`) sin importar que internamente funcionen de forma totalmente diferente.
+- **Desacoplamiento (Loose Coupling):** Fomentan programar "hacia una interfaz, no hacia una implementación". Esto significa que si una parte de tu sistema necesita guardar datos, puedes usar una interfaz `Repositorio`. Más adelante, puedes cambiar la implementación concreta (de base de datos SQL a un archivo de texto) sin tener que alterar el código que utiliza dicha interfaz.
+- **Diseño de APIs (Contratos):** Actúan como un manual de instrucciones para otros programadores. Si obligas a una clase a implementar una interfaz, el compilador garantiza que esa clase contendrá todos los métodos definidos en ella, evitando errores en tiempo de ejecución.
+
+Las interfaces no añaden capacidad de computación fundamental. No hacen posible algo que sea imposible sin ellas. **Su valor está en el diseño del software**.
 :::
 
 Hasta ahora el polimorfismo nos lo ha dado la herencia: `Circulo`, `Cuadrado` y `Anillo` pueden tratarse igual porque **descienden** de `Figura`, y esa ascendencia común es la que aporta el tipo compartido. El problema es que ese camino solo está disponible cuando las clases pertenecen a la misma familia, y en un programa real muchas cosas que conviene tratar igual no la comparten, ni tendría sentido forzarlas a compartirla.
@@ -1192,7 +1201,7 @@ Estos «ficheros fuente compactos» importan implícitamente los tipos más habi
 
 ### 1.2.1 Qué es un buen diseño
 
-Un programa puede ser correcto y estar mal diseñado. La corrección se juzga con una ejecución; el diseño se juzga con el tiempo, cuando hay que cambiar el programa. Dos propiedades resumen casi todo lo que distingue un diseño bueno de uno malo: el **acoplamiento** y la **cohesión**.
+Un programa puede ser correcto y estar mal diseñado. **La corrección se juzga con una ejecución; el diseño se juzga con el tiempo, cuando hay que cambiar el programa**. Dos propiedades resumen casi todo lo que distingue un diseño bueno de uno malo: el **acoplamiento** y la **cohesión**.
 
 El **acoplamiento** (*coupling*) mide cuánto depende un módulo de otros: cuántas clases conoce, cuántos detalles de ellas usa, cuántas se romperían si cambiara. El **grado de cohesión** (*cohesion*) mide hasta qué punto las partes de un módulo pertenecen juntas, es decir, si sirven a un mismo propósito. El diseño busca **bajo acoplamiento y alta cohesión**: módulos que hacen una cosa y que saben lo mínimo de los demás. La idea se remonta al artículo de Parnas de 1972 sobre cómo descomponer un sistema en módulos [@parnas1972], cuya tesis sigue vigente: cada módulo debe **ocultar una decisión de diseño** que probablemente cambie, de modo que el cambio quede confinado dentro de él.
 
@@ -1206,17 +1215,60 @@ Nada de esto se puede juzgar en abstracto: el acoplamiento y la cohesión no se 
 
 ### 1.2.2 El monitor de servicios: vocabulario y versión 0
 
-Antes de escribir la aplicación monitor de servicios, hay que nombrar las cosas de las que habla, y son tres:
+De acuerdo con la definición en @nte-ejemplo-unificador, el monitor de servicios 
 
-- qué se vigila: un `Servicio`, que puede ser de tres clases;
-- en qué estado puede encontrarse: un `Estado`;
-- qué se observó en una comprobación concreta: un `Resultado`.
+> Se trata de una pequeña aplicación que mantiene una lista de servicios a vigilar (un servidor web, un servidor DNS, un puerto TCP), los comprueba, guarda los resultados y avisa cuando alguno falla.
 
-Los tres se construyen con lo aprendido en 1.1: interfaces para los contratos comunes (@imp-interfaz), registros para los datos inmutables y constructores que rechazan lo inválido (@imp-invariante).
+Antes de escribirla, conviene **definir y nombrar las cosas** de las que está formada. Un buen diseño empieza por un buen vocabulario: los nombres que se eligen para los tipos y sus operaciones son la primera documentación del programa.
 
-Lo que se vigila son servicios de tres clases: un servidor web que atiende peticiones [HTTP]{.glos}, un servidor [DNS]{.glos} que resuelve nombres, y cualquier servicio que escuche en un [puerto]{.glos data-termino="puerto"} [TCP]{.glos} determinado. Cada clase se identifica con datos distintos: una URL, un dominio, o un [host]{.glos} con un número de puerto. Conviene notar que un puerto no es un servicio, sino el extremo por el que se llega a él; identificamos el servicio por su puerto porque, desde fuera, es lo único observable. Lo que las tres clases tienen en común es que se les puede poner nombre, y eso es lo único que el resto del programa necesitará de ellas.
+#### **Clase `Monitor`**
 
-Primero declaramos la interfaz `Servicio` con un único método `nombre()`, que devuelve un `String` con el nombre del servicio.
+Primero vamos a definir en que consiste «vigilar» en este contexto. **Vigilar un servicio** es repetir indefinidamente una **ronda** de cuatro pasos sobre él. No es «ver si está caído»: es medir, clasificar, recordar y decidir.
+
+1. **Sondear.** Preguntarle al **servicio** desde fuera, como lo haría un cliente, y medir **cuánto tarda en responder** (latencia). La sonda solo devuelve dos cosas: si respondió, y la latencia. No juzga.
+2. **Clasificar.** Con esa latencia y un **umbral**, el resultado cae en uno de tres estados: 
+
+    - `ACTIVO` si responde dentro del umbral, 
+    - `DEGRADADO` si responde por encima, 
+    - `CAIDO` si no responde. 
+    Los tres estados son el corazón del ejemplo: un servicio lento no está caído, pero tampoco está bien, y esa distinción es la que un «¿responde sí o no?» pierde.
+3. **Guardar.** El resultado —servicio, instante, estado, latencia— se añade al **historial** de ese servicio. Sin historial no hay informe de disponibilidad a fin de mes, que era la mitad del encargo.
+4. **Decidir si avisar.** Y aquí está el punto que hace interesante el ejemplo: la decisión **no se toma con la comprobación que acaba de hacerse, sino con el historial completo**. Por eso el encargo decía «no quiero un aviso por cada fallo suelto, porque la red tiene microcortes»: un fallo aislado no es una caída. Quién decide qué cuenta como caída es una *política* intercambiable —dos fallos seguidos, dos en las últimas cinco comprobaciones, latencia excesiva sostenida—, y el monitor no la conoce.
+
+Vamos a nombrar `Monitor` a la clase que ordena los cuatro pasos anteriores de una ronda. Fíjate en el verbo: **ordena**. Los cuatro pasos son parte de vigilar y `Monitor` los ejecuta, pero **no tiene que implementar ninguno**: de cada paso define **cuándo** ocurre, nunca **cómo**. 
+
+La clase `Monitor` se queda con el orden y con nada más porque el orden es lo único estable que hay aquí: la secuencia —sondear, guardar, decidir, avisar— *es* la definición de vigilar, mientras que cómo se sondea, qué cuenta como fallo y por dónde se avisa cambian por motivos ajenos entre sí y a ritmos distintos. Reunir en una clase lo que no varía y repartir en otras clases o interfaces lo que sí, es lo que hace que un cambio frecuente no obligue a tocar código que no tenía ninguna razón para cambiar.
+
+Cómo se sondea cada clase de servicio es asunto de la **sonda**; qué cuenta como fallo, de la **política**; a quién se avisa y por qué medio, de los **notificadores**; y dónde se guarda el historial, del **repositorio**.
+
+Veamos ahora cómo se representan (modelan) otros conceptos que el monitor necesita para vigilar. 
+
+#### **Servicios**
+
+Empezaremos por los servicios que son tres distintos: 
+
+- un servidor web que atiende peticiones [HTTP]{.glos}, 
+- un servidor [DNS]{.glos} que resuelve nombres, y 
+- cualquier servicio que escuche en un [puerto]{.glos data-termino="puerto"} [TCP]{.glos} determinado. 
+
+Cada servicio se identifica con datos distintos: una URL, un dominio, o un [host]{.glos} con un número de puerto (conviene notar que un puerto no es un servicio, sino el extremo por el que se llega a él; identificamos el servicio por su puerto porque, desde fuera, es lo único observable). 
+
+En esta implementación, el modelo no necesita capturar lo que el servicio es en el mundo, sino el papel que juega en la aplicación. Esto nos permite decidir modelar los servicios como records de Java (vea @tip-valor-vs-entidad a continuación) y no como clases.
+
+::: {#tip-valor-vs-entidad .callout-tip title="Objetos-valor y entidades: lo decide el programa, no el mundo"}
+Los objetos se dividen en dos familias según de dónde sacan su **identidad**. Una **entidad** tiene identidad propia, independiente de su estado: sigue siendo el mismo objeto aunque algunos de sus datos o estados cambien (como el `DispositivoRed` de 1.1.3, que se activa y se desactiva y no deja de ser ese dispositivo). Un **objeto-valor** no tiene identidad separada de su estado: *es* sus datos, y dos objetos-valor con los mismos datos son indistinguibles y por tanto intercambiables, como el `Punto` de 1.1.1. La distinción, con estos nombres, viene del diseño dirigido por el dominio, y lo importante es que la pregunta que decide **no es «¿qué es esta cosa?», sino «¿qué hace mi programa con ella?»**.
+
+En el mundo, un servicio web es una entidad de libro: se para, se arranca y sigue siendo el mismo
+después de reiniciarlo. Una herramienta de administración lo modelaría así. El monitor no hace nada de eso: **nunca actúa sobre el servicio, solo lo nombra para observarlo**, y un nombre para observar algo es un valor. 
+
+Las consecuencias son concretas. Un objeto-valor se escribe como `record` [@jep395]: campos finales, igualdad y código de resumen por componentes, y ninguna operación que lo modifique [@bloch2018, ítem 17]; a cambio se puede copiar, compartir y usar como clave de un diccionario sin riesgo, y es trivial de probar.
+:::
+
+Tenemos tres servicios diferentes que se implementaran como records. Pero ellos no se identifican con los mismos atributos: uno se identifica con una URL, otro con un dominio, el tercero con un host y un número. Evidentemente se necesitan tres records distintos, pero el monitor los va a tratar de forma igual: los sondea, guarda su estado y decide si avisar. Para poder tratarlos igual, necesitamos un **tipo común** que los abarque a todos. Sin un tipo común habría que escribir el monitor tres veces, una por clase, o preguntarle a cada objeto «¿de qué clase eres?» en cada sitio donde aparezca.
+
+Una interfaz `Servicio` resuelve eso sin exigir parecido: declara un **tipo**, `Servicio`, y cada clase se compromete a cumplirlo conservando sus propios datos. Gracias a ella se pueden emplear en `Monitor` construcciones como `List<Servicio>`, `sondear(Servicio)` o `historial(Servicio)` que funcionarán también con un cuarto tipo de servicio que aparezca mañana.
+
+¿Qué es lo que el resto del programa necesita saber de un servicio? Solamente su nombre para ponerlo en un aviso o en la línea de un informe. La URL, el dominio y el puerto solo le interesan a quien va a llamar al servicio. Una interfaz no se escribe para compartir código: se escribe para poder tratar por igual a cosas distintas, y debe pedir lo mínimo que eso requiera. Por ello escribimos `Servicio` con un único método `nombre()`:
 
 ```java
 // Servicio.java
@@ -1227,7 +1279,11 @@ public interface Servicio {
 }
 ```
 
-Cada clase de servicio se escribe después como un `record` que cumple ese contrato. Un servidor web queda identificado por su URL, que el constructor rechaza si no nombra un host:
+Cada clase de servicio se escribe después como un `record` que cumple ese contrato. 
+
+**Record `ServicioHttp`:**
+
+Un servicio HTTP queda identificado por su URL, que el constructor rechaza si no nombra un host. Para comprobarlo se emplean las facilidades de la [clase `URI`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/net/URI.html) de la biblioteca estándar, que sabe analizar y normalizar direcciones web:
 
 ```java
 // ServicioHttp.java
@@ -1247,7 +1303,11 @@ public record ServicioHttp(URI url) implements Servicio {
 }
 ```
 
-Un servidor DNS queda identificado por el dominio que se le pregunta:
+Aquí `nombre()` duplica a `toString()` por simplicidad, pero la defensa de `nombre()` es que dice cosas distintas, «con qué nombre aparece en un informe» frente a «cómo se muestra esto» (el formato de `toString()`) y que el día que el informe quiera un prefijo u otro detalle, cambia `nombre()` y no `toString()`.
+
+**Record `ServicioDns`:**
+
+Lo que se vigila de un DNS no es una máquina concreta, sino que un nombre de dominio se resuelva; por eso lo que identifica al servicio es el dominio que se consulta:
 
 ```java
 // ServicioDns.java
@@ -1265,6 +1325,10 @@ public record ServicioDns(String dominio) implements Servicio {
     public String nombre() { return "dns:" + dominio; }
 }
 ```
+
+En el cosntructor compacto se comprueba que el dominio no esté vacío y se normaliza a minúsculas y sin espacios al principio ni al final. La normalización es un ejemplo de lo que solo pueden hacer los constructores compactos: modificar los parámetros antes de asignarlos a los campos finales.
+
+**Record `ServicioTcp`:**
 
 Y un servicio que escucha en un puerto TCP queda identificado por la pareja host y puerto, con el puerto dentro del rango que permite el protocolo:
 
@@ -1289,7 +1353,9 @@ public record ServicioTcp(String host, int puerto) implements Servicio {
 
 Los tres registros son la aplicación literal de lo visto en 1.1.2: el constructor compacto comprueba el invariante y, si los datos no describen nada posible, no deja nacer al objeto. La excepción [`IllegalArgumentException`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/IllegalArgumentException.html) es la que la biblioteca estándar reserva para «este argumento no vale»; lanzarla interrumpe la construcción y el mensaje viaja con ella hasta quien pueda hacer algo al respecto. El constructor de `ServicioDns` hace además algo que solo pueden hacer los constructores compactos: **normalizar** antes de asignar, de modo que `DNS:UIB.ES ` y `uib.es` produzcan el mismo objeto.
 
-El estado en que se encuentra un servicio observado toma un número fijo de valores, y para eso Java tiene los **tipos enumerados**:
+**Enumeración `Estado`:**
+
+El estado en que se encuentra un servicio observado toma un número fijo de valores que ya definimos, y para eso Java tiene los **tipos enumerados**:
 
 ```java
 // Estado.java
@@ -1312,6 +1378,8 @@ Un [**`enum`** (enumeración)](https://docs.oracle.com/javase/specs/jls/se25/htm
 ::: 
 
 El `enum` `Estado` hace que un estado inventado no compile: los únicos valores posibles son las tres constantes declaradas en el fichero, `ACTIVO`, `DEGRADADO` y `CAIDO`. Si el estado se guardara como texto, `"CAIDO"` y `"caido"` serían dos estados distintos y `"CIADO"` pasaría inadvertido hasta que alguien leyera un informe con un estado que nadie reconoce.
+
+**Diagrama de transición de estados:**
 
 Veamos ahora un diagrama con la transición entre estados a lo largo de sucesivas comprobaciones que es precisamente lo que el monitor tendrá que vigilar para decidir cuándo avisar:
 
