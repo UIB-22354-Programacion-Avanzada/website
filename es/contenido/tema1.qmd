@@ -1241,6 +1241,8 @@ La clase `Monitor` se queda con el orden y con nada más porque el orden es lo �
 
 Cómo se sondea cada clase de servicio es asunto de la **sonda**; qué cuenta como fallo, de la **política**; a quién se avisa y por qué medio, de los **notificadores**; y dónde se guarda el historial, del **repositorio**.
 
+Esa forma de repartir el trabajo tiene nombre: `Monitor` **tiene una** sonda, **tiene una** política, **tiene un** repositorio y **tiene** notificadores, y les delega los cuatro pasos. Es composición (@imp-composicion-concepto).
+
 Veamos ahora cómo se representan (modelan) otros conceptos que el monitor necesita para vigilar. 
 
 #### **Servicios**
@@ -1253,10 +1255,10 @@ Empezaremos por los servicios que son tres distintos:
 
 Cada servicio se identifica con datos distintos: una URL, un dominio, o un [host]{.glos} con un número de puerto (conviene notar que un puerto no es un servicio, sino el extremo por el que se llega a él; identificamos el servicio por su puerto porque, desde fuera, es lo único observable). 
 
-En esta implementación, el modelo no necesita capturar lo que el servicio es en el mundo, sino el papel que juega en la aplicación. Esto nos permite decidir modelar los servicios como records de Java (vea @tip-valor-vs-entidad a continuación) y no como clases.
+En esta implementación, el modelo no necesita capturar lo que el servicio es en el mundo, sino el papel que juega en la aplicación. Esto nos permite decidir modelar los servicios como records de Java (véase @tip-valor-vs-entidad a continuación) y no como clases.
 
 ::: {#tip-valor-vs-entidad .callout-tip title="Objetos-valor y entidades: lo decide el programa, no el mundo"}
-Los objetos se dividen en dos familias según de dónde sacan su **identidad**. Una **entidad** tiene identidad propia, independiente de su estado: sigue siendo el mismo objeto aunque algunos de sus datos o estados cambien (como el `DispositivoRed` de 1.1.3, que se activa y se desactiva y no deja de ser ese dispositivo). Un **objeto-valor** no tiene identidad separada de su estado: *es* sus datos, y dos objetos-valor con los mismos datos son indistinguibles y por tanto intercambiables, como el `Punto` de 1.1.1. La distinción, con estos nombres, viene del diseño dirigido por el dominio, y lo importante es que la pregunta que decide **no es «¿qué es esta cosa?», sino «¿qué hace mi programa con ella?»**.
+Los objetos se dividen en dos familias según de dónde sacan su **identidad**. Una **entidad** tiene identidad propia, independiente de su estado: sigue siendo el mismo objeto aunque algunos de sus datos o estados cambien (como el `DispositivoRed` de 1.1.3, que se activa y se desactiva y no deja de ser ese dispositivo). Un **objeto-valor** no tiene identidad separada de su estado: *es* sus datos, y dos objetos-valor con los mismos datos son indistinguibles y por tanto intercambiables, como el `Punto` de 1.1.1. La distinción, con estos nombres, viene del diseño dirigido por el dominio [@evans2003], y lo importante es que la pregunta que decide **no es «¿qué es esta cosa?», sino «¿qué hace mi programa con ella?»**.
 
 En el mundo, un servicio web es una entidad de libro: se para, se arranca y sigue siendo el mismo
 después de reiniciarlo. Una herramienta de administración lo modelaría así. El monitor no hace nada de eso: **nunca actúa sobre el servicio, solo lo nombra para observarlo**, y un nombre para observar algo es un valor. 
@@ -1264,7 +1266,7 @@ después de reiniciarlo. Una herramienta de administración lo modelaría así. 
 Las consecuencias son concretas. Un objeto-valor se escribe como `record` [@jep395]: campos finales, igualdad y código de resumen por componentes, y ninguna operación que lo modifique [@bloch2018, ítem 17]; a cambio se puede copiar, compartir y usar como clave de un diccionario sin riesgo, y es trivial de probar.
 :::
 
-Tenemos tres servicios diferentes que se implementaran como records. Pero ellos no se identifican con los mismos atributos: uno se identifica con una URL, otro con un dominio, el tercero con un host y un número. Evidentemente se necesitan tres records distintos, pero el monitor los va a tratar de forma igual: los sondea, guarda su estado y decide si avisar. Para poder tratarlos igual, necesitamos un **tipo común** que los abarque a todos. Sin un tipo común habría que escribir el monitor tres veces, una por clase, o preguntarle a cada objeto «¿de qué clase eres?» en cada sitio donde aparezca.
+Tenemos tres servicios diferentes que se implementarán como `record`. Pero ellos no se identifican con los mismos atributos: uno se identifica con una URL, otro con un dominio, el tercero con un host y un número. Evidentemente se necesitan tres records distintos, pero el monitor los va a tratar de forma igual: los sondea, guarda su estado y decide si avisar. Para poder tratarlos igual, necesitamos un **tipo común** que los abarque a todos. Sin un tipo común habría que escribir el monitor tres veces, una por clase, o preguntarle a cada objeto «¿de qué clase eres?» en cada sitio donde aparezca.
 
 Una interfaz `Servicio` resuelve eso sin exigir parecido: declara un **tipo**, `Servicio`, y cada clase se compromete a cumplirlo conservando sus propios datos. Gracias a ella se pueden emplear en `Monitor` construcciones como `List<Servicio>`, `sondear(Servicio)` o `historial(Servicio)` que funcionarán también con un cuarto tipo de servicio que aparezca mañana.
 
