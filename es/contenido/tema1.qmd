@@ -1326,7 +1326,7 @@ public record ServicioDns(String dominio) implements Servicio {
 }
 ```
 
-En el cosntructor compacto se comprueba que el dominio no esté vacío y se normaliza a minúsculas y sin espacios al principio ni al final. La normalización es un ejemplo de lo que solo pueden hacer los constructores compactos: modificar los parámetros antes de asignarlos a los campos finales.
+En el constructor compacto se comprueba que el dominio no esté vacío y se normaliza a minúsculas y sin espacios al principio ni al final. La normalización es un ejemplo de lo que solo pueden hacer los constructores compactos: modificar los parámetros antes de asignarlos a los campos finales.
 
 **Record `ServicioTcp`:**
 
