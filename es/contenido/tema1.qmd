@@ -1214,7 +1214,7 @@ Antes de escribir la aplicación monitor de servicios, hay que nombrar las cosas
 
 Los tres se construyen con lo aprendido en 1.1: interfaces para los contratos comunes (@imp-interfaz), registros para los datos inmutables y constructores que rechazan lo inválido (@imp-invariante).
 
-Lo que se vigila son servicios de tres clases: un servidor web que atiende peticiones [HTTP]{.glos}, un servidor [DNS]{.glos} que resuelve nombres, y cualquier servicio que escuche en un [puerto]{.glos data-termino="puerto"} [TCP]{.glos} determinado. Cada clase se identifica con datos distintos: una URL, un dominio, o un host con un número de puerto. Conviene notar que un puerto no es un servicio, sino el extremo por el que se llega a él; identificamos el servicio por su puerto porque, desde fuera, es lo único observable. Lo que las tres clases tienen en común es que se les puede poner nombre, y eso es lo único que el resto del programa necesitará de ellas.
+Lo que se vigila son servicios de tres clases: un servidor web que atiende peticiones [HTTP]{.glos}, un servidor [DNS]{.glos} que resuelve nombres, y cualquier servicio que escuche en un [puerto]{.glos data-termino="puerto"} [TCP]{.glos} determinado. Cada clase se identifica con datos distintos: una URL, un dominio, o un [host]{.glos} con un número de puerto. Conviene notar que un puerto no es un servicio, sino el extremo por el que se llega a él; identificamos el servicio por su puerto porque, desde fuera, es lo único observable. Lo que las tres clases tienen en común es que se les puede poner nombre, y eso es lo único que el resto del programa necesitará de ellas.
 
 Primero declaramos la interfaz `Servicio` con un único método `nombre()`, que devuelve un `String` con el nombre del servicio.
 
