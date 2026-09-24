@@ -1802,7 +1802,9 @@ static double area(Object figura) {
 
 Añadir un anillo obliga a modificar `area` y cualquier otro método con la misma cadena. Es exactamente la cadena de `instanceof` de @cau-instanceof-en-cadena. Con la clase abstracta `Figura` y un método `area()` polimórfico (como en 1.1), añadir un anillo es añadir una clase y nada más.
 
-En el monitor (@nte-ejemplo-unificador) las políticas de alerta son el caso perfecto. Tres implementaciones:
+#### **Diferentes políticas de alerta en `Monitor`**
+
+En el monitor (@nte-ejemplo-unificador) las políticas de alerta son el caso perfecto. Tres implementaciones de políticas de alerta en las clases `FalloSimple`, `FallosConsecutivos` y `LatenciaExcesiva` a continuación:
 
 ```java
 // FalloSimple.java
@@ -1889,7 +1891,9 @@ Ninguna de las tres exige cambiar `Monitor`, y la cuarta tampoco lo exigirá. Es
 
 :::: {.ampliacion}
 ::: {#tip-problema-de-la-expresion .callout-tip title="Abierto/cerrado y polimorfismo: el problema de la expresión"}
-Criticar las cadenas de `if` sobre el tipo no equivale a decir que el polimorfismo sea siempre la respuesta. Hay aquí una tensión de diseño real, conocida como **el problema de la expresión** (*expression problem*): con polimorfismo es fácil añadir *tipos* nuevos (una clase más, y ningún sitio que revisar) pero difícil añadir *operaciones* nuevas (un método más en cada clase de la jerarquía); si en lugar de repartir el comportamiento entre las clases se escribe fuera, en funciones que preguntan por el tipo, ocurre lo contrario: añadir una operación es escribir una función más, pero añadir un tipo obliga a revisar todas las funciones. Elige según qué eje esperas que crezca. Las políticas de alerta del monitor crecerán en número, y por eso son clases que implementan una interfaz. Los tipos de servicio son pocos y estables, y las operaciones sobre ellos (describir, serializar, sondear) son las que irán apareciendo; ahí la pregunta por el tipo, concentrada en un único sitio y no repetida por todo el programa, es defendible. Java ofrece además una forma de hacerla segura, las **jerarquías cerradas** (`sealed`), en las que el compilador comprueba que no falta ningún caso; no la usaremos en esta asignatura, pero conviene saber que el `if` sobre el tipo no siempre es un descuido.
+Criticar las cadenas de `if` sobre el tipo no equivale a decir que el polimorfismo sea siempre la respuesta. Hay aquí una tensión de diseño real, conocida como **el problema de la expresión** (*expression problem*): con polimorfismo es fácil añadir *tipos* nuevos (una clase más, y ningún sitio que revisar) pero difícil añadir *operaciones* nuevas (un método más en cada clase de la jerarquía); si en lugar de repartir el comportamiento entre las clases se escribe fuera, en funciones que preguntan por el tipo, ocurre lo contrario: añadir una operación es escribir una función más, pero añadir un tipo obliga a revisar todas las funciones. 
+
+Elige según qué eje esperas que crezca. Las políticas de alerta del monitor crecerán en número, y por eso son clases que implementan una interfaz. Los tipos de servicio son pocos y estables, y las operaciones sobre ellos (describir, serializar, sondear) son las que irán apareciendo; ahí la pregunta por el tipo, concentrada en un único sitio y no repetida por todo el programa, es defendible. Java ofrece además una forma de hacerla segura, las **jerarquías cerradas** (`sealed`), en las que el compilador comprueba que no falta ningún caso; no la usaremos en esta asignatura, pero conviene saber que el `if` sobre el tipo no siempre es un descuido.
 :::
 ::::
 
