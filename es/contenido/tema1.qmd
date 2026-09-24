@@ -1394,7 +1394,7 @@ Vamos a asumir que «de verdad» significa que varias comprobaciones consecutiva
 
 ![Transición de estados en una ronda de comprobación y lógica de varias rondas sucesivas](../../images/diagrama.png){#fig-logcom width="70%"}
 
-De los requerimientos y observando la figura @fig-logcom se tiene que el resultado de una comprobación queda descrita por cuatro datos:
+De los requerimientos y observando la figura @fig-logcom se tiene que el resultado de una comprobación queda descrito por cuatro datos:
 
 - el **servicio** que se ha comprobado,
 - el **instante** en que se hizo la comprobación,
@@ -1604,7 +1604,7 @@ Diez fallos en sesenta comprobaciones y una sola alerta, que es justo lo que se 
 
 Los bucles anidados en las líneas 16 y 17 del código comprueban los servicios uno tras otro; con sondas reales, un servicio caído retrasaría a todos los demás mientras se agota su tiempo de espera — y esa será la puerta de entrada del Tema 3.
 
-Con el servicio respondiendo —lo habitual— el ciclo `for` en la línea 32 sale tras consultar unas pocas entradas, tantas como servicios haya. Pero recorre el historial entero cuando el servicio ha fallado en todas sus rondas anteriores, que es el caso de un servicio muerto desde el principio. Y ese caso no es raro: es precisamente el que el monitor existe para vigilar. Ahí el coste pasa a ser cuadrático en el número de rondas. El `for`de la línea 32 tiene un tercer nivel de anidamiento, porque está dentro de los bucles de rondas y servicios.
+Con el servicio respondiendo —lo habitual— el ciclo `for` en la línea 32 sale tras consultar unas pocas entradas, tantas como servicios haya. Pero recorre el historial entero cuando el servicio ha fallado en todas sus rondas anteriores, que es el caso de un servicio muerto desde el principio. Y ese caso no es raro: es precisamente el que el monitor existe para vigilar. El `for` de la línea 32 tiene un tercer nivel de anidamiento, porque está dentro de los bucles de rondas y servicios. Aquí el coste pasa a ser cuadrático en el número de rondas (lo veremos en el Tema 2).
 
 #### **Cambios en la versión 0**
 
@@ -1622,7 +1622,7 @@ Cada cambio toca el mismo método, y cada cambio puede romper los demás. Esta c
 
 SOLID es el acrónimo de cinco principios que Robert C. Martin reunió a principios de los años 2000 [@martin2003; @martin2017], recogiendo ideas anteriores de Meyer, Liskov y otros. No son reglas mecánicas sino heurísticas: cada una nombra una forma concreta de reducir el acoplamiento o aumentar la cohesión. Los aplicaremos uno a uno al monitor.
 
-#### **S: principio de responsabilidad única (**S**ingle Responsibility Principle)**
+#### **S: principio de responsabilidad única (Single Responsibility Principle)**
 
 > Una clase debe tener una única razón para cambiar.
 
