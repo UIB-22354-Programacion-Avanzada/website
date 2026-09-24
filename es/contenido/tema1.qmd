@@ -1231,6 +1231,7 @@ Primero vamos a definir en que consiste «vigilar» en este contexto. **Vigilar 
     - `ACTIVO` si responde dentro del umbral, 
     - `DEGRADADO` si responde por encima, 
     - `CAIDO` si no responde. 
+    
     Los tres estados son el corazón del ejemplo: un servicio lento no está caído, pero tampoco está bien, y esa distinción es la que un «¿responde sí o no?» pierde.
 3. **Guardar.** El resultado —servicio, instante, estado, latencia— se añade al **historial** de ese servicio. Sin historial no hay informe de disponibilidad a fin de mes, que era la mitad del encargo.
 4. **Decidir si avisar.** Y aquí está el punto que hace interesante el ejemplo: la decisión **no se toma con la comprobación que acaba de hacerse, sino con el historial completo**. Por eso el encargo decía «no quiero un aviso por cada fallo suelto, porque la red tiene microcortes»: un fallo aislado no es una caída. Quién decide qué cuenta como caída es una *política* intercambiable —dos fallos seguidos, dos en las últimas cinco comprobaciones, latencia excesiva sostenida—, y el monitor no la conoce.
@@ -1381,23 +1382,28 @@ Un [**`enum`** (enumeración)](https://docs.oracle.com/javase/specs/jls/se25/htm
 
 El `enum` `Estado` hace que un estado inventado no compile: los únicos valores posibles son las tres constantes declaradas en el fichero, `ACTIVO`, `DEGRADADO` y `CAIDO`. Si el estado se guardara como texto, `"CAIDO"` y `"caido"` serían dos estados distintos y `"CIADO"` pasaría inadvertido hasta que alguien leyera un informe con un estado que nadie reconoce.
 
-**Diagrama de transición de estados:**
+**`Resultado` de una comprobación:**
 
-Veamos ahora un diagrama con la transición entre estados a lo largo de sucesivas comprobaciones que es precisamente lo que el monitor tendrá que vigilar para decidir cuándo avisar:
+En los requerimientos del COO (consulta @nte-ejemplo-unificador) se señala que:
 
-```{mermaid}
-stateDiagram-v2
-    [*] --> ACTIVO : primera comprobación correcta
-    [*] --> CAIDO : primera comprobación fallida
-    ACTIVO --> DEGRADADO : latencia > umbral
-    DEGRADADO --> ACTIVO : latencia ≤ umbral
-    ACTIVO --> CAIDO : sin respuesta
-    DEGRADADO --> CAIDO : sin respuesta
-    CAIDO --> ACTIVO : vuelve a responder
-```
+> ... Cada pocos minutos, comprobar si responden y cuánto tardan. Si algo falla, que avise: por ahora con que lo escriba por consola me vale, la semana que viene querré correo, y en cuanto funcione el cliente pedirá que le llegue al móvil.
+>
+> Dos cosas más. No quiero un aviso por cada fallo suelto, porque la red tiene microcortes y nos saturaríamos; quiero avisar cuando falle **de verdad**. Qué significa «de verdad» lo hablamos, porque no lo tengo claro y seguramente cambie con cada cliente...
 
-Entonces, por fin, el resultado de una comprobación con el record `Resultado`, que reúne lo aprendido en 1.1: un record inmutable con invariantes (@imp-invariante) comprobados en el constructor compacto:
+Vamos a asumir que «de verdad» significa que varias comprobaciones consecutivas fallan. Por ejemplo, si fijamos ese número en dos, tenemos la lógica que se presenta en la figura siguiente.
 
+![Transición de estados en una ronda de comprobación y lógica de varias rondas sucesivas](../../images/diagrama.png){#fig-logcom}
+
+De los requerimientos y observando la figura @fig-logcom se tiene que el resultado de una comprobación queda descrita por cuatro datos:
+
+- el **servicio** que se ha comprobado,
+- el **instante** en que se hizo la comprobación,
+- el **estado** en que se encontraba el servicio, y
+- la **latencia** de la comprobación.
+
+Estos cuatro datos solo significan algo juntos, así que necesitan un tipo propio. Ese tipo describe un hecho ocurrido en un instante, y un hecho no cambia ni tiene identidad al margen de sus datos, de modo que es un objeto-valor y se escribe como `record`.
+
+::: {.resaltar data-lineas="4-6"}
 ```java
 // Resultado.java
 package es.uib.prgava.tema1.monitor;
@@ -1435,22 +1441,27 @@ public record Resultado(Servicio servicio, Instant instante, Estado estado, Dura
     }
 }
 ```
+:::
 
-Aparecen aquí dos tipos de la biblioteca estándar que conviene presentar (línea 8, entre otras), porque se usarán en todo el tema. 
+Aparecen aquí dos tipos de la biblioteca [`java.time`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/package-summary.html) que conviene presentar (líneas 4 y 5), porque se usarán en todo el tema. 
 
-- Un `Instant` es un punto en el tiempo, y `Instant.now()` devuelve el actual; 
-- una `Duration` es un intervalo, y se construye con `Duration.ofMillis(300)` o `Duration.ofSeconds(2)`. 
+- Un [`Instant`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Instant.html) es un punto en el tiempo, y `Instant.now()` devuelve el actual; 
+- una [`Duration`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/time/Duration.html) es un intervalo de tiempo, y se construye con `Duration.ofMillis(300)` o `Duration.ofSeconds(2)`. 
 
 Los dos son inmutables y los dos se comparan con `compareTo` —la interfaz `Comparable` de 1.1.4—, que es como se decide si una latencia supera un umbral.
 
-El método `Objects.requireNonNull` es una utilidad estática de la clase `java.util.Objects` diseñada para validar referencias. Su comportamiento es directo: evalúa si un objeto es `null`; si lo es, lanza una excepción `NullPointerException`, y si no lo es, devuelve la misma referencia. Cuando utilizas `Objects.requireNonNull(T obj, String message)`, los dos argumentos tienen una función muy específica:
+El método `Objects.requireNonNull` es una utilidad estática de la clase [`java.util.Objects`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Objects.html) diseñada para validar referencias. Su comportamiento es directo: evalúa si un objeto es `null`; si lo es, lanza una excepción `NullPointerException`, y si no lo es, devuelve la misma referencia al objeto. 
+
+Cuando utilizas `Objects.requireNonNull(T obj, String message)`, los dos argumentos tienen una función muy específica:
 
 - **El primer argumento (`obj`): el dato a evaluar.** Es la variable u objeto que quieres comprobar. El método inspecciona este valor; si resulta ser `null`, lanza la excepción, que interrumpe ahí mismo la construcción del objeto. Si contiene un dato válido, el método devuelve exactamente ese mismo valor.
 - **El segundo argumento (`message`): el texto del error.** Es el mensaje personalizado que acompaña a la excepción, y que aparecerá en la traza de la pila (*stack trace*) si nadie la captura.
 
-Rechazar los nulos en el constructor es lo que hace que el fallo aparezca donde es fácil de diagnosticar —en el punto que construyó mal el objeto— y no mucho más tarde, en el lugar arbitrario donde alguien lo usara.
+Rechazar los nulos en el constructor compacto de `Resultado` es lo que hace que el fallo aparezca donde es fácil de diagnosticar —en el punto que construyó mal el objeto— y no mucho más tarde, en el lugar arbitrario donde alguien lo usara. Observa que también se comprueba que la latencia no sea negativa: un `Duration` negativo no tiene sentido en este contexto, y si alguien lo pasa, el constructor lanza una excepción `IllegalArgumentException` con un mensaje que describe el problema.
 
-Los métodos `activo`, `degradado` y `caido` son **métodos de clase**, declarados `static` como se vio en 1.1.1: se invocan sobre el tipo, `Resultado.activo(...)`, y no sobre un objeto, porque cuando se los llama el objeto que van a construir todavía no existe. A un método de clase con ese cometido —construir una instancia y devolverla bajo un nombre que diga qué es— se le llama **fábrica estática** (*static factory method*), y es preferible a un constructor sobrecargado precisamente porque el nombre dice qué se está construyendo [@bloch2018, ítem 1]. Volveremos sobre ella como patrón más adelante en esta sección.
+Los métodos `activo`, `degradado` y `caido` son **métodos de clase**, declarados `static` como se vio en 1.1.1: se invocan sobre el tipo, `Resultado.activo(...)`, y no sobre un objeto, porque cuando se los llama ellos mismos construyen la instancia. 
+
+A un método de clase con ese cometido —construir una instancia y devolverla bajo un nombre que diga qué es— se le llama **fábrica estática** (*static factory method*), y es preferible a un constructor sobrecargado precisamente porque el nombre dice qué se está construyendo [@bloch2018, ítem 1]. Volveremos sobre ella como patrón más adelante en esta sección.
 
 Con esto, el modelo de datos del monitor queda así:
 
@@ -1494,6 +1505,8 @@ classDiagram
     Resultado --> Estado
 ```
 
+#### **Lista de resultados y versión 0 del `Monitor`**
+
 Falta un detalle antes de escribir el programa: el monitor comprueba los servicios una y otra vez, así que tiene que guardar un número indeterminado de resultados. Para eso usaremos una **lista**, la primera colección que aparece en el curso. De momento basta con esto:
 
 - El tipo `List<Resultado>` es una **secuencia ordenada** de elementos, todos del tipo escrito entre ángulos; a diferencia de un array, no hay que decidir de antemano cuántos caben.
@@ -1502,7 +1515,11 @@ Falta un detalle antes de escribir el programa: el monitor comprueba los servici
 
 El Tema 2 está dedicado a las colecciones: qué tipos hay, en qué se diferencian y cuánto cuesta cada operación. Aquí solo se usan como almacén.
 
-Ya tenemos el vocabulario. Escribamos ahora el monitor de la forma en que probablemente lo harías si tuvieras prisa: todo en una clase. Funciona, y está lleno de *olores de código*.
+Ya tenemos el "vocabulario" y la lógica. Escribamos ahora el monitor de la forma en que probablemente lo harías si tuvieras prisa: todo en una clase. Funciona, pero está lleno de *code smells*.
+
+La clase `MonitorV0` a continuación **no sondea de verdad**: el paso de comprobar está simulado con un generador de números aleatorios. Una de cada diez comprobaciones se da por fallida y produce un `Resultado.caido`; el resto inventa una latencia de entre 50 y 449 ms y la compara con un umbral de 300 ms para decidir entre `Resultado.activo` y `Resultado.degradado`. Los servicios que se le pasan —la web, el DNS, el puerto de correo— solo actúan de etiqueta: nunca se abre una conexión hacia ellos.
+
+Sondear de verdad exigiría tiempos de espera, errores de red y que las máquinas consultadas estén levantadas, cosas ajenas a lo que aquí interesa; la simulación, en cambio, se ejecuta igual en cualquier ordenador y entrega exactamente lo que el resto del monitor necesita, que son resultados bien formados. La semilla del generador es fija (`new Random(42)`), de modo que la salida es siempre la misma, aunque, como veremos, eso no basta para poder probar el programa.
 
 ::: {#nte-monitorv0 .callout-note title="MonitorV0: un ejemplo de clase con demasiadas responsabilidades"}
 
@@ -1572,6 +1589,17 @@ public class MonitorV0 {
 }
 ```
 ::: 
+
+Al ejecutar `MonitorV0`, la salida es siempre esta:
+
+```text
+ALERTA: https://www.uib.es lleva 2 fallos consecutivos
+https://www.uib.es: 5 fallos de 20
+dns:uib.es: 1 fallos de 20
+mail.uib.es:25: 4 fallos de 20
+```
+
+Diez fallos en sesenta comprobaciones y una sola alerta, que es justo lo que se intentaba. La mayoría de los fallos son microcortes aislados y no merecen aviso, y solo la coincidencia de dos seguidos en la web lo provoca. Con fallos independientes al 10 %, dos seguidos ocurren en un 1 % de los pares de rondas, así que el aviso es un suceso raro por construcción, no por casualidad de esta ejecución.
 
 Después de esta versión se nos ocurren varios cambios razonables:
 
