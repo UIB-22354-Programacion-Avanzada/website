@@ -2295,7 +2295,46 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">guardarComoCsv</span><span class="op">(</span>Path destino<span class="op">)</span> <span class="op">{</span> <span class="co">/* abre fichero, escribe líneas */</span> <span class="op">}</span></span>
 <span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El método <code>total</code> cambia si cambia la regla de negocio (descuentos, impuestos); <code>guardarComoCsv</code> cambia si cambia el formato de salida. Separarlas (<code>InformeVentas</code> por un lado y un <code>ExportadorCsv</code> por otro) hace que cada una tenga una sola razón para cambiar, y de paso que <code>InformeVentas</code> sea trivial de probar, porque ya no toca el sistema de ficheros.</p>
-<p>En <code>MonitorV0</code> hay al menos cinco responsabilidades: comprobar, almacenar, decidir, avisar e informar. Las nombramos y las convertimos en <strong>interfaces</strong>, porque lo que queremos no es solo separarlas sino poder sustituirlas:</p>
+<p>En <code>MonitorV0</code> hay al menos cinco responsabilidades: comprobar, almacenar, decidir, avisar e informar. Las nombramos y convertimos en <strong>interfaces</strong> algunas de ellas, porque lo que queremos no es solo separarlas sino poder sustituirlas.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 20%">
+<col style="width: 26%">
+<col style="width: 53%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Responsabilidad</th>
+<th>Interfaz</th>
+<th>¿Qué hace?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Decidir</td>
+<td><code>PoliticaDeAlerta</code></td>
+<td><code>boolean debeAlertar(List&lt;Resultado&gt;)</code>: mira el historial de un servicio y responde si justifica una alerta. Cambia con cada cliente.</td>
+</tr>
+<tr class="even">
+<td>Avisar</td>
+<td><code>Notificador</code></td>
+<td><code>void notificar(Alerta)</code>: hace llegar la alerta por un medio concreto —consola, correo, móvil—. Cambia cuando cambia el medio.</td>
+</tr>
+<tr class="odd">
+<td>Almacenar</td>
+<td><code>RepositorioResultados</code></td>
+<td><code>void guardar(Resultado)</code> y <code>List&lt;Resultado&gt; historial(Servicio)</code>: conserva lo observado y lo devuelve cuando se le pide. Cambia con el soporte: memoria hoy, base de datos en el Tema 4.</td>
+</tr>
+<tr class="even">
+<td>Comprobar</td>
+<td><code>Sonda</code></td>
+<td><code>Resultado sondear(Servicio)</code>: interroga al servicio desde fuera y devuelve lo observado. Cambia con la clase de servicio y permite un doble en las pruebas.</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="decidir-politicadealerta" class="level4">
+<h4 class="anchored" data-anchor-id="decidir-politicadealerta"><strong>Decidir: <code>PoliticaDeAlerta</code></strong></h4>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co">// PoliticaDeAlerta.java</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2307,6 +2346,10 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb42-9"><a href="#cb42-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">boolean</span> <span class="fu">debeAlertar</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> historial<span class="op">);</span></span>
 <span id="cb42-10"><a href="#cb42-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>La anotación <code>@FunctionalInterface</code> no cambia lo que la interfaz hace ni cómo se usa: le pide al compilador que compruebe que tiene <strong>exactamente un método abstracto</strong>, y que dé un error si alguien añade un segundo. Sirve para dejar escrito que esa interfaz está pensada para nombrar una única operación, que es lo que la hace sustituible con facilidad; en 1.3 veremos qué formas de escribir implementaciones desbloquea esa propiedad.</p>
+</section>
+<section id="alerta" class="level4">
+<h4 class="anchored" data-anchor-id="alerta"><strong>Alerta</strong></h4>
+<p>Antes de la interfaz que avisa hace falta un tipo más, que no es una responsabilidad sino <strong>lo que viaja entre dos de ellas</strong>. Quien decide y quien avisa no se conocen, así que necesitan una moneda común: un aviso con el servicio afectado, un mensaje y el instante en que se produjo. Eso es <code>Alerta</code>, y por lo mismo que <code>Resultado</code> (<a href="#tip-valor-vs-entidad" class="quarto-xref">fundamento teórico&nbsp;2</a>) es un <code>record</code>: describe un hecho, no cambia, y no tiene identidad al margen de sus datos.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Alerta.java</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2324,6 +2367,10 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb43-15"><a href="#cb43-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="kw">new</span> <span class="fu">Alerta</span><span class="op">(</span>servicio<span class="op">,</span> mensaje<span class="op">,</span> Instant<span class="op">.</span><span class="fu">now</span><span class="op">());</span></span>
 <span id="cb43-16"><a href="#cb43-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb43-17"><a href="#cb43-17" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Fíjate en lo que se gana al darle nombre. Si <code>notificar</code> recibiera un <code>String</code> ya formado, el que decide tendría que redactar el texto, y con él quedarían fijados el idioma y el formato para todos los medios: el mismo mensaje en la consola, en un correo y en un móvil. Con un <code>Alerta</code> cada notificador recibe los datos y decide cómo presentarlos.</p>
+</section>
+<section id="avisar-y-almacenar-notificador-y-repositorioresultados" class="level4">
+<h4 class="anchored" data-anchor-id="avisar-y-almacenar-notificador-y-repositorioresultados"><strong>Avisar y almacenar: <code>Notificador</code> y <code>RepositorioResultados</code></strong></h4>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Notificador.java</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2340,7 +2387,10 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">void</span> <span class="fu">guardar</span><span class="op">(</span>Resultado resultado<span class="op">);</span></span>
 <span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">historial</span><span class="op">(</span>Servicio servicio<span class="op">);</span></span>
 <span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Falta la quinta, la comprobación en sí, que es una <span class="glos">sonda</span> (<em>probe</em>). Su firma se lee entera con los dos tipos de 1.2.2: recibe un <code>Servicio</code> y devuelve un <code>Resultado</code>.</p>
+</section>
+<section id="comprobar-sonda" class="level4">
+<h4 class="anchored" data-anchor-id="comprobar-sonda"><strong>Comprobar: <code>Sonda</code></strong></h4>
+<p>Falta la cuarta, la comprobación en sí, que es una <span class="glos">sonda</span> (<em>probe</em>). Su firma se lee entera con los dos tipos de 1.2.2: recibe un <code>Servicio</code> y devuelve un <code>Resultado</code>.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Sonda.java</span></span>
 <span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2351,7 +2401,11 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> <span class="fu">sondear</span><span class="op">(</span>servicio<span class="op">).</span><span class="fu">estado</span><span class="op">()</span> <span class="op">!=</span> Estado<span class="op">.</span><span class="fu">CAIDO</span><span class="op">;</span></span>
 <span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb46-10"><a href="#cb46-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
-<p>El método <code>default disponible</code> es comportamiento derivado, como el <code>mostrar()</code> de <code>Describible</code> en 1.1.4: quien implemente <code>Sonda</code> lo obtiene sin escribirlo. Con las cinco interfaces, el monitor deja de <em>hacer</em> las cosas y pasa a <em>coordinarlas</em>:</p>
+<p>El método <code>default disponible</code> es comportamiento derivado, como el <code>mostrar()</code> de <code>Describible</code> en 1.1.4: quien implemente <code>Sonda</code> lo obtiene sin escribirlo.</p>
+</section>
+<section id="monitor-primera-versión" class="level4">
+<h4 class="anchored" data-anchor-id="monitor-primera-versión"><strong><code>Monitor</code> primera versión</strong></h4>
+<p>Con las cuatro interfaces y el record <code>Alerta</code>, el monitor deja de <em>hacer</em> las cosas y pasa a <strong>coordinarlas</strong>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Monitor.java (primera versión)</span></span>
 <span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2382,6 +2436,8 @@ mail.uib.es:25: 4 fallos de 20</code></pre>
 <span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Doce líneas de lógica, y cada una de las responsabilidades vive en otro sitio. Todavía no hemos escrito las implementaciones, pero ya se ve el efecto: para comprobar de otra manera escribiremos otra <code>Sonda</code>; para avisar por correo, otro <code>Notificador</code>; y <code>Monitor</code> no cambia.</p>
+<p>Fíjate en que <code>Monitor</code> no implementa ninguna interfaz: las <strong>usa</strong>. Toda interfaz tiene un lado que promete —el que escribe <code>implements</code>— y otro que exige, que es el que declara campos y parámetros de ese tipo. <code>Monitor</code> está en el segundo, y por eso no menciona ni una sola clase concreta.</p>
+<p>Fíjate también en lo que ha desaparecido: el número de rondas. <code>MonitorV0</code> recibía <code>rondas</code> y repetía por dentro; <code>comprobar</code> hace <strong>una sola</strong> ronda y termina. Repetirla —y decidir cada cuánto, y hasta cuándo— es una decisión de calendario, que cambia por motivos ajenos a en qué consiste vigilar, así que vive fuera, en <code>Principal</code>. Dos ventajas inmediatas: una prueba puede ejecutar exactamente una ronda y comprobar qué ocurrió, y el día que la repetición la gobierne un planificador de verdad (Tema 3), <code>Monitor</code> no se enterará.</p>
 <div id="cau-clase-dios" class="callout callout-style-default callout-caution no-icon callout-titled" title="La clase que lo sabe todo">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2410,7 +2466,10 @@ Error Frecuente&nbsp;4: La clase que lo sabe todo
 <span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">"Figura desconocida"</span><span class="op">);</span></span>
 <span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Añadir un anillo obliga a modificar <code>area</code> y cualquier otro método con la misma cadena. Es exactamente la cadena de <code>instanceof</code> de <a href="#cau-instanceof-en-cadena" class="quarto-xref">error frecuente&nbsp;2</a>. Con la clase abstracta <code>Figura</code> y un método <code>area()</code> polimórfico (como en 1.1), añadir un anillo es añadir una clase y nada más.</p>
-<p>En el monitor (<a href="#nte-ejemplo-unificador" class="quarto-xref">ejemplo&nbsp;1</a>) las políticas de alerta son el caso perfecto. Tres implementaciones:</p>
+</section>
+<section id="diferentes-políticas-de-alerta-en-monitor" class="level4">
+<h4 class="anchored" data-anchor-id="diferentes-políticas-de-alerta-en-monitor"><strong>Diferentes políticas de alerta en <code>Monitor</code></strong></h4>
+<p>En el monitor (<a href="#nte-ejemplo-unificador" class="quarto-xref">ejemplo&nbsp;1</a>) las políticas de alerta son el caso perfecto. Tres implementaciones de políticas de alerta en las clases <code>FalloSimple</code>, <code>FallosConsecutivos</code> y <code>LatenciaExcesiva</code> a continuación:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co">// FalloSimple.java</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
 <span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -2495,7 +2554,8 @@ Fundamento Teórico&nbsp;3: Abierto/cerrado y polimorfismo: el problema de la ex
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Criticar las cadenas de <code>if</code> sobre el tipo no equivale a decir que el polimorfismo sea siempre la respuesta. Hay aquí una tensión de diseño real, conocida como <strong>el problema de la expresión</strong> (<em>expression problem</em>): con polimorfismo es fácil añadir <em>tipos</em> nuevos (una clase más, y ningún sitio que revisar) pero difícil añadir <em>operaciones</em> nuevas (un método más en cada clase de la jerarquía); si en lugar de repartir el comportamiento entre las clases se escribe fuera, en funciones que preguntan por el tipo, ocurre lo contrario: añadir una operación es escribir una función más, pero añadir un tipo obliga a revisar todas las funciones. Elige según qué eje esperas que crezca. Las políticas de alerta del monitor crecerán en número, y por eso son clases que implementan una interfaz. Los tipos de servicio son pocos y estables, y las operaciones sobre ellos (describir, serializar, sondear) son las que irán apareciendo; ahí la pregunta por el tipo, concentrada en un único sitio y no repetida por todo el programa, es defendible. Java ofrece además una forma de hacerla segura, las <strong>jerarquías cerradas</strong> (<code>sealed</code>), en las que el compilador comprueba que no falta ningún caso; no la usaremos en esta asignatura, pero conviene saber que el <code>if</code> sobre el tipo no siempre es un descuido.</p>
+<p>Criticar las cadenas de <code>if</code> sobre el tipo no equivale a decir que el polimorfismo sea siempre la respuesta. Hay aquí una tensión de diseño real, conocida como <strong>el problema de la expresión</strong> (<em>expression problem</em>): con polimorfismo es fácil añadir <em>tipos</em> nuevos (una clase más, y ningún sitio que revisar) pero difícil añadir <em>operaciones</em> nuevas (un método más en cada clase de la jerarquía); si en lugar de repartir el comportamiento entre las clases se escribe fuera, en funciones que preguntan por el tipo, ocurre lo contrario: añadir una operación es escribir una función más, pero añadir un tipo obliga a revisar todas las funciones.</p>
+<p>Elige según qué eje esperas que crezca. Las políticas de alerta del monitor crecerán en número, y por eso son clases que implementan una interfaz. Los tipos de servicio son pocos y estables, y las operaciones sobre ellos (describir, serializar, sondear) son las que irán apareciendo; ahí la pregunta por el tipo, concentrada en un único sitio y no repetida por todo el programa, es defendible. Java ofrece además una forma de hacerla segura, las <strong>jerarquías cerradas</strong> (<code>sealed</code>), en las que el compilador comprueba que no falta ningún caso; no la usaremos en esta asignatura, pero conviene saber que el <code>if</code> sobre el tipo no siempre es un descuido.</p>
 </div>
 </div>
 </div>
