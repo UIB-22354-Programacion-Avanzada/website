@@ -29,6 +29,13 @@ window.GLOSARIO = {
     definicion: "Cualquier equipo que participa en el transporte o la entrega de datos en una red: encaminadores, conmutadores, puntos de acceso, cortafuegos, servidores. Se caracteriza por tener una o varias interfaces con sus direcciones y por ser administrable de forma remota."
   },
 
+  "host": {
+    termino: "Host",
+    ingles: "host",
+    alias: ["hosts", "anfitrión", "equipo final", "sistema final", "sistemas finales"],
+    definicion: "Equipo conectado a una red que ejecuta aplicaciones y origina o consume el tráfico: un servidor, un ordenador personal, un teléfono. Se distingue de los sistemas intermedios —encaminadores y conmutadores—, que no son extremo de la comunicación sino que se limitan a reenviar lo que pasa por ellos. Un host se identifica por su dirección IP, y lo habitual es nombrarlo con un nombre de dominio que el DNS traduce a esa dirección."
+  },
+
   "enlace": {
     termino: "Enlace",
     ingles: "link",
