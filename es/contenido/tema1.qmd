@@ -1642,7 +1642,16 @@ public class InformeVentas {
 
 El método `total` cambia si cambia la regla de negocio (descuentos, impuestos); `guardarComoCsv` cambia si cambia el formato de salida. Separarlas (`InformeVentas` por un lado y un `ExportadorCsv` por otro) hace que cada una tenga una sola razón para cambiar, y de paso que `InformeVentas` sea trivial de probar, porque ya no toca el sistema de ficheros.
 
-En `MonitorV0` hay al menos cinco responsabilidades: comprobar, almacenar, decidir, avisar e informar. Las nombramos y las convertimos en **interfaces**, porque lo que queremos no es solo separarlas sino poder sustituirlas:
+En `MonitorV0` hay al menos cinco responsabilidades: comprobar, almacenar, decidir, avisar e informar. Las nombramos y convertimos en **interfaces** algunas de ellas, porque lo que queremos no es solo separarlas sino poder sustituirlas.
+
+| Responsabilidad | Interfaz | ¿Qué hace? |
+|---|---|---|
+| Decidir | `PoliticaDeAlerta` | `boolean debeAlertar(List<Resultado>)`: mira el historial de un servicio y responde si justifica una alerta. Cambia con cada cliente. |
+| Avisar | `Notificador` | `void notificar(Alerta)`: hace llegar la alerta por un medio concreto —consola, correo, móvil—. Cambia cuando cambia el medio. |
+| Almacenar | `RepositorioResultados` | `void guardar(Resultado)` y `List<Resultado> historial(Servicio)`: conserva lo observado y lo devuelve cuando se le pide. Cambia con el soporte: memoria hoy, base de datos en el Tema 4. |
+| Comprobar | `Sonda` | `Resultado sondear(Servicio)`: interroga al servicio desde fuera y devuelve lo observado. Cambia con la clase de servicio y permite un doble en las pruebas. |
+
+#### **Decidir: `PoliticaDeAlerta`**
 
 ```java
 // PoliticaDeAlerta.java
@@ -1658,6 +1667,10 @@ public interface PoliticaDeAlerta {
 ```
 
 La anotación `@FunctionalInterface` no cambia lo que la interfaz hace ni cómo se usa: le pide al compilador que compruebe que tiene **exactamente un método abstracto**, y que dé un error si alguien añade un segundo. Sirve para dejar escrito que esa interfaz está pensada para nombrar una única operación, que es lo que la hace sustituible con facilidad; en 1.3 veremos qué formas de escribir implementaciones desbloquea esa propiedad.
+
+#### **Alerta**
+
+Antes de la interfaz que avisa hace falta un tipo más, que no es una responsabilidad sino **lo que viaja entre dos de ellas**. Quien decide y quien avisa no se conocen, así que necesitan una moneda común: un aviso con el servicio afectado, un mensaje y el instante en que se produjo. Eso es `Alerta`, y por lo mismo que `Resultado` (@tip-valor-vs-entidad) es un `record`: describe un hecho, no cambia, y no tiene identidad al margen de sus datos.
 
 ```java
 // Alerta.java
@@ -1678,6 +1691,10 @@ public record Alerta(Servicio servicio, String mensaje, Instant instante) {
     }
 }
 ```
+
+Fíjate en lo que se gana al darle nombre. Si `notificar` recibiera un `String` ya formado, el que decide tendría que redactar el texto, y con él quedarían fijados el idioma y el formato para todos los medios: el mismo mensaje en la consola, en un correo y en un móvil. Con un `Alerta` cada notificador recibe los datos y decide cómo presentarlos.
+
+#### **Avisar y almacenar: `Notificador` y `RepositorioResultados`**
 
 ```java
 // Notificador.java
@@ -1701,7 +1718,9 @@ public interface RepositorioResultados {
 }
 ```
 
-Falta la quinta, la comprobación en sí, que es una [sonda]{.glos} (*probe*). Su firma se lee entera con los dos tipos de 1.2.2: recibe un `Servicio` y devuelve un `Resultado`.
+#### **Comprobar: `Sonda`**
+
+Falta la cuarta, la comprobación en sí, que es una [sonda]{.glos} (*probe*). Su firma se lee entera con los dos tipos de 1.2.2: recibe un `Servicio` y devuelve un `Resultado`.
 
 ```java
 // Sonda.java
@@ -1716,7 +1735,11 @@ public interface Sonda {
 }
 ```
 
-El método `default disponible` es comportamiento derivado, como el `mostrar()` de `Describible` en 1.1.4: quien implemente `Sonda` lo obtiene sin escribirlo. Con las cinco interfaces, el monitor deja de *hacer* las cosas y pasa a *coordinarlas*:
+El método `default disponible` es comportamiento derivado, como el `mostrar()` de `Describible` en 1.1.4: quien implemente `Sonda` lo obtiene sin escribirlo. 
+
+#### **`Monitor` primera versión**
+
+Con las cuatro interfaces y el record `Alerta`, el monitor deja de *hacer* las cosas y pasa a **coordinarlas**:
 
 ```java
 // Monitor.java (primera versión)
@@ -1751,6 +1774,10 @@ public final class Monitor {
 ```
 
 Doce líneas de lógica, y cada una de las responsabilidades vive en otro sitio. Todavía no hemos escrito las implementaciones, pero ya se ve el efecto: para comprobar de otra manera escribiremos otra `Sonda`; para avisar por correo, otro `Notificador`; y `Monitor` no cambia.
+
+Fíjate en que `Monitor` no implementa ninguna interfaz: las **usa**. Toda interfaz tiene un lado que promete —el que escribe `implements`— y otro que exige, que es el que declara campos y parámetros de ese tipo. `Monitor` está en el segundo, y por eso no menciona ni una sola clase concreta.
+
+Fíjate también en lo que ha desaparecido: el número de rondas. `MonitorV0` recibía `rondas` y repetía por dentro; `comprobar` hace **una sola** ronda y termina. Repetirla —y decidir cada cuánto, y hasta cuándo— es una decisión de calendario, que cambia por motivos ajenos a en qué consiste vigilar, así que vive fuera, en `Principal`. Dos ventajas inmediatas: una prueba puede ejecutar exactamente una ronda y comprobar qué ocurrió, y el día que la repetición la gobierne un planificador de verdad (Tema 3), `Monitor` no se enterará.
 
 ::: {#cau-clase-dios .callout-caution title="La clase que lo sabe todo"}
 El síntoma más claro de una violación del principio S es una clase con muchos campos de tipos no relacionados (`Random`, `Path`, `List<Resultado>`, `PrintStream`...) y métodos que usan subconjuntos disjuntos de esos campos. Cada subconjunto es una clase que pide salir. El remedio no es partir la clase por tamaño, sino por **razones de cambio**: pregúntate quién pediría cada modificación y agrupa lo que cambiaría junto.
