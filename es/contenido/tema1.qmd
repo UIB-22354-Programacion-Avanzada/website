@@ -1645,7 +1645,7 @@ El método `total` cambia si cambia la regla de negocio (descuentos, impuestos);
 En `MonitorV0` hay al menos cinco responsabilidades: comprobar, almacenar, decidir, avisar e informar. Las nombramos y convertimos en **interfaces** algunas de ellas, porque lo que queremos no es solo separarlas sino poder sustituirlas.
 
 | Responsabilidad | Interfaz | ¿Qué hace? |
-|---|---|---|
+|---|----|--------|
 | Decidir | `PoliticaDeAlerta` | `boolean debeAlertar(List<Resultado>)`: mira el historial de un servicio y responde si justifica una alerta. Cambia con cada cliente. |
 | Avisar | `Notificador` | `void notificar(Alerta)`: hace llegar la alerta por un medio concreto —consola, correo, móvil—. Cambia cuando cambia el medio. |
 | Almacenar | `RepositorioResultados` | `void guardar(Resultado)` y `List<Resultado> historial(Servicio)`: conserva lo observado y lo devuelve cuando se le pide. Cambia con el soporte: memoria hoy, base de datos en el Tema 4. |
