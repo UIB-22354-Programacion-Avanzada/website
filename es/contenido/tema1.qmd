@@ -1696,6 +1696,8 @@ Fíjate en lo que se gana al darle nombre. Si `notificar` recibiera un `String` 
 
 #### **Avisar y almacenar: `Notificador` y `RepositorioResultados`**
 
+`Notificador` es quien hace llegar la alerta a una persona. Su método no devuelve nada: notificar es un **efecto** sobre el mundo exterior —la consola, un servidor de correo, el móvil del cliente—, y lo único que varía de un notificador a otro es el medio. De ahí que sea `@FunctionalInterface`: el contrato es una única operación, y eso es lo que lo hace fácil de sustituir y de duplicar en una prueba.
+
 ```java
 // Notificador.java
 package es.uib.prgava.tema1.monitor;
@@ -1705,6 +1707,8 @@ public interface Notificador {
     void notificar(Alerta alerta);
 }
 ```
+
+`RepositorioResultados` es la memoria del monitor: guarda cada resultado según se produce y **devuelve el historial de un servicio** cuando alguien lo pide. Es la pieza que convierte observaciones sueltas e irrepetibles en datos consultables, y sin ella la política no tendría con qué decidir, porque decidir consiste precisamente en mirar el pasado. Lo que varía aquí no es el medio sino el **soporte**: hoy será una lista en memoria, y en el Tema 4 una base de datos, sin que nada más del programa se entere.
 
 ```java
 // RepositorioResultados.java (primera versión; la refinaremos con el principio I)
@@ -1789,7 +1793,7 @@ El síntoma más claro de una violación del principio S es una clase con muchos
 
 Formulado por Meyer [@meyer1997], suena contradictorio hasta que se entiende el mecanismo: se consigue con **abstracción y polimorfismo**. Si `Monitor` depende de la interfaz `PoliticaDeAlerta`, puedes extender el sistema con políticas nuevas (abierto a extensión) sin tocar `Monitor` (cerrado a modificación).
 
-El ejemplo canónico de violación es la cadena de `if` sobre el tipo:
+El ejemplo canónico de violación de este principio es la cadena de `if` sobre el tipo:
 
 ```java
 // Fragmento: cerrado a la extensión
@@ -1804,7 +1808,9 @@ Añadir un anillo obliga a modificar `area` y cualquier otro método con la mism
 
 #### **Diferentes políticas de alerta en `Monitor`**
 
-En el monitor (@nte-ejemplo-unificador) las políticas de alerta son el caso perfecto. Tres implementaciones de políticas de alerta en las clases `FalloSimple`, `FallosConsecutivos` y `LatenciaExcesiva` a continuación:
+En el monitor (@nte-ejemplo-unificador) las políticas de alerta son el caso perfecto. Tenemos tres implementaciones de políticas de alerta en las clases `FalloSimple`, `FallosConsecutivos` y `LatenciaExcesiva` a continuación.
+
+**`FalloSimple`** — La política más literal: avisa si la **última** comprobación fue un fallo. No mira hacia atrás ni guarda nada; le basta con el final de la lista. Es la que el COO descartó en el encargo —«no quiero un aviso por cada fallo suelto»—, y está aquí por dos motivos: sirve de punto de comparación, y en las pruebas es la que permite provocar una alerta con un solo resultado.
 
 ```java
 // FalloSimple.java
@@ -1822,6 +1828,7 @@ public final class FalloSimple implements PoliticaDeAlerta {
     public String toString() { return "fallo simple"; }
 }
 ```
+**`FallosConsecutivos`** — La que responde al encargo: avisa cuando los `minimo` últimos resultados son todos fallo. El número se fija al construirla, así que «dos fallos seguidos» y «tres fallos seguidos» no son dos clases sino dos objetos de la misma; pasar de una a otra no exige escribir código, solo cambiar la línea que la construye. Fíjate en el bucle: recorre hacia atrás y un solo resultado correcto rompe la racha y decide la respuesta. Y fíjate también en el `if` inicial, que responde `false` mientras no haya bastantes datos: así el monitor puede preguntar desde la primera ronda sin tener que saber cuántas hacen falta.
 
 ```java
 // FallosConsecutivos.java
@@ -1850,6 +1857,8 @@ public final class FallosConsecutivos implements PoliticaDeAlerta {
     public String toString() { return minimo + " fallos consecutivos"; }
 }
 ```
+
+**`LatenciaExcesiva`** — La tercera cambia de eje: aquí el fallo no es que el servicio no responda, sino que responda **mal**. Promedia la latencia de las últimas `muestras` comprobaciones y avisa si supera el umbral. Un servicio que atiende todas las peticiones pero tarda tres segundos no produce ni un solo `CAIDO`, y las dos políticas anteriores lo dan por sano; esta lo detecta. Observa que descarta los fallos antes de promediar: un `CAIDO` guarda latencia cero, y contarla hundiría la media hasta hacer invisible justo la degradación que se busca.
 
 ```java
 // LatenciaExcesiva.java
@@ -1886,8 +1895,9 @@ public final class LatenciaExcesiva implements PoliticaDeAlerta {
     public String toString() { return "latencia media > " + umbral.toMillis() + " ms"; }
 }
 ```
+Las tres comparten un supuesto que conviene hacer explícito: la lista que reciben es el historial de **un solo servicio**, ordenado de lo más antiguo a lo más reciente. Ninguna la filtra, porque de eso se encarga el repositorio al devolverla; por eso `FallosConsecutivos` puede mirar directamente las últimas entradas y `LatenciaExcesiva` promediar sin preguntar de quién es cada resultado.
 
-Ninguna de las tres exige cambiar `Monitor`, y la cuarta tampoco lo exigirá. Esta estructura (una interfaz con un método y varias implementaciones intercambiables) tiene nombre propio: es el patrón **Strategy**, y lo formalizaremos más adelante.
+Ninguna de las tres exige cambiar `Monitor`, y la cuarta que se nos ocurra crear tampoco lo exigirá. Esta estructura (una interfaz con un método y varias implementaciones intercambiables) tiene nombre propio: es el patrón **Strategy**, y lo formalizaremos más adelante.
 
 :::: {.ampliacion}
 ::: {#tip-problema-de-la-expresion .callout-tip title="Abierto/cerrado y polimorfismo: el problema de la expresión"}
@@ -1955,7 +1965,9 @@ Una interfaz grande acopla a todos sus clientes con todos sus métodos: si cambi
 
 Ejemplo breve: una interfaz `Impresora` con `imprimir`, `escanear` y `enviarFax` obliga a una impresora básica a «implementar» el fax lanzando excepciones (violación de L). Tres interfaces (`Impresora`, `Escaner`, `Fax`) permiten que cada dispositivo implemente solo las que cumple y que un cliente que solo imprime dependa solo de `Impresora`.
 
-En el monitor (@nte-ejemplo-unificador) el repositorio tiene dos clientes con necesidades distintas: `Monitor` guarda y consulta el historial reciente; el generador de informes que escribiremos en 1.3 solo lee. Y en el Tema 4 querremos una implementación sobre base de datos donde la escritura y la lectura pueden tener distintos requisitos. Separamos los roles:
+En el monitor (@nte-ejemplo-unificador) el repositorio tiene dos clientes con necesidades distintas: `Monitor` guarda y consulta el historial reciente; el generador de informes que escribiremos en 1.3 solo lee. Y en el Tema 4 querremos una implementación sobre base de datos donde la escritura y la lectura pueden tener distintos requisitos. Separamos los roles.
+
+**`LectorResultados`** — El rol de **consulta**: el historial de un servicio y la lista de servicios de los que se sabe algo. Es todo lo que necesitan las políticas de alerta para decidir y el generador de informes para calcular, y ninguno de los dos guarda nada. Fíjate en que `historial` entrega los **resultados de un solo servicio ya filtrados y en orden**: es la firma que permite que las políticas se escriban sin buscar ni descartar nada. Aquí se emplea la interfaz [`Set`](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Set.html) del paquete `java.util` de Java, que representa un **conjunto**: elementos sin repetir y sin orden garantizado. 
 
 ```java
 // LectorResultados.java
@@ -1973,6 +1985,8 @@ public interface LectorResultados {
 }
 ```
 
+**`EscritorResultados`** — El rol de **registro**, y consta de una sola operación: anotar un resultado recién observado. Eso es lo único que `Monitor` hace con el repositorio mientras sondea, y por ser un único método puede declararse `@FunctionalInterface` (cosa que la interfaz conjunta, con más de un método, no podía).
+
 ```java
 // EscritorResultados.java
 package es.uib.prgava.tema1.monitor;
@@ -1983,6 +1997,8 @@ public interface EscritorResultados {
 }
 ```
 
+**`RepositorioResultados`** — No añade nada: es el nombre de quien cumple **los dos** roles a la vez, y la forma de dárselo a quien los necesita juntos (como `Monitor`) sin obligar a otros a cargar con ambos. Una interfaz puede heredar de varias, así que basta declararla como la suma de las otras dos y dejar el cuerpo vacío. Las implementaciones que ya existían no cambian ni una línea: la que implementaba el repositorio entero sigue cumpliéndolo, porque cumplir la suma es cumplir cada parte.
+
 ```java
 // RepositorioResultados.java
 package es.uib.prgava.tema1.monitor;
@@ -1990,11 +2006,9 @@ package es.uib.prgava.tema1.monitor;
 public interface RepositorioResultados extends LectorResultados, EscritorResultados { }
 ```
 
-La interfaz `RepositorioResultados` reúne ambos roles para quien necesite los dos (como `Monitor`), pero el generador de informes dependerá solo de `LectorResultados`.
+Una implementación de `RepositorioResultados` guarda todos los resultados en una única lista, en el orden en que llegan, y filtra por servicio cuando se lo piden. A continuación una implementación en memoria con nombre `RepositorioEnMemoria`, suficiente para este tema. «En memoria» quiere decir que los datos viven en el montículo (*heap*) de la máquina virtual mientras el programa se ejecuta y desaparecen al terminar: el historial no sobrevive a un reinicio
 
-La implementación guarda todos los resultados en una única lista, en el orden en que llegan, y filtra por servicio cuando se lo piden. Aparece de paso la segunda colección básica del curso: el tipo `Set<Servicio>` es un **conjunto**, elementos sin repetir y sin orden garantizado, que es el tipo adecuado para «qué servicios hay», donde preguntar por el tercero no significa nada. Un `LinkedHashSet` es un conjunto que además recuerda el orden de inserción, de modo que la respuesta no cambie de una ejecución a otra. Que un servicio ya visto no se cuente dos veces depende de su `equals` y su `hashCode` (@imp-identidad-vs-igualdad): por eso los servicios son registros, que los traen escritos.
-
-Una implementación en memoria, suficiente para este tema:
+En `RepositorioEnMemoria` aparece de paso la segunda colección básica del curso con una implementación concreta: el tipo `Set<Servicio>` (introducido en `LectorResultados`) es el tipo adecuado para «¿qué servicios hay?». Un `LinkedHashSet` es una de las implementaciones de la interfaz `Set` en Java que proporciona un conjunto que además recuerda el orden de inserción, de modo que la respuesta no cambie de una ejecución a otra. Que un servicio ya visto no se cuente dos veces depende de su `equals` y su `hashCode` (@imp-identidad-vs-igualdad): por eso los servicios son registros, que los traen escritos.
 
 ```java
 // RepositorioEnMemoria.java
