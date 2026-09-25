@@ -2006,7 +2006,7 @@ package es.uib.prgava.tema1.monitor;
 public interface RepositorioResultados extends LectorResultados, EscritorResultados { }
 ```
 
-Una implementación de `RepositorioResultados` guarda todos los resultados en una única lista, en el orden en que llegan, y filtra por servicio cuando se lo piden. A continuación una implementación en memoria con nombre `RepositorioEnMemoria`, suficiente para este tema. «En memoria» quiere decir que los datos viven en el montículo (*heap*) de la máquina virtual mientras el programa se ejecuta y desaparecen al terminar: el historial no sobrevive a un reinicio
+Una implementación de `RepositorioResultados` guarda todos los resultados en una única lista, en el orden en que llegan, y filtra por servicio cuando se lo piden. A continuación una implementación en memoria con nombre `RepositorioEnMemoria`, suficiente para este tema. «En memoria» quiere decir que los datos viven en el montículo (*heap*) de la máquina virtual mientras el programa se ejecuta y desaparecen al terminar: el historial no sobrevive a un reinicio.
 
 En `RepositorioEnMemoria` aparece de paso la segunda colección básica del curso con una implementación concreta: el tipo `Set<Servicio>` (introducido en `LectorResultados`) es el tipo adecuado para «¿qué servicios hay?». Un `LinkedHashSet` es una de las implementaciones de la interfaz `Set` en Java que proporciona un conjunto que además recuerda el orden de inserción, de modo que la respuesta no cambie de una ejecución a otra. Que un servicio ya visto no se cuente dos veces depende de su `equals` y su `hashCode` (@imp-identidad-vs-igualdad): por eso los servicios son registros, que los traen escritos.
 
@@ -2089,7 +2089,9 @@ classDiagram
     RepositorioResultados <|.. RepositorioEnMemoria
 ```
 
-Todas las flechas apuntan a las abstracciones; ninguna clase concreta conoce a otra clase concreta. La forma práctica de conseguirlo es la **inyección de dependencias** (*dependency injection*): en lugar de que `Monitor` haga `new RepositorioEnMemoria()`, recibe el repositorio **por el constructor**, ya construido. Nuestro `Monitor` de la sección S ya lo hacía. No hace falta ningún *framework* (Spring, Guice) para esto; un *framework* solo automatiza el «cableado» cuando hay cientos de clases. En esta asignatura lo haremos a mano, en una clase de arranque:
+Todas las flechas apuntan a las abstracciones; ninguna clase concreta conoce a otra clase concreta. La forma práctica de conseguirlo es la **inyección de dependencias** (*dependency injection*): en lugar de que `Monitor` haga `new RepositorioEnMemoria()`, recibe el repositorio **por el constructor**, ya construido. Nuestro `Monitor` de la sección S ya lo hacía. No hace falta ningún *framework* (Spring, Guice) para esto; un *framework* solo automatiza el «cableado» cuando hay cientos de clases. En esta asignatura lo haremos a mano, sin *framework*. Para poder montar el monitor completo nos faltan las implementaciones concretas de las interfaces `Sonda` y `Notificador`. Ya tenemos tres posibles implementaciones de `PoliticaDeAlerta` (`FalloSimple`, `FallosConsecutivos` y `LatenciaExcesiva`) y una de `RepositorioResultados` (`RepositorioEnMemoria`). Escribamos las faltantes y la clase de arranque que las conecta.
+
+`SondaSimulada` es la implementación de `Sonda` que usaremos mientras el monitor no hable con la red de verdad: son las mismas líneas que en `MonitorV0` estaban incrustadas en el paso 1, ahora en una clase propia. Con una diferencia importante: la semilla, la probabilidad de fallo y el umbral ya no son constantes escritas dentro, sino **parámetros del constructor**. Quien la construya decide cómo se comporta, y eso basta para reproducir una ejecución o para hacerla más severa sin tocar el código. Sigue sin permitir decidir *qué* ocurre en cada ronda concreta —para eso hará falta otra implementación, en 1.4—, pero ya no es la clase quien impone el azar.
 
 ```java
 // SondaSimulada.java (primera versión)
@@ -2121,6 +2123,8 @@ public final class SondaSimulada implements Sonda {
     }
 }
 ```
+
+Conviene decir qué haría una sonda de verdad, aunque no la escribamos. Comprobar un servicio es **hablar su protocolo**: a un servicio HTTP se le hace una petición y se mira el código de estado que devuelve; a un DNS se le pide que resuelva un nombre; a un puerto TCP se le intenta abrir una conexión. Las clases necesarias para ello están todas en la biblioteca estándar —`java.net.http` para HTTP, `java.net` para la resolución de nombres y los sockets—, pero manejarlas con propiedad exige un material que queda fuera de esta asignatura. 
 
 ```java
 // NotificadorConsola.java
