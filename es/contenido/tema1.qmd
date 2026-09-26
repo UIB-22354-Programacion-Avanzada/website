@@ -840,7 +840,7 @@ public abstract class Figura {
 }
 ```
 
-Cada subclase implementa `escalar` con lo que solo ella conoce, su propio atributo privado, y los *getters* dejan de hacer falta. Ahora redefinimos las subclases `Circulo` y `Cuadrado` (observa que ya no se necesitan *getters*) para que implementen `escalar` :
+Cada subclase implementa `escalar` con lo que solo ella conoce, su propio atributo privado, y los *getters* dejan de hacer falta. Ahora redefinimos las subclases `Circulo` y `Cuadrado` (observa que ya no se necesitan *getters*) para que implementen `escalar`:
 
 ```java
 // Circulo.java (con escalar)
@@ -2165,6 +2165,9 @@ public final class NotificadorConsola implements Notificador {
 ```
 :::
 
+::: {.callout-note appearance="minimal"}
+Solo falta la **clase de arranque** `Principal`: la que elige cuáles se usan, las construye y las conecta. Es el único lugar del programa donde aparecen los nombres de las clases concretas —`SondaSimulada`, `FallosConsecutivos`, `RepositorioEnMemoria`, `NotificadorConsola`—, y el que decide también qué servicios se vigilan y cuántas rondas se ejecutan. Todo lo demás sabe únicamente de interfaces. A este punto único donde se «cablea» el programa se le llama **raíz de composición** (*composition root*), y concentrar ahí las decisiones es lo que permite que ninguna otra clase las conozca.
+
 ```java
 // Principal.java
 package es.uib.prgava.tema1.monitor;
@@ -2195,6 +2198,7 @@ public final class Principal {
 ```
 
 Compara con `MonitorV0`. La lógica es la misma, pero ahora cambiar la sonda, la política, el repositorio o el notificador es cambiar **una línea de `Principal`**. Y, lo que veremos en 1.4 (@imp-disenar-para-probar), probar `Monitor` es construirlo con una sonda de mentira y un notificador que registre lo que recibe.
+:::
 
 ::: {#cau-new-dentro-de-la-clase .callout-caution title="`new` de colaboradores dentro de la clase"}
 Cada `new` de una clase concreta dentro de un método es una dependencia oculta y fija. Escribir `new RepositorioEnMemoria()` dentro de `Monitor` significaría que `Monitor` **no puede** funcionar con otro repositorio, ni probarse sin él. La regla práctica: una clase crea sus **valores** (`new Resultado(...)`, `new ArrayList<>()`) pero recibe sus **colaboradores** (sondas, repositorios, notificadores) por el constructor. Si el constructor empieza a tener demasiados parámetros, es una señal de que la clase tiene demasiadas responsabilidades, no de que haya que esconderlos con `new`.
