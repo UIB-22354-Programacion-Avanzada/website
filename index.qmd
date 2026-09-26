@@ -22,7 +22,7 @@ Documentos informativos del curso:
 
 **Temas:**
 
-El contenido teórico-práctico del curso, organizado en 5 temas que van desde los principios de diseño orientado a objetos hasta las bases de datos relacionales y NoSQL.
+El contenido teórico-práctico del curso, organizado en 4 temas que van desde los principios de diseño orientado a objetos hasta las bases de datos relacionales y NoSQL.
 
 **Ejercicios:**
 
@@ -30,7 +30,7 @@ Colección de ejercicios propuestos para cada tema, pensados para consolidar los
 
 **Recursos:**
 
-Material de apoyo complementario: exámenes de convocatorias anteriores y herramientas de software recomendadas.
+Material de apoyo complementario: exámenes de convocatorias anteriores, herramientas de software recomendadas y soluciones a los ejercicios.
 
 **Bibliografía:**
 
