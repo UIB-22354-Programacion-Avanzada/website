@@ -1392,7 +1392,7 @@ En los requerimientos del COO (consulta @nte-ejemplo-unificador) se señala que:
 
 Vamos a asumir que «de verdad» significa que varias comprobaciones consecutivas fallan. Por ejemplo, si fijamos ese número en dos, tenemos la lógica que se presenta en la figura siguiente.
 
-![Transición de estados en una ronda de comprobación y lógica de varias rondas sucesivas](../../images/diagrama.png){#fig-logcom width="70%"}
+![Transición de estados en una ronda de comprobación y lógica de varias rondas sucesivas.](../../images/diagrama.png){#fig-logcom width="80%"}
 
 De los requerimientos y observando la figura @fig-logcom se tiene que el resultado de una comprobación queda descrito por cuatro datos:
 
