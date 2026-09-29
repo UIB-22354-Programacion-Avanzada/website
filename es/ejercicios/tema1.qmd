@@ -27,12 +27,14 @@ sección**, con la misma estructura que [`t1-ejemplos`](https://github.com/UIB-2
 
 Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:
 
-- un **esqueleto** de cada clase que se pide. El esqueleto trae las **declaraciones** —las firmas
-  de los métodos y las cláusulas `extends` e `implements` que hagan falta— para que el proyecto
-  compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes
-  que escribir, son los **cuerpos**, marcados con `// TODO 1.X.k`. Cuando un enunciado te diga
-  «declara que la clase implementa tal interfaz», encontrarás la declaración hecha: léela como
-  parte del enunciado y fíjate en por qué está donde está;
+- un **esqueleto** de cada clase que se pide, en el estado que le corresponde al ejercicio donde
+  aparece por primera vez: las firmas de sus métodos y las cláusulas `extends` e `implements` de
+  ese ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el primer
+  momento; lo que falta, y lo que tienes que escribir, son los **cuerpos**, marcados con
+  `// TODO 1.X.k`. Cuando un ejercicio **amplía una clase que escribiste antes** —le añade una
+  interfaz y el método que la cumple—, esa ampliación no viene hecha: la cláusula `implements` y
+  el método los escribes tú, y su clase de prueba llega **comentada**, porque hasta entonces no
+  compilaría; el enunciado te dice cuál es;
 - el **código de partida** de los ejercicios que consisten en corregir o rediseñar algo ya escrito;
   ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;
 - en las secciones que lo necesitan, una **copia del código del monitor** (paquete
@@ -496,8 +498,10 @@ Inventario.mostrarTodos(
 ```
 :::
 
-**Cómo saber si va bien.** Las pruebas comprueban el `identificador()` de las dos clases y que
-`etiqueta()` funciona en ambas sin que ninguna lo haya escrito.
+**Cómo saber si va bien.** La prueba de este ejercicio, `IdentificableTest`, llega **comentada**
+en la plantilla: descoméntala entera antes de empezar (`Ctrl+A` y `Ctrl+K Ctrl+U` en VS Code).
+Comprueba el `identificador()` de las dos clases y que `etiqueta()` funciona en ambas sin que
+ninguna lo haya escrito.
 
 **Para pensar.** `mostrarTodos` no sabe si recibe servidores, direcciones o algo que todavía no
 existe. ¿Qué habría que cambiar en ese método el día que añadas una tercera clase
@@ -539,9 +543,10 @@ System.out.println(direcciones[0]);   // 9.255.255.255
 ```
 :::
 
-**Cómo saber si va bien.** Las pruebas ordenan varios arrays, incluidos casos con empates en los
-primeros octetos, y comprueban además que `compareTo` devuelve cero exactamente cuando `equals`
-devuelve `true`.
+**Cómo saber si va bien.** La prueba de este ejercicio, `DireccionIpv4OrdenTest`, llega
+**comentada** en la plantilla: descoméntala entera antes de empezar. Ordena varios arrays,
+incluidos casos con empates en los primeros octetos, y comprueba además que `compareTo` devuelve
+cero exactamente cuando `equals` devuelve `true`.
 
 **Para pensar.** Esa última comprobación de las pruebas no es un capricho: el contrato de
 `Comparable` recomienda que el orden sea coherente con la igualdad. ¿Qué podría salir mal en una
