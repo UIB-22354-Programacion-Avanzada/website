@@ -565,7 +565,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <p>Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:</p>
 <ul>
-<li>un <strong>esqueleto</strong> de cada clase que se pide. El esqueleto trae las <strong>declaraciones</strong> —las firmas de los métodos y las cláusulas <code>extends</code> e <code>implements</code> que hagan falta— para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 1.X.k</code>. Cuando un enunciado te diga «declara que la clase implementa tal interfaz», encontrarás la declaración hecha: léela como parte del enunciado y fíjate en por qué está donde está;</li>
+<li>un <strong>esqueleto</strong> de cada clase que se pide, en el estado que le corresponde al ejercicio donde aparece por primera vez: las firmas de sus métodos y las cláusulas <code>extends</code> e <code>implements</code> de ese ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 1.X.k</code>. Cuando un ejercicio <strong>amplía una clase que escribiste antes</strong> —le añade una interfaz y el método que la cumple—, esa ampliación no viene hecha: la cláusula <code>implements</code> y el método los escribes tú, y su clase de prueba llega <strong>comentada</strong>, porque hasta entonces no compilaría; el enunciado te dice cuál es;</li>
 <li>el <strong>código de partida</strong> de los ejercicios que consisten en corregir o rediseñar algo ya escrito; ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;</li>
 <li>en las secciones que lo necesitan, una <strong>copia del código del monitor</strong> (paquete <code>es.uib.prgava.tema1.monitor</code>) que puedes usar y, cuando el enunciado lo pida, modificar libremente;</li>
 <li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>, salvo en los ejercicios de la sección 1.4, donde las pruebas son precisamente lo que tienes que escribir.</li>
@@ -962,7 +962,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co">// [10.0.0.1]</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el <code>identificador()</code> de las dos clases y que <code>etiqueta()</code> funciona en ambas sin que ninguna lo haya escrito.</p>
+<p><strong>Cómo saber si va bien.</strong> La prueba de este ejercicio, <code>IdentificableTest</code>, llega <strong>comentada</strong> en la plantilla: descoméntala entera antes de empezar (<code>Ctrl+A</code> y <code>Ctrl+K Ctrl+U</code> en VS Code). Comprueba el <code>identificador()</code> de las dos clases y que <code>etiqueta()</code> funciona en ambas sin que ninguna lo haya escrito.</p>
 <p><strong>Para pensar.</strong> <code>mostrarTodos</code> no sabe si recibe servidores, direcciones o algo que todavía no existe. ¿Qué habría que cambiar en ese método el día que añadas una tercera clase <code>Identificable</code>?</p>
 </div>
 </div>
@@ -1006,7 +1006,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>direcciones<span class="op">[</span><span class="dv">0</span><span class="op">]);</span>   <span class="co">// 9.255.255.255</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p><strong>Cómo saber si va bien.</strong> Las pruebas ordenan varios arrays, incluidos casos con empates en los primeros octetos, y comprueban además que <code>compareTo</code> devuelve cero exactamente cuando <code>equals</code> devuelve <code>true</code>.</p>
+<p><strong>Cómo saber si va bien.</strong> La prueba de este ejercicio, <code>DireccionIpv4OrdenTest</code>, llega <strong>comentada</strong> en la plantilla: descoméntala entera antes de empezar. Ordena varios arrays, incluidos casos con empates en los primeros octetos, y comprueba además que <code>compareTo</code> devuelve cero exactamente cuando <code>equals</code> devuelve <code>true</code>.</p>
 <p><strong>Para pensar.</strong> Esa última comprobación de las pruebas no es un capricho: el contrato de <code>Comparable</code> recomienda que el orden sea coherente con la igualdad. ¿Qué podría salir mal en una estructura ordenada si <code>compareTo</code> dijera «iguales» de dos objetos que <code>equals</code> considera distintos?</p>
 </div>
 </div>
