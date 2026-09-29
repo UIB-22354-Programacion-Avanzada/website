@@ -536,15 +536,44 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 class="anchored" data-anchor-id="cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</h2>
 <p>Los 26 ejercicios de esta página acompañan al <a href="../../es/contenido/tema1.html">contenido del Tema 1</a> y se numeran <code>1.X.k</code>, donde <code>X</code> es el subapartado del tema al que corresponden. Cada enunciado te dice qué escribir y en qué orden, y te da las pistas necesarias para que el trabajo esté en diseñar y programar, no en adivinar qué se pide.</p>
 <p>Todo lo que hace falta para resolverlos está en el tema, y solo en el tema: ningún enunciado usa nada que no se haya explicado antes. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio enunciado.</p>
-<p>No empiezas desde una carpeta vacía. En la organización del curso tienes el repositorio <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><strong><code>t1-ejercicios</code></strong></a>, una plantilla con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos"><code>t1-ejemplos</code></a> que contiene:</p>
+<p>No empiezas desde una carpeta vacía. En la organización del curso hay <strong>una plantilla por cada sección</strong>, con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos"><code>t1-ejemplos</code></a>:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Sección</th>
+<th>Plantilla</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1.1</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1"><code>t1-ejercicios-1-1</code></a></td>
+</tr>
+<tr class="even">
+<td>1.2</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a></td>
+</tr>
+<tr class="odd">
+<td>1.3</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3"><code>t1-ejercicios-1-3</code></a></td>
+</tr>
+<tr class="even">
+<td>1.4</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4"><code>t1-ejercicios-1-4</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:</p>
 <ul>
 <li>un <strong>esqueleto</strong> de cada clase que se pide. El esqueleto trae las <strong>declaraciones</strong> —las firmas de los métodos y las cláusulas <code>extends</code> e <code>implements</code> que hagan falta— para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 1.X.k</code>. Cuando un enunciado te diga «declara que la clase implementa tal interfaz», encontrarás la declaración hecha: léela como parte del enunciado y fíjate en por qué está donde está;</li>
 <li>el <strong>código de partida</strong> de los ejercicios que consisten en corregir o rediseñar algo ya escrito; ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;</li>
-<li>una <strong>copia del código del monitor</strong> (paquete <code>es.uib.prgava.tema1.monitor</code>) que puedes usar y, cuando el enunciado lo pida, modificar libremente;</li>
+<li>en las secciones que lo necesitan, una <strong>copia del código del monitor</strong> (paquete <code>es.uib.prgava.tema1.monitor</code>) que puedes usar y, cuando el enunciado lo pida, modificar libremente;</li>
 <li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>, salvo en los ejercicios de la sección 1.4, donde las pruebas son precisamente lo que tienes que escribir.</li>
 </ul>
-<p>El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que completas el código. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde.</p>
-<p>Sobre los paquetes: las clases que <strong>implementan o extienden un tipo del monitor</strong> (<code>FallosEnVentana</code>, <code>NotificadorSinRepetir</code>, <code>SondaDeterminista</code>) viven en <code>es.uib.prgava.tema1.monitor</code>, junto a sus compañeras; todas las demás, en <code>es.uib.prgava.tema1.ejercicios</code>. El esqueleto ya trae cada fichero en su sitio, así que basta con que respetes el que te encuentres.</p>
+<p>Las clases que resolviste en una sección anterior y que una posterior necesita —<code>Identificable</code>, <code>DireccionIpv4</code>, <code>FallosEnVentana</code>— llegan <strong>ya escritas</strong> en la plantilla que las usa. No tienes que copiar tu solución de un repositorio a otro, y un ejercicio antiguo a medias no te bloquea uno nuevo.</p>
+<p>El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que completas el código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde. Como cada sección es un repositorio propio, ese arranque se repite cuatro veces.</p>
+<p>Cada ejercicio se comprueba con <strong>una clase de prueba, y solo una</strong>. Para trabajar en uno, abre su clase de prueba y pulsa el botón ▶ que aparece junto al nombre de la clase: se ejecutan solo sus pruebas. El <code>README</code> de cada plantilla trae la tabla de correspondencia entre ejercicios y clases de prueba.</p>
+<p>Sobre los paquetes: las clases que <strong>implementan o extienden un tipo del monitor</strong> (<code>FallosEnVentana</code>, <code>NotificadorSinRepetir</code>, <code>ServicioPing</code>, <code>SondaDeterminista</code>) viven en <code>es.uib.prgava.tema1.monitor</code>, junto a sus compañeras; todas las demás, en <code>es.uib.prgava.tema1.ejercicios</code>. El esqueleto ya trae cada fichero en su sitio, así que basta con que respetes el que te encuentres.</p>
 <p>Dos ejercicios de la sección 1.4 consisten en escribir las pruebas de clases que ya has construido antes (1.4.1 las de <code>FallosEnVentana</code>, 1.4.2 las de <code>DireccionIpv4</code>). Para que no te quedes sin comprobación mientras tanto, la plantilla incluye un puñado de pruebas mínimas de esas dos clases, en <code>FallosEnVentanaBasicoTest</code> y <code>DireccionIpv4BasicoTest</code>. No las repitas en las tuyas.</p>
 <div class="callout callout-style-simple callout-tip no-icon">
 <div class="callout-body d-flex">
@@ -570,6 +599,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="conceptos-fundamentales-de-la-poo-en-java" class="level2">
 <h2 class="anchored" data-anchor-id="conceptos-fundamentales-de-la-poo-en-java">1.1. Conceptos fundamentales de la POO en Java</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1"><code>t1-ejercicios-1-1</code></a></p>
 <p>Ejercicios sobre <a href="../../es/contenido/tema1.html#conceptos-fundamentales-de-la-poo-en-java">1.1 del tema</a>: objetos y estado, igualdad, encapsulación e invariantes, herencia, composición, clases abstractas, interfaces y orden natural.</p>
 <p>Los ocho van en el paquete <code>es.uib.prgava.tema1.ejercicios</code> y <strong>no usan colecciones</strong>: con atributos, arrays y parámetros variables (<code>String...</code>) hay de sobra. Las listas llegan en 1.2.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled" title="1.1.1 Registro `DireccionIpv4`">
@@ -673,7 +703,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-6" class="callout-6-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>Etiqueta</code> representa una etiqueta de inventario con un texto y un color. Alguien le redefinió <code>equals</code> y se olvidó de <code>hashCode</code>, que es el error más silencioso de la POO en Java: el programa compila, funciona en las pruebas fáciles y falla el día que la etiqueta se guarda en una estructura que use el resumen (<em>hash</em>).</p>
-<p>El código de <code>Etiqueta</code> y el de su programa de prueba <code>DemoEtiqueta</code>, que vienen en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>Etiqueta</code> y el de su programa de prueba <code>DemoEtiqueta</code>, que vienen en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1"><code>t1-ejercicios-1-1</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Etiqueta.java</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -807,7 +837,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="callout-body-container callout-body">
 <p>En el tema viste que <code>RegistroContador</code> empezó <strong>heredando</strong> de <code>RegistroEventos</code> y acabó <strong>conteniendo</strong> uno, porque heredar la ataba a decisiones internas de la superclase (<a href="../../es/contenido/tema1.html#tip-clase-base-fragil">la clase base frágil</a>). Este ejercicio recorre ese camino con tus manos.</p>
 <p><code>PanelDeEstadoHeredado</code> añade un <code>resumen()</code> y lleva la cuenta de los eventos registrados. Hoy da la cuenta correcta, pero solo porque <code>registrarVarios</code> está implementado llamando a <code>registrar</code>: el día que alguien reescriba <code>RegistroEventos</code> sin ese detalle, la cuenta deja de salir. No la corrijas; déjala como testigo.</p>
-<p>El código de <code>PanelDeEstadoHeredado</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>PanelDeEstadoHeredado</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1"><code>t1-ejercicios-1-1</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">// PanelDeEstadoHeredado.java</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -984,6 +1014,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="principios-solid-y-patrones-de-diseño-canónicos" class="level2">
 <h2 class="anchored" data-anchor-id="principios-solid-y-patrones-de-diseño-canónicos">1.2. Principios SOLID y patrones de diseño canónicos</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a></p>
 <p>Ejercicios sobre <a href="../../es/contenido/tema1.html#principios-solid-y-patrones-de-diseño-canónicos">1.2 del tema</a>: los cinco principios y los patrones que los ponen en práctica. A partir de aquí se trabaja sobre el <strong>monitor de servicios</strong>, cuyo código tienes completo en la plantilla, y aparecen las listas (<code>List</code>), presentadas en <a href="../../es/contenido/tema1.html#el-monitor-de-servicios-vocabulario-y-versión-0">1.2.2</a>.</p>
 <p>Los enunciados son algo más escuetos que los de 1.1: ya sabes buscar en el tema.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled" title="1.2.1 Refactorizar `RegistroSensores` (principio S)">
@@ -999,7 +1030,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-17" class="callout-17-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>RegistroSensores</code> guarda lecturas de sensores, calcula la media, decide si hay que avisar y compone y emite el texto del aviso. Cuatro cosas, y por tanto cuatro razones para cambiar: es el olor de la <a href="../../es/contenido/tema1.html#cau-clase-dios">clase que lo sabe todo</a>.</p>
-<p>El código de <code>RegistroSensores</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>RegistroSensores</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">// RegistroSensores.java</span></span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1118,7 +1149,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-20" class="callout-20-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>ListaSoloLecturaHeredada</code> hereda de <code>ArrayList&lt;String&gt;</code> y redefine <code>add</code> y <code>remove</code> para lanzar <code>UnsupportedOperationException</code>. Compila, y aun así está mal: una subclase que promete menos que su superclase rompe a quien escribió código contra la superclase.</p>
-<p>El código de <code>ListaSoloLecturaHeredada</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>ListaSoloLecturaHeredada</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">// ListaSoloLecturaHeredada.java</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1166,7 +1197,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-21" class="callout-21-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>GestorDispositivos</code> es una interfaz con ocho métodos: dar de alta, borrar, consultar, exportar. Tiene tres implementaciones, las tres escritas y en la plantilla: <code>CatalogoEnMemoria</code>, que la cumple entera; <code>ConsultaDispositivos</code>, un inventario que se construye una vez y no cambia; y <code>ExportadorCsv</code>, que solo convierte a texto unas fichas que le dan hechas. Las dos últimas están llenas de métodos vacíos o que lanzan excepción porque «no aplican», que es el síntoma exacto del principio I.</p>
-<p>El código de la interfaz, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de la interfaz, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="co">// GestorDispositivos.java</span></span>
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1224,7 +1255,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-22" class="callout-22-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>InformeDiarioAcoplado</code> construye por dentro un repositorio concreto y escribe por <code>System.out</code>. No se puede probar sin ejecutarlo entero y mirar la consola: es el <a href="../../es/contenido/tema1.html#cau-new-dentro-de-la-clase"><code>new</code> de colaboradores dentro de la clase</a>.</p>
-<p>El código de <code>InformeDiarioAcoplado</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>InformeDiarioAcoplado</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2"><code>t1-ejercicios-1-2</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co">// InformeDiarioAcoplado.java</span></span>
 <span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1333,6 +1364,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="genericidad-en-java-y-stream-api" class="level2">
 <h2 class="anchored" data-anchor-id="genericidad-en-java-y-stream-api">1.3. Genericidad en Java y Stream API</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3"><code>t1-ejercicios-1-3</code></a></p>
 <p>Ejercicios sobre <a href="../../es/contenido/tema1.html#genericidad-en-java-y-stream-api">1.3 del tema</a>. Van en el paquete de ejercicios y se apoyan en el historial que el monitor acumula.</p>
 <p>A partir de aquí los enunciados dan el qué y no el cómo: lo que se pide es que decidas.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled" title="1.3.1 Clase genérica `Historial<T>`">
@@ -1390,7 +1422,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-28" class="callout-28-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>CopiasEjercicio</code> tiene un método <code>copiarTodo</code> cuya firma no acepta copiar desde una lista de un subtipo ni hacia una lista de un supertipo.</p>
-<p>El código de <code>CopiasEjercicio</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>CopiasEjercicio</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3"><code>t1-ejercicios-1-3</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co">// CopiasEjercicio.java</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a></span>
@@ -1485,6 +1517,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="pruebas-unitarias-junit" class="level2">
 <h2 class="anchored" data-anchor-id="pruebas-unitarias-junit">1.4. Pruebas unitarias (JUnit)</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4"><code>t1-ejercicios-1-4</code></a></p>
 <p>Ejercicios sobre <a href="../../es/contenido/tema1.html#pruebas-unitarias-junit-como-primer-contacto-con-la-verificación">1.4 del tema</a>. Aquí las pruebas son el entregable: van en <code>src/test/java</code> y no hay pruebas que te digan si están bien. El criterio es el de 1.4.3: particiones de equivalencia y valores límite.</p>
 <div class="callout callout-style-default callout-note no-icon callout-titled" title="1.4.1 Pruebas de `FallosEnVentana`">
 <div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-32-contents" aria-controls="callout-32" aria-expanded="false" aria-label="Toggle callout">
@@ -1556,7 +1589,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-35" class="callout-35-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <p><code>DetectorDeCaidas</code> pregunta la hora por dentro, con <code>Instant.now()</code>, en dos sitios distintos. No se puede probar: el resultado depende del momento en que se ejecute la prueba, y una prueba que a veces pasa y a veces no es peor que no tenerla.</p>
-<p>El código de <code>DetectorDeCaidas</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios"><code>t1-ejercicios</code></a>, es el siguiente:</p>
+<p>El código de <code>DetectorDeCaidas</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4"><code>t1-ejercicios-1-4</code></a>, es el siguiente:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode java code-with-copy"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">// DetectorDeCaidas.java</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a></span>
