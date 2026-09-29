@@ -15,9 +15,17 @@ Todo lo que hace falta para resolverlos está en el tema, y solo en el tema: nin
 nada que no se haya explicado antes. Si un ejercicio te pide algo que no reconoces, vuelve al
 apartado que se enlaza en el propio enunciado.
 
-No empiezas desde una carpeta vacía. En la organización del curso tienes el repositorio
-[**`t1-ejercicios`**](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), una plantilla con la misma estructura que
-[`t1-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos) que contiene:
+No empiezas desde una carpeta vacía. En la organización del curso hay **una plantilla por cada
+sección**, con la misma estructura que [`t1-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejemplos):
+
+| Sección | Plantilla |
+|---|---|
+| 1.1 | [`t1-ejercicios-1-1`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1) |
+| 1.2 | [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2) |
+| 1.3 | [`t1-ejercicios-1-3`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3) |
+| 1.4 | [`t1-ejercicios-1-4`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4) |
+
+Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:
 
 - un **esqueleto** de cada clase que se pide. El esqueleto trae las **declaraciones** —las firmas
   de los métodos y las cláusulas `extends` e `implements` que hagan falta— para que el proyecto
@@ -27,18 +35,30 @@ No empiezas desde una carpeta vacía. En la organización del curso tienes el re
   parte del enunciado y fíjate en por qué está donde está;
 - el **código de partida** de los ejercicios que consisten en corregir o rediseñar algo ya escrito;
   ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;
-- una **copia del código del monitor** (paquete `es.uib.prgava.tema1.monitor`) que puedes usar y,
-  cuando el enunciado lo pida, modificar libremente;
+- en las secciones que lo necesitan, una **copia del código del monitor** (paquete
+  `es.uib.prgava.tema1.monitor`) que puedes usar y, cuando el enunciado lo pida, modificar
+  libremente;
 - las **pruebas** que comprueban tu solución, en `src/test/java`, salvo en los ejercicios de la
   sección 1.4, donde las pruebas son precisamente lo que tienes que escribir.
 
+Las clases que resolviste en una sección anterior y que una posterior necesita —`Identificable`,
+`DireccionIpv4`, `FallosEnVentana`— llegan **ya escritas** en la plantilla que las usa. No tienes
+que copiar tu solución de un repositorio a otro, y un ejercicio antiguo a medias no te bloquea uno
+nuevo.
+
 El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que
-completas el código. El flujo de trabajo es el habitual: crea tu copia con **Use this template**,
-abre un Codespace, ejecuta `mvn test`, y ve resolviendo ejercicios hasta que la construcción pase
-en verde.
+completas el código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual:
+crea tu copia con **Use this template**, abre un Codespace, ejecuta `mvn test`, y ve resolviendo
+ejercicios hasta que la construcción pase en verde. Como cada sección es un repositorio propio,
+ese arranque se repite cuatro veces.
+
+Cada ejercicio se comprueba con **una clase de prueba, y solo una**. Para trabajar en uno, abre su
+clase de prueba y pulsa el botón ▶ que aparece junto al nombre de la clase: se ejecutan solo sus
+pruebas. El `README` de cada plantilla trae la tabla de correspondencia entre ejercicios y clases
+de prueba.
 
 Sobre los paquetes: las clases que **implementan o extienden un tipo del monitor**
-(`FallosEnVentana`, `NotificadorSinRepetir`, `SondaDeterminista`) viven en
+(`FallosEnVentana`, `NotificadorSinRepetir`, `ServicioPing`, `SondaDeterminista`) viven en
 `es.uib.prgava.tema1.monitor`, junto a sus compañeras; todas las demás, en
 `es.uib.prgava.tema1.ejercicios`. El esqueleto ya trae cada fichero en su sitio, así que basta con
 que respetes el que te encuentres.
@@ -67,6 +87,8 @@ de diseño, no que el código funcione.
 :::
 
 ## 1.1. Conceptos fundamentales de la POO en Java
+
+**Plantilla:** [`t1-ejercicios-1-1`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1)
 
 Ejercicios sobre [1.1 del tema](../contenido/tema1.qmd#conceptos-fundamentales-de-la-poo-en-java):
 objetos y estado, igualdad, encapsulación e invariantes, herencia, composición, clases abstractas,
@@ -183,7 +205,7 @@ los creados?
 compila, funciona en las pruebas fáciles y falla el día que la etiqueta se guarda en una
 estructura que use el resumen (*hash*).
 
-El código de `Etiqueta` y el de su programa de prueba `DemoEtiqueta`, que vienen en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `Etiqueta` y el de su programa de prueba `DemoEtiqueta`, que vienen en [`t1-ejercicios-1-1`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1), es el siguiente:
 
 ```java
 // Etiqueta.java
@@ -335,7 +357,7 @@ la cuenta correcta, pero solo porque `registrarVarios` está implementado llaman
 el día que alguien reescriba `RegistroEventos` sin ese detalle, la cuenta deja de salir. No la
 corrijas; déjala como testigo.
 
-El código de `PanelDeEstadoHeredado`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `PanelDeEstadoHeredado`, que viene en [`t1-ejercicios-1-1`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-1), es el siguiente:
 
 ```java
 // PanelDeEstadoHeredado.java
@@ -529,6 +551,8 @@ distintos?
 
 ## 1.2. Principios SOLID y patrones de diseño canónicos
 
+**Plantilla:** [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2)
+
 Ejercicios sobre [1.2 del tema](../contenido/tema1.qmd#principios-solid-y-patrones-de-diseño-canónicos):
 los cinco principios y los patrones que los ponen en práctica. A partir de aquí se trabaja sobre el
 **monitor de servicios**, cuyo código tienes completo en la plantilla, y aparecen las listas
@@ -542,7 +566,7 @@ Los enunciados son algo más escuetos que los de 1.1: ya sabes buscar en el tema
 compone y emite el texto del aviso. Cuatro cosas, y por tanto cuatro razones para cambiar: es el
 olor de la [clase que lo sabe todo](../contenido/tema1.qmd#cau-clase-dios).
 
-El código de `RegistroSensores`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `RegistroSensores`, que viene en [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2), es el siguiente:
 
 ```java
 // RegistroSensores.java
@@ -662,7 +686,7 @@ límite exacto y el fallo que acaba de salirse de la ventana.
 `UnsupportedOperationException`. Compila, y aun así está mal: una subclase que promete menos que
 su superclase rompe a quien escribió código contra la superclase.
 
-El código de `ListaSoloLecturaHeredada`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `ListaSoloLecturaHeredada`, que viene en [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2), es el siguiente:
 
 ```java
 // ListaSoloLecturaHeredada.java
@@ -716,7 +740,7 @@ cumple entera; `ConsultaDispositivos`, un inventario que se construye una vez y 
 llenas de métodos vacíos o que lanzan excepción porque «no aplican», que es el síntoma exacto del
 principio I.
 
-El código de la interfaz, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de la interfaz, que viene en [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2), es el siguiente:
 
 ```java
 // GestorDispositivos.java
@@ -781,7 +805,7 @@ implementación y fallan si alguno no hace nada o se queja.
 No se puede probar sin ejecutarlo entero y mirar la consola: es el [`new` de colaboradores dentro
 de la clase](../contenido/tema1.qmd#cau-new-dentro-de-la-clase).
 
-El código de `InformeDiarioAcoplado`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `InformeDiarioAcoplado`, que viene en [`t1-ejercicios-1-2`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-2), es el siguiente:
 
 ```java
 // InformeDiarioAcoplado.java
@@ -901,6 +925,8 @@ pareja de modificadores a quien vaya a extender la clase?
 
 ## 1.3. Genericidad en Java y Stream API
 
+**Plantilla:** [`t1-ejercicios-1-3`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3)
+
 Ejercicios sobre [1.3 del tema](../contenido/tema1.qmd#genericidad-en-java-y-stream-api). Van en
 el paquete de ejercicios y se apoyan en el historial que el monitor acumula.
 
@@ -939,7 +965,7 @@ La cota del primero es lo que permite llamar a `compareTo` dentro del método. P
 `CopiasEjercicio` tiene un método `copiarTodo` cuya firma no acepta copiar desde una lista de un
 subtipo ni hacia una lista de un supertipo.
 
-El código de `CopiasEjercicio`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `CopiasEjercicio`, que viene en [`t1-ejercicios-1-3`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-3), es el siguiente:
 
 ```java
 // CopiasEjercicio.java
@@ -1021,6 +1047,8 @@ devolverías si los estados posibles fueran cientos en lugar de tres?
 
 ## 1.4. Pruebas unitarias (JUnit)
 
+**Plantilla:** [`t1-ejercicios-1-4`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4)
+
 Ejercicios sobre [1.4 del tema](../contenido/tema1.qmd#pruebas-unitarias-junit-como-primer-contacto-con-la-verificación).
 Aquí las pruebas son el entregable: van en `src/test/java` y no hay pruebas que te digan si están
 bien. El criterio es el de 1.4.3: particiones de equivalencia y valores límite.
@@ -1071,7 +1099,7 @@ implementación de `Notificador` de pleno derecho o una trampa para probar?
 se puede probar: el resultado depende del momento en que se ejecute la prueba, y una prueba que a
 veces pasa y a veces no es peor que no tenerla.
 
-El código de `DetectorDeCaidas`, que viene en [`t1-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios), es el siguiente:
+El código de `DetectorDeCaidas`, que viene en [`t1-ejercicios-1-4`](https://github.com/UIB-22354-Programacion-Avanzada/t1-ejercicios-1-4), es el siguiente:
 
 ```java
 // DetectorDeCaidas.java
