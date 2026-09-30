@@ -499,7 +499,8 @@ Inventario.mostrarTodos(
 :::
 
 **Cómo saber si va bien.** La prueba de este ejercicio, `IdentificableTest`, llega **comentada**
-en la plantilla: descoméntala entera antes de empezar (`Ctrl+A` y `Ctrl+K Ctrl+U` en VS Code).
+en la plantilla: descoméntala entera antes de empezar (selecciona todo con `Ctrl+A` y quita el
+comentario con `Ctrl+K Ctrl+U` en VS Code o `Ctrl+/` en IntelliJ).
 Comprueba el `identificador()` de las dos clases y que `etiqueta()` funciona en ambas sin que
 ninguna lo haya escrito.
 
