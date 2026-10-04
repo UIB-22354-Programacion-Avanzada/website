@@ -2908,12 +2908,21 @@ La llamada `filtrarPorTipo(resultados, ServicioHttp.class)` devuelve una `List<S
 :::
 ::::
 
-### 1.3.5 Interfaces funcionales y `java.util.function`
+### 1.3.5 Lambdas e interfaces funcionales
 
-Una interfaz con un único método abstracto —como la `Describible` de 1.1— se llama **interfaz funcional**, y puede implementarse con una lambda en lugar de con una clase (@nte-sonda-lambda). Escribir una interfaz nueva para cada firma sería tedioso, así que el paquete `java.util.function` ofrece las de uso general. Las cuatro fundamentales:
+Una **expresión lambda** es un literal de función: una lista de parámetros entre paréntesis, una flecha `->` y un cuerpo. Por ejemplo:
+
+- `(a, b) -> a + b`: toma dos valores y devuelve su suma. 
+- `() -> "hola":` no toma ninguno, y los paréntesis vacíos son obligatorios. 
+- `s -> s.length()`: cuando hay un solo parámetro y se deja que el compilador deduzca su tipo —el caso más frecuente— los paréntesis pueden omitirse.
+- `(var s) -> s.length()`: si se escribe el tipo, o se escribe `var`, vuelven a ser obligatorios. 
+
+Si el cuerpo necesita varias sentencias se escribe entre llaves y con `return` explícito. Una lambda no tiene nombre, no se declara dentro de ninguna clase y casi nunca hace falta anotar los tipos de los parámetros: el compilador los deduce del contexto.
+
+Ese contexto es imprescindible, porque Java no tiene un «tipo función». Una lambda solo puede escribirse allí donde se espera una **interfaz funcional**: una interfaz con un único método abstracto, como la `Describible` de 1.1. La lambda *es* la implementación de ese método, y su tipo es el de la interfaz esperada; los métodos `default` y `static` que la interfaz pueda tener no cuentan. La anotación `@FunctionalInterface` no añade capacidades, solo pide al compilador que avise si alguien rompe la condición añadiendo un segundo método abstracto (@nte-sonda-lambda).
 
 ::: {#nte-sonda-lambda .callout-note title="Tres formas de implementar la misma interfaz"}
-Los tres objetos siguientes son intercambiables: los tres son `Describible`. El primero es una instancia de una clase con nombre, adecuada cuando la implementación es larga o necesita estado propio; el segundo es una clase anónima, hoy casi siempre sustituible por el tercero; el tercero es una lambda.
+Los tres objetos siguientes son intercambiables: los tres son `Describible`, y a los tres se les puede pedir `describir()`. Lo que cambia es de dónde viene su clase. El primero es una instancia de una clase con nombre, adecuada cuando la implementación es larga o necesita estado propio. El segundo es una instancia de una **clase anónima**: una clase sin nombre en el código, declarada e instanciada en la misma expresión, hoy casi siempre sustituible por el tercero. El tercero es una **lambda**, que ni siquiera declara una clase: solo dice qué hace el único método del contrato.
 
 ```java
 // Fragmento
@@ -2927,8 +2936,10 @@ Describible d2 = new Describible() {        // clase anónima
 Describible d3 = () -> "una lambda";        // interfaz funcional
 ```
 
-Solo el primero tiene identidad propia como `Circulo`: puede seguir usándose como figura y calcular su área. Los otros dos existen únicamente como implementaciones del contrato.
+Solo el primer objeto tiene identidad propia como `Circulo`: puede seguir usándose como figura y calcular su área. Los otros dos no son nada más que `Describible`: la única operación que se les puede pedir es `describir()`.
 :::
+
+Escribir una interfaz nueva para cada firma sería tedioso, así que el paquete `java.util.function` las trae ya escritas. A diferencia de `Describible` o de la `PoliticaDeAlerta` de 1.2, que tienen nombre de dominio y documentan una intención, estas se nombran por la **forma** del método: cuántos parámetros recibe y si devuelve algo. `Function<T, R>` no significa nada en particular —significa «de un `T` sale un `R`»—, y por eso la misma interfaz sirve para convertir un nombre en una URL, un `Resultado` en una etiqueta o un euro en un dólar. Son interfaces de propósito general porque son interfaces sin propósito. Cuatro cubren la mayor parte de los casos, y se distinguen por lo que hacen con el dato: transformarlo, decidir sobre él, consumirlo o producirlo.
 
 | Interfaz | Método | Significado |
 |---|---|---|
@@ -2937,7 +2948,7 @@ Solo el primero tiene identidad propia como `Circulo`: puede seguir usándose co
 | `Consumer<T>` | `void accept(T t)` | hace algo con un `T` |
 | `Supplier<T>` | `T get()` | produce un `T` |
 
-Y las variantes que aparecen a menudo: `BiFunction<T, U, R>`, `UnaryOperator<T>` (una `Function<T, T>`), `BinaryOperator<T>`, y las especializaciones para primitivos (`IntPredicate`, `ToLongFunction<T>`, `IntBinaryOperator`...) que evitan el coste del *boxing*. Las interfaces `Comparator<T>` y `Runnable`, aunque viven en otros paquetes, son interfaces funcionales también.
+#### **Referencias a métodos y composición**
 
 Una **referencia a método** (`::`) es una lambda que solo llama a un método existente, escrita de forma más corta. Hay cuatro formas:
 
@@ -2945,13 +2956,18 @@ Una **referencia a método** (`::`) es una lambda que solo llama a un método ex
 // Fragmento: referencias a métodos y su lambda equivalente
 Function<String, Integer> f1 = Integer::parseInt;       // estático:        s -> Integer.parseInt(s)
 Function<Resultado, Estado> f2 = Resultado::estado;     // de instancia,    r -> r.estado()
-                                                        // con receptor libre
+                                                        //    con receptor libre
 Predicate<String> f3 = "http"::equals;                  // de instancia,    s -> "http".equals(s)
-                                                        // con receptor fijo
+                                                        //    con receptor fijo
 Supplier<List<Resultado>> f4 = ArrayList::new;          // constructor:     () -> new ArrayList<>()
 ```
 
-Lo que convierte estas interfaces en una herramienta de diseño, y no solo en un ahorro de sintaxis, son sus **métodos de composición** `default`. La interfaz `Predicate` tiene `and`, `or` y `negate`; `Function` tiene `andThen` y `compose`; `Comparator` tiene `comparing`, `thenComparing` y `reversed`. Con ellos se construyen comportamientos complejos a partir de piezas pequeñas, sin escribir clases:
+Lo que convierte estas interfaces en una herramienta de diseño, y no solo en un ahorro de sintaxis, son sus **métodos de composición** `default`:
+- la interfaz `Predicate` tiene `and`, `or` y `negate`; 
+- `Function` tiene `andThen` y `compose`; 
+- `Comparator` tiene `comparing`, `thenComparing` y `reversed`. 
+
+Con ellos se construyen comportamientos complejos a partir de piezas pequeñas, sin escribir clases:
 
 :::: {.ampliacion}
 ```java
@@ -3343,7 +3359,18 @@ class ServicioTest {
 }
 ```
 
-La anatomía de una prueba JUnit: una clase normal (no necesita ser pública), métodos anotados con `@Test`, sin parámetros y sin valor de retorno, cuyo cuerpo termina en una o más **aserciones**. Las aserciones son métodos estáticos de `Assertions`, importados estáticamente para leerlos como frases: `assertEquals(esperado, obtenido)` (en ese orden; los mensajes de fallo lo asumen), `assertTrue`, `assertFalse`, `assertNull`, `assertNotNull`, `assertInstanceOf` (que además devuelve el objeto convertido), `assertIterableEquals`, y `assertThrows(tipo, ejecutable)`, que comprueba que el código lanza la excepción indicada y la devuelve para inspeccionarla. La anotación `@DisplayName` da a la prueba un nombre legible en los informes; útil, pero un buen nombre de método suele bastar.
+La anatomía de una prueba JUnit: 
+
+- una clase normal (no necesita ser pública), 
+- métodos anotados con `@Test`, sin parámetros y sin valor de retorno, cuyo cuerpo termina en una o más **aserciones**. 
+
+Las aserciones son métodos estáticos de `Assertions`, importados estáticamente para leerlos como frases:
+
+- `assertEquals(esperado, obtenido)` (en ese orden; los mensajes de fallo lo asumen), 
+- `assertTrue`, `assertFalse`, `assertNull`, `assertNotNull`, `assertInstanceOf` (que además devuelve el objeto convertido), `assertIterableEquals`, y 
+- `assertThrows(tipo, ejecutable)`, que comprueba que el código lanza la excepción indicada y la devuelve para inspeccionarla. 
+
+La anotación `@DisplayName` da a la prueba un nombre legible en los informes; útil, pero un buen nombre de método suele bastar.
 
 Fíjate en la segunda prueba: como `ServicioTcp` es un `record`, podemos comparar con `assertEquals` contra un valor construido a mano. Es una consecuencia directa de haber definido bien la igualdad en 1.1 (@imp-identidad-vs-igualdad): **los objetos-valor son triviales de probar**.
 
