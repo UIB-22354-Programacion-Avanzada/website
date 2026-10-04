@@ -235,7 +235,7 @@ Lo que hay que observar en la clase:
 
 La **jerarquía de clases en Java** es la estructura en árbol que se forma mediante la herencia, donde unas clases heredan de otras para compartir código y comportamientos, teniendo en la cúspide a la clase `Object`.
 
-::: {#imp-objeto .callout-important title="Todas las clases descienden de `Object`"}
+::: {#imp-objeto .callout-important title="La clase `Object`"}
 Todas las clases de Java heredan de `java.lang.Object`, la raíz de la jerarquía: si una clase no declara `extends`, extiende implícitamente a `Object`. De ella heredan `equals`, `hashCode`, `toString` y algunos métodos más que conviene conocer (consulta su documentación en la [API de Java](https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html)). 
 
 La anotación `@Override` no es obligatoria, pero úsala siempre que redefinas un método: si te equivocas en la firma (por ejemplo, `equals(DispositivoRed otro)` en lugar de `equals(Object otro)`), el compilador te avisará en lugar de crear silenciosamente un método nuevo que nadie llama.
@@ -591,7 +591,7 @@ public class RegistroEventos {
 
     public void registrarVarios(String... eventos) {
         for (String evento : eventos) {
-            registrar(evento);                  // uso propio: se llama a sí misma
+            registrar(evento);    // uso propio: se llama a sí misma
         }
     }
 }
@@ -1082,7 +1082,7 @@ package es.uib.prgava.tema1.poo;
 public interface Describible {
     String describir();
 
-    default void mostrar() {                       // derivado del método abstracto
+    default void mostrar() {    // derivado del método abstracto
         System.out.println(describir());
     }
 }
@@ -2602,8 +2602,8 @@ Antes de Java 5, una lista era una lista de `Object`. Guardar era cómodo; recup
 // Fragmento: Java sin genéricos (todavía compila, con avisos)
 List resultados = new ArrayList();
 resultados.add(Resultado.caido(servicio));
-resultados.add("esto no es un resultado");          // el compilador no protesta
-Resultado r = (Resultado) resultados.get(1);         // ClassCastException en tiempo de ejecución
+resultados.add("esto no es un resultado");      // el compilador no protesta
+Resultado r = (Resultado) resultados.get(1);    // ClassCastException en tiempo de ejecución
 ```
 
 El error está en la segunda línea, pero estalla en la cuarta, y quizá en otra clase, en otro momento. Los **genéricos** trasladan esa comprobación al compilador: `List<Resultado>` es una lista que solo admite resultados, y `get` devuelve un `Resultado` sin *cast*. Un error de tipo se convierte en un error de compilación, que es el más barato de todos los errores.
@@ -2612,15 +2612,15 @@ El error está en la segunda línea, pero estalla en la cuarta, y quizá en otra
 // Fragmento: con genéricos
 List<Resultado> resultados = new ArrayList<>();
 resultados.add(Resultado.caido(servicio));
-resultados.add("esto no es un resultado");          // error de compilación
-Resultado r = resultados.get(0);                     // sin cast
+resultados.add("esto no es un resultado");    // error de compilación
+Resultado r = resultados.get(0);              // sin cast
 ```
 
 Naftalin y Wadler resumen la idea en una frase: los genéricos permiten escribir código **que funciona con muchos tipos y que el compilador comprueba para cada uno** [@naftalin2006]. Sin ellos hay que elegir entre reutilización (todo es `Object`) y seguridad (una clase por tipo); con ellos se tienen las dos.
 
 ### 1.3.2 Clases, interfaces y métodos genéricos
 
-Un **tipo genérico** declara uno o más **parámetros de tipo** entre ángulos, que dentro de la declaración se usan como si fueran tipos normales:
+Un **tipo genérico** declara uno o más **parámetros de tipo** entre ángulos, que a partir de ahí se usan como si fueran tipos normales. El ejemplo más pequeño que sirve para verlo es un **par ordenado**: dos valores cuyos tipos no tienen por qué guardar ninguna relación entre sí —un nombre y una edad, un servicio y su estado—. Java no trae en su biblioteca algo parecido, así que hay que codificarlo. Lo haremos mediante un `record` llamado `Par`, que tiene dos componentes genéricos `<A, B>`.
 
 ```java
 // Par.java
@@ -2642,11 +2642,67 @@ La declaración `Par<A, B>` define un tipo genérico con dos parámetros; `Par<S
 
 ```java
 // Fragmento
-var p = new Par<>("latencia", 120);      // Par<String, Integer>
-var q = p.conPrimero(Duration.ofMillis(120));   // Par<Duration, Integer>
+var p = new Par<>("latencia", 120);            // Par<String, Integer>
+var q = p.conPrimero(Duration.ofMillis(120));  // Par<Duration, Integer>
 ```
 
-Un parámetro de tipo puede **acotarse** para exigir que el tipo real cumpla un contrato. El caso más habitual es exigir que sea comparable:
+Que el par sea **ordenado** no es un detalle: `invertido` no devuelve un `Par<A, B>` con los valores cambiados de sitio, sino un `Par<B, A>`, que es otro tipo. El orden de los parámetros forma parte de la identidad del tipo igual que el de los componentes forma parte de la del valor.
+
+::: {#cau-parametro-de-tipo-en-static .callout-caution title="Usar los parámetros de tipo de la clase en un miembro `static`"}
+Los parámetros de tipo pertenecen a **cada tipo parametrizado**, no a la clase: en
+`Par<String, Integer>`, `A` es `String`; en `Par<Servicio, Estado>`, es `Servicio`. Un atributo o
+un método de clase no pertenece a ninguno de ellos, sino a la clase entera, que es la misma para
+todos. Así que si un método de clase escribe `A`, la pregunta «¿aquí `A` es `String` o es
+`Servicio`?» no tiene respuesta: no hay ningún objeto que la decida. El compilador no lo deja
+pasar:
+
+```java
+// Fragmento: no compila
+public record Par<A, B>(A primero, B segundo) {
+
+    public static Par<A, B> de(A primero, B segundo) {   // ← error
+        return new Par<>(primero, segundo);
+    }
+}
+```
+
+```text
+error: non-static type variable A cannot be referenced from a static context
+```
+
+Es la primera vez que el mensaje del compilador usa la expresión **variable de tipo** (*type
+variable*), y conviene reconocerla: lo que se declara entre ángulos no es un tipo, es una variable
+que se sustituye por un tipo en cada uso.
+
+La solución no es quitar el `static`, sino que el método **declare sus propios** parámetros de
+tipo, independientes de los de la clase:
+
+```java
+public static <X, Y> Par<X, Y> de(X primero, Y segundo) {
+    return new Par<>(primero, segundo);
+}
+```
+
+Ahora `X` e `Y` se infieren en cada llamada, y `Par.de("uib", 22354)` devuelve un
+`Par<String, Integer>` sin que haya que escribir los tipos. Los nombres distintos no son
+obligatorios —`<A, B>` también compilaría, ocultando los de la clase—, pero reutilizarlos invita a
+creer que son los mismos, y no lo son.
+
+Con los **atributos de clase** ocurre lo mismo y por la misma razón: `private static A ultimo;` no
+compila. La diferencia es que aquí no existe la salida que tenía el método, porque un atributo no
+puede declarar parámetros de tipo propios —eso solo lo hacen los métodos, delante del tipo de
+retorno—. Cuidado con la conclusión, eso sí: lo prohibido no es que una clase genérica tenga
+atributos de clase, sino que su tipo sea uno de los parámetros. `private static int creados;` es
+perfectamente válido dentro de `Par<A, B>`, porque `int` no depende de `A` ni de `B`. La pregunta
+que decide es esa: si el tipo del dato depende de los parámetros, ese dato solo tiene sentido
+dentro de un objeto concreto, así que **tiene que ser** un atributo de instancia, y ahí sí puede
+escribirse `private T ultimo;` sin problema. Los atributos de clase quedan para lo que no depende
+de `A` ni de `B`.
+:::
+
+#### **Acotación de parámetros de tipo**
+
+Un parámetro de tipo puede **acotarse** para exigir que el tipo real cumpla un contrato. El caso más habitual es exigir que sea comparable. El ejemplo canónico es buscar el **máximo** de una lista. Es una operación que no se puede escribir sin saber comparar, y ahí está la gracia: sin la cota, dentro del método `T` sería un `Object` y `compareTo` no estaría disponible.
 
 ```java
 // Utilidades.java
@@ -2670,9 +2726,13 @@ public final class Utilidades {
 }
 ```
 
-La cota `<T extends Comparable<T>>` se lee «T es un tipo que sabe compararse con otro T», y ahí reaparece la interfaz `Comparable` de 1.1.4. La cota es lo que permite llamar a `compareTo` dentro del método: sin ella, `elemento` sería un `Object` y no tendría ese método. Con ella, `maximo(List.of(3, 1, 2))` devuelve `Optional[3]` y `maximo(listaDeDuraciones)` devuelve la mayor duración, con un único método comprobado para ambos casos.
+La cota `<T extends Comparable<T>>` se lee «T es un tipo que sabe compararse con otro T», y ahí reaparece la interfaz `Comparable` de 1.1.4. Esta cota le da al compilador lo mínimo que hace falta —que los elementos sepan compararse entre sí mediante el método `compareTo`— y a cambio el método `maximo` vale para enteros, para duraciones y para las direcciones IPv4 de 1.1.8, que implementan `Comparable`. 
 
-Los genéricos de la biblioteca estándar que más usarás son el **marco de colecciones** (`List<E>`, `Set<E>`, `Map<K, V>`, `Deque<E>`) y las interfaces funcionales de `java.util.function`, que veremos más adelante. Cuando diseñes una clase propia, la pregunta es: ¿tiene esta clase un comportamiento que no depende de qué tipo concreto guarda? Si sí, es candidata a ser genérica. Ejemplo: una ventana deslizante que conserva los últimos *n* elementos, útil para políticas de alerta que solo miran el pasado reciente y que no tiene ninguna razón para saber qué guarda:
+Fíjate también en el tipo de retorno: una lista vacía no tiene máximo, y eso se dice con un `Optional<T>` (@cau-optional-mal-usado), que es exactamente el caso para el que sirve.
+
+Los genéricos de la biblioteca estándar que más usarás son el **marco de colecciones** (`List<E>`, `Set<E>`, `Map<K, V>`, `Deque<E>`) y las interfaces funcionales de `java.util.function`, que veremos más adelante. 
+
+Cuando diseñes una clase propia, la pregunta es: ¿tiene esta clase un comportamiento que no depende de qué tipo concreto guarda? Si sí, es candidata a ser genérica. Ejemplo: una ventana deslizante que conserva los últimos *n* elementos, útil para políticas de alerta que solo miran el pasado reciente y que no tiene ninguna razón para saber qué guarda:
 
 :::: {.ampliacion}
 ```java
@@ -2797,8 +2857,6 @@ public final class Copias {
 ```
 
 Sin comodines, `copiar(Collection<T>, Collection<T>)` obligaría a que ambas listas fueran exactamente del mismo tipo, y `copiar(enteros, numeros)` no compilaría. Con ellos, el método acepta cualquier combinación segura y rechaza las inseguras.
-
-Una aplicación que ya has visto: la biblioteca declara `maximo` (su equivalente, `Collections.max`) como `<T extends Comparable<? super T>>`, no como `<T extends Comparable<T>>`. El motivo es PECS: el `compareTo` *consume* elementos, así que basta con que `T` sepa compararse con algún supertipo suyo. Nuestra versión simplificada funciona con cualquier tipo razonable; la de la biblioteca acepta además jerarquías donde la comparación se hereda.
 ::::
 
 ### 1.3.4 Borrado de tipos
@@ -2887,9 +2945,9 @@ Una **referencia a método** (`::`) es una lambda que solo llama a un método ex
 // Fragmento: referencias a métodos y su lambda equivalente
 Function<String, Integer> f1 = Integer::parseInt;       // estático:        s -> Integer.parseInt(s)
 Function<Resultado, Estado> f2 = Resultado::estado;     // de instancia,    r -> r.estado()
-                                                        //   con receptor libre
+                                                        // con receptor libre
 Predicate<String> f3 = "http"::equals;                  // de instancia,    s -> "http".equals(s)
-                                                        //   con receptor fijo
+                                                        // con receptor fijo
 Supplier<List<Resultado>> f4 = ArrayList::new;          // constructor:     () -> new ArrayList<>()
 ```
 
@@ -3526,7 +3584,7 @@ class MonitorTest {
 
 Ninguna de estas pruebas toca la red, el reloj real ni la consola; todas se ejecutan en milisegundos y dan siempre el mismo resultado. Compara con `MonitorV0`: para probar su política de alerta habría que capturar `System.out`, controlar el `Random` interno y leer un fichero real. La diferencia no es una cuestión de habilidad para escribir pruebas; es una consecuencia directa del diseño.
 
-::: {#imp-disenar-para-probar .callout-important title="El código difícil de probar suele estar mal diseñado"}
+::: {#imp-disenar-para-probar .callout-important title="Diseñar para probar"}
 La dificultad para probar una clase es una **medida de su acoplamiento**. Si para probarla hace falta una base de datos, un servidor o una fecha concreta, es que la clase depende directamente de esas cosas en lugar de depender de abstracciones (principio D). Si hay que preparar diez objetos para ejercitar un método, la clase sabe demasiado (principio S). Por eso muchos equipos escriben las pruebas primero: no por disciplina, sino porque escribir la prueba es la forma más rápida de descubrir que el diseño no permite escribirla. Cuando una prueba resulte difícil, no busques un truco de pruebas: **arregla el diseño**.
 :::
 
