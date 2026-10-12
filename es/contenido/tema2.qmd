@@ -73,12 +73,17 @@ no se vuelven a listar.
 
 ## 2.1. Eficiencia de algoritmos
 
-**En el monitor de servicios** (@fig-monitor2) el problema que abre el tema es de coste, así que lo
-primero es poder medirlo sin encender el cronómetro.
+Esta sección aborda el problema del coste, en términos computacionales, de los algoritmos. Lo
+primero es definir qué se mide y cómo. En la implementación computacional de los algoritmos hay dos
+costes fundamentales a considerar: el **tiempo** y el **espacio** (o **memoria**). Ambos se refieren 
+a la cantidad de recursos que un algoritmo requiere, dada una instancia del problema (una entrada), 
+para ejecutarse. Por ejemplo, podemos medir el tiempo que tarda un algoritmo en ejecutarse en segundos 
+y la cantidad de memoria que utiliza en bytes. En esta sección nos enfocaremos principalmente en 
+coste en tiempo que también se conoce como **complejidad** del algoritmo.
 
 ### 2.1.1 Qué se mide y por qué no es el tiempo
 
-Lo primero que uno piensa es cronometrar. Es una medida real y hace falta, pero no sirve para
+Lo primero que uno piensa es cronometrar. Es una medida real y necesaria, pero no permite
 **razonar**: el número que sale depende del procesador, de la memoria, de lo que esté haciendo el
 sistema operativo en ese momento, de la versión de la máquina virtual y de si el compilador JIT ha
 decidido ya optimizar ese trozo. Dos programadores con el mismo algoritmo y dos portátiles distintos
@@ -88,33 +93,30 @@ Lo que sí se puede comparar es **cuántas operaciones** hace el algoritmo en fu
 entrada. Eso no depende de la máquina: es una propiedad del algoritmo.
 
 ::: {#imp-coste .callout-important title="Coste de un algoritmo"}
-El **coste** (o **complejidad**) de un algoritmo es una función que relaciona el **tamaño de la
-entrada** con el **número de operaciones elementales** que el algoritmo ejecuta.
+El **coste** (o **complejidad**) de un algoritmo es el **número de operaciones elementales** que
+ejecuta **para cada entrada posible**. Para convertir eso en una función del **tamaño de
+la entrada** —que es lo que permite comparar algoritmos— hay que fijar tres cosas:
 
-Hay que fijar las tres cosas para que la medida signifique algo:
+- **El tamaño de la entrada:** se denota casi siempre con un entero no negativo `n`. Para una lista es el número de elementos; para una cadena, su longitud; para una matriz cuadrada, la cantidad de filas (o columnas); para un grafo, dos números, vértices y aristas. Elegirlo mal invalida el análisis: el coste de recorrer una lista de listas no depende del número de listas, sino del total de elementos.
+- **Qué cuenta como operación elemental**: una comparación, una asignación, una operación aritmética, un acceso por índice. Se supone que todas cuestan lo mismo y que ese coste es constante. Esto no es realmente cierto —acceder a memoria caché es cien veces más rápido que acceder a memoria principal— pero se asume para simplificar el análisis. En 2.3.4 veremos cuándo dejar de asumirlo es relevante.
+- **Qué se hace con entradas de un mismo tamaño pero características diferentes:** Ocurre
+que para un mismo algoritmo y varias entradas de tamaño `n` no todas cuestan lo mismo. Por
+ejemplo, buscar un elemento en una lista de mil elementos cuesta una comparación si el elemento 
+está el primero y mil si está el último. Conceptualizar esto requiere varias funciones
+que se presentan en 2.1.3 (@imp-casos).
 
-- **El tamaño de la entrada**, que se llama casi siempre `n`. Para una lista es el número de
-  elementos; para una cadena, su longitud; para una matriz cuadrada, el lado; para un grafo, dos
-  números, vértices y aristas. Elegirlo mal invalida el análisis: el coste de recorrer una lista de
-  listas no depende del número de listas, sino del total de elementos.
-- **Qué cuenta como operación elemental**: una comparación, una asignación, una suma, un acceso por
-  índice. Se supone que todas cuestan lo mismo y que ese coste es constante, lo cual es mentira
-  —acceder a memoria caché es cien veces más rápido que acceder a memoria principal— pero es una
-  mentira útil, y en 2.3.4 veremos cuándo deja de serlo.
-- **Qué entrada**, porque dos entradas del mismo tamaño pueden costar muy distinto. De eso trata
-  2.1.3 (@imp-casos).
-
-El coste así definido se llama **asintótico** porque lo que interesa es cómo crece la función
+La función así obtenida se llama asintótica porque lo que interesa es cómo crece la función
 cuando `n` crece, no cuánto vale para un `n` concreto.
 :::
 
 El cambio de mentalidad es este: no se pregunta «¿cuánto tarda?», sino «**si duplico la entrada,
-¿qué le pasa al trabajo?**». Un algoritmo que al duplicar la entrada duplica el trabajo es
-aceptable; uno que lo cuadruplica no, y da igual en qué ordenador se ejecute.
+¿qué le pasa al coste?**». Un algoritmo que al duplicar la entrada duplica el coste es
+aceptable; uno que lo eleva al cuadrado no, y da igual en qué ordenador se ejecute.
 
-#### **Contar operaciones en un bucle**
+#### **Contar operaciones**
 
-Contar el coste de un fragmento sin bucles es contar líneas: un número fijo, que no depende de `n`.
+Contar las operaciones elementales (el coste) de un fragmento de código sin bucles es prácticamente contar las líneas que lo componen. Por lo general es un número fijo, que no depende de `n`.
+
 Todo lo interesante pasa en los bucles, y ahí la regla es sencilla: el coste de un bucle es el
 número de iteraciones multiplicado por el coste de su cuerpo.
 
@@ -160,12 +162,14 @@ public final class Conteos {
 }
 ```
 
-El método `suma` ejecuta el cuerpo del bucle `n` veces, así que su coste es `n` operaciones más una
-constante: lo escribiremos `O(n)` en cuanto tengamos la notación. El método `hayRepetido` ejecuta el
-cuerpo interno una vez por cada par de índices distintos, que son `n(n−1)/2`, es decir del orden de
-`n²`. Y el método `sumaYMaximo` hace dos recorridos completos, `2n` iteraciones: el doble que
+- El método `suma` ejecuta el cuerpo del bucle $n$ veces, así que su coste es $n$ operaciones más una
+constante: diremos que es del orden $n$, y lo escribiremos $O(n)$ en cuanto tengamos la notación. 
+- El método `hayRepetido` ejecuta el cuerpo interno una vez por cada par de índices distintos, que son $n(n−1)/2$, es decir del orden de $n^2$. 
+- Y el método `sumaYMaximo` hace dos recorridos completos, $2n$ iteraciones: el doble que
 `suma`, pero **del mismo orden**, porque al duplicar la entrada le pasa exactamente lo mismo que a
-`suma`. Esa es la razón de que las constantes multiplicativas se descarten, y conviene ver que no es
+`suma`. 
+
+Esa es la razón de que las constantes multiplicativas se descarten, y conviene ver que no es
 pereza: es que la constante depende de cómo se escribió el bucle, y el orden depende de la idea del
 algoritmo.
 
