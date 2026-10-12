@@ -17,3 +17,6 @@
 
 # Carpeta de trabajo de la app de escritorio de Claude
 /Claude outputs/
+
+# Talleres y exámenes (repositorios aparte)
+/_examenes/
