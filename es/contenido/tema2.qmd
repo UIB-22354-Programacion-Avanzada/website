@@ -225,11 +225,22 @@ poder justificarlo. La notación asintótica es la forma precisa de decirlo.
 Sean $f$ y $g$ funciones de los naturales en los reales no negativos.
 
 - **$f(n) \in O(g(n))$** —se lee «$f$ es de orden $g$»— si existen constantes $c > 0$ y $n_0$ tales que
-  $f(n) \le c \cdot g(n)$ para todo $n \ge n_0$. Es una **cota superior**: a partir de cierto tamaño, $f$ no
+  $$
+  f(n) \le c \cdot g(n)
+  $$
+  para todo $n \ge n_0$. Es una **cota asíntotica superior**: a partir de cierto tamaño, $f$ no
   crece más deprisa que $g$, salvo por un factor constante.
-- **$f(n) \in \Omega(g(n))$** si existen $c > 0$ y $n_0$ tales que $f(n) \ge c \cdot g(n)$ para todo $n \ge n_0$. Es
-  una **cota inferior**.
-- **$f(n) \in \Theta(g(n))$** si se cumplen las dos: $f$ crece exactamente como $g$, salvo constantes.
+- **$f(n) \in \Omega(g(n))$** si existen $c > 0$ y $n_0$ tales que 
+  $$
+  f(n) \ge c \cdot g(n)
+  $$
+  para todo $n \ge n_0$. Es una **cota asíntotica inferior**: a partir de cierto tamaño, $f$ no
+  crece más despacio que $g$, salvo por un factor constante.
+- **$f(n) \in \Theta(g(n))$** si existen constantes $c_1 > 0$, $c_2 > 0$ y $n_0 > 0$ tales que
+$$
+c_1 \cdot g(n) \le f(n) \le c_2 \cdot g(n)
+$$
+para todo $n \ge n_0$. Es una **cota asíntotica ajustada** y equivale a que $f$ pertenece simultáneamente a $O(g(n))$ y a $\Omega(g(n))$.
 
 Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que `3n + 100` y $n$ sean lo
 mismo. «A partir de cierto $n_0$» es lo que permite ignorar lo que pase con entradas pequeñas, donde
@@ -243,20 +254,26 @@ De la definición salen las tres reglas que se usan a diario:
 | En una suma manda el término dominante | $n^2 + 1000n + 10^6 \in O(n^2)$ |
 | En una composición los costes se multiplican | un bucle de $n$ con cuerpo $O(\log n)$ es $O(n \log n)$ |
 
-La segunda es la más útil y la más fácil de justificar: si $n \ge 1000$, entonces $1000n \le n^2$, y si
-además $n \ge 1000$, entonces $10^6 \le n^2$; luego $n^2 + 1000n + 10^6 \le 3n^2$ para $n \ge 1000$, que es la
-definición con $c = 3$ y $n_0 = 1000$.
+La segunda regla es la más útil y la más fácil de justificar. Si $n \ge 1000$, entonces 
+
+- $1000n \le n^2$, 
+- $10^6 \le n^2$,
+
+luego 
+$$
+n^2 + 1000n + 10^6 \le 3n^2$ para $n \ge 1000,
+$$
+que es la definición para $c = 3$ y $n_0 = 1000$.
 
 Nótese que $O$ es un conjunto de funciones, de ahí el $\in$. La costumbre es escribir $f(n) = O(g(n))$
-con un signo igual que no es simétrico —nadie escribe $O(n) = 3n$—; es un abuso de notación
-consolidado, y aquí lo usaremos como todo el mundo.
+con un signo igual que no es simétrico, nadie escribe $O(n) = 3n$ solo se escribe $3n = O(n)$ que realmente significa que $3n \in O(n)$.
 :::
 
 Con la notación se puede ya nombrar la escalera de clases de crecimiento que aparece en la práctica.
 La tabla da el número de operaciones para tres tamaños de entrada, y es el argumento más convincente
 de todo el tema:
 
-| Clase | Nombre | $n = 10$ | `n = 1 000` | `n = 1 000 000` | Ejemplo típico |
+| Clase | Nombre | $n = 10$ | $n = 10^3$ | $n = 10^6$ | Ejemplo típico |
 |---|---|---|---|---|---|
 | $O(1)$ | constante | 1 | 1 | 1 | acceder a un array por índice |
 | $O(\log n)$ | logarítmico | 3 | 10 | 20 | búsqueda binaria |
@@ -266,12 +283,14 @@ de todo el tema:
 | $O(n^3)$ | cúbico | 1 000 | 10⁹ | 10¹⁸ | multiplicar matrices (ingenuo) |
 | $O(2^n)$ | exponencial | 1 024 | 10³⁰¹ | — | probar todos los subconjuntos |
 
-Las dos líneas que hay que leer despacio son la cuadrática y la exponencial. Con un millón de
-elementos, $O(n^2)$ son $10^{12}$ operaciones: a mil millones de operaciones por segundo, unos
-dieciséis minutos. Y $10^{301}$ operaciones no es «mucho tiempo»: es más que el número de átomos del
+Las dos líneas que hay que leer despacio son la cuadrática y la exponencial. 
+
+- Con un millón de elementos, $O(n^2)$ son $10^{12}$ operaciones: a mil millones de operaciones por segundo, unos dieciséis minutos. 
+- $10^{301}$ operaciones no es «mucho tiempo»: es más que el número de átomos del
 universo observable, de modo que un algoritmo exponencial con $n = 1000$ no es lento, es
-**imposible**, y ninguna mejora de hardware lo arregla. Esa frontera es la razón de que el coste se
-estudie antes de programar y no después.
+**imposible**, y ninguna mejora de hardware lo arregla. 
+
+Esa frontera es la razón de que el coste se estudie antes de programar y no después.
 
 ::: {#cau-o-grande-sin-n .callout-caution title="Decir que un algoritmo es más rápido que otro sin decir para qué tamaño"}
 «La búsqueda binaria es más rápida que la lineal» es falso tal cual está dicho. Para $n = 5$ la
