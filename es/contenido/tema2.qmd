@@ -5,4 +5,1953 @@ sidebar: barra-es
 bibliography: tema2.bib
 ---
 
-*Contenido pendiente.*
+## Introducción
+
+El Tema 1 terminó con un programa que funciona. Este tema trata de lo que pasa cuando ese mismo
+programa recibe mil veces más trabajo.
+
+La pregunta no es nueva: ya apareció en el Tema 1 sin que pudiéramos contestarla. La política de
+alerta del monitor recibe el historial de un servicio y lo recorre para decidir si avisar; el
+repositorio produce ese historial recorriendo **todos** los resultados guardados y quedándose con
+los del servicio que se le pide. Con tres servicios y seis rondas, eso es irrelevante. Con
+veinte servicios y mil seiscientas rondas, el mismo programa tarda tres segundos y medio en hacer
+lo que debería costarle milésimas, y la culpa no está en ninguna línea mal escrita: está en la
+estructura elegida para guardar los resultados.
+
+Para decidir bien esa clase de cosas hacen falta tres herramientas, y son las tres secciones del
+tema. La primera es una forma de **hablar del coste** de un algoritmo que no dependa del ordenador
+donde se ejecute: la notación asintótica, el análisis del peor caso y del caso medio, y los dos
+algoritmos sobre los que se construye casi todo lo demás, la búsqueda y la ordenación. La segunda
+es el **catálogo de estructuras de datos** que trae la biblioteca de Java —la *Java Collections
+Framework*— con lo que cada una cuesta y, sobre todo, con el mecanismo interno que explica por qué
+cuesta eso. La tercera es el **criterio de selección**: dado un programa, averiguar qué operación
+domina su trabajo y elegir la estructura que la hace barata, aunque encarezca las demás.
+
+### El ejemplo unificador: el monitor de servicios, a escala
+
+El ejemplo que acompaña al tema es el mismo [monitor de servicios](tema1.qmd#nte-ejemplo-unificador)
+del Tema 1, con una diferencia: ahora tiene que aguantar volumen. Se conserva tal cual el reparto de
+responsabilidades que costó construir allí —la sonda comprueba, la política decide, el repositorio
+guarda, el notificador avisa— y se cambia únicamente **lo que hay dentro** del repositorio y de la
+política. Esa es la segunda mitad de la lección: un diseño con las dependencias en el sitio correcto
+permite cambiar una estructura de datos sin tocar nada más.
+
+```{mermaid}
+%%| label: fig-monitor2
+%%| fig-cap: "El monitor de servicios a escala. Las tres piezas nuevas —índice, ventana y cola de prioridad— sustituyen por dentro a la lista única del Tema 1, sin cambiar las interfaces."
+flowchart LR
+    M["<b>Monitor</b><br/><i>orquesta cada ronda</i>"]
+    S["<b>Sonda</b><br/><i>comprueba un servicio</i>"]
+    subgraph R["<b>Repositorio</b>"]
+        direction TB
+        I["<b>Índice por servicio</b><br/><i>¿qué resultados son de este servicio?</i>"]
+        V["<b>Ventana de las últimas N</b><br/><i>lo único que la política necesita</i>"]
+        T["<b>Resultados por instante</b><br/><i>¿qué pasó entre las 9 y las 10?</i>"]
+    end
+    P["<b>Política de alerta</b><br/><i>decide con la ventana</i>"]
+    C["<b>Cola de alertas</b><br/><i>primero las más graves</i>"]
+
+    M -- "1 · ¿responde?" --> S
+    S -- "2 · resultado" --> M
+    M -- "3 · guarda" --> R
+    M -- "4 · ¿hay que alertar?" --> P
+    V -. "lee" .-> P
+    M -- "5 · si procede, encola" --> C
+    style R fill:none
+```
+
+Como en el Tema 1, conviene distinguir dos tipos de código. Los **ejemplos breves** son
+autocontenidos y sirven para una idea sola: un array que se recorre, una búsqueda binaria, un
+montículo de cuatro elementos. Los pasajes que hacen avanzar el monitor se reconocen porque el
+párrafo abre con **En el monitor.** en negrita; todos ellos construyen la misma aplicación, y el
+esquema (@fig-monitor2) es el mapa al que volver si se pierde el hilo.
+
+Los paquetes de los listados son `es.uib.prgava.tema2.eficiencia` para los ejemplos breves de la
+sección 2.1, `es.uib.prgava.tema2.estructuras` para los de la 2.2 y `es.uib.prgava.tema2.monitor`
+para el ejemplo unificador. Las clases del monitor que no se tocan se dan por heredadas del Tema 1 y
+no se vuelven a listar.
+
+## 2.1. Eficiencia de algoritmos
+
+**En el monitor de servicios** (@fig-monitor2) el problema que abre el tema es de coste, así que lo
+primero es poder medirlo sin encender el cronómetro.
+
+### 2.1.1 Qué se mide y por qué no es el tiempo
+
+Lo primero que uno piensa es cronometrar. Es una medida real y hace falta, pero no sirve para
+**razonar**: el número que sale depende del procesador, de la memoria, de lo que esté haciendo el
+sistema operativo en ese momento, de la versión de la máquina virtual y de si el compilador JIT ha
+decidido ya optimizar ese trozo. Dos programadores con el mismo algoritmo y dos portátiles distintos
+obtienen números distintos, y ninguno de los dos aprende nada del otro.
+
+Lo que sí se puede comparar es **cuántas operaciones** hace el algoritmo en función del tamaño de su
+entrada. Eso no depende de la máquina: es una propiedad del algoritmo.
+
+::: {#imp-coste .callout-important title="Coste de un algoritmo"}
+El **coste** (o **complejidad**) de un algoritmo es una función que relaciona el **tamaño de la
+entrada** con el **número de operaciones elementales** que el algoritmo ejecuta.
+
+Hay que fijar las tres cosas para que la medida signifique algo:
+
+- **El tamaño de la entrada**, que se llama casi siempre `n`. Para una lista es el número de
+  elementos; para una cadena, su longitud; para una matriz cuadrada, el lado; para un grafo, dos
+  números, vértices y aristas. Elegirlo mal invalida el análisis: el coste de recorrer una lista de
+  listas no depende del número de listas, sino del total de elementos.
+- **Qué cuenta como operación elemental**: una comparación, una asignación, una suma, un acceso por
+  índice. Se supone que todas cuestan lo mismo y que ese coste es constante, lo cual es mentira
+  —acceder a memoria caché es cien veces más rápido que acceder a memoria principal— pero es una
+  mentira útil, y en 2.3.4 veremos cuándo deja de serlo.
+- **Qué entrada**, porque dos entradas del mismo tamaño pueden costar muy distinto. De eso trata
+  2.1.3 (@imp-casos).
+
+El coste así definido se llama **asintótico** porque lo que interesa es cómo crece la función
+cuando `n` crece, no cuánto vale para un `n` concreto.
+:::
+
+El cambio de mentalidad es este: no se pregunta «¿cuánto tarda?», sino «**si duplico la entrada,
+¿qué le pasa al trabajo?**». Un algoritmo que al duplicar la entrada duplica el trabajo es
+aceptable; uno que lo cuadruplica no, y da igual en qué ordenador se ejecute.
+
+#### **Contar operaciones en un bucle**
+
+Contar el coste de un fragmento sin bucles es contar líneas: un número fijo, que no depende de `n`.
+Todo lo interesante pasa en los bucles, y ahí la regla es sencilla: el coste de un bucle es el
+número de iteraciones multiplicado por el coste de su cuerpo.
+
+```java
+// Conteos.java
+package es.uib.prgava.tema2.eficiencia;
+
+public final class Conteos {
+
+    /** Un recorrido: n iteraciones de coste constante. */
+    public static long suma(int[] datos) {
+        long total = 0;                          // 1
+        for (int i = 0; i < datos.length; i++) { // n veces
+            total += datos[i];                   //   coste constante
+        }
+        return total;                            // 1
+    }
+
+    /** Dos bucles anidados: n · n iteraciones. */
+    public static boolean hayRepetido(int[] datos) {
+        for (int i = 0; i < datos.length; i++) {
+            for (int j = i + 1; j < datos.length; j++) {
+                if (datos[i] == datos[j]) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Dos bucles seguidos, no anidados: n + n iteraciones. */
+    public static long sumaYMaximo(int[] datos) {
+        long total = 0;
+        for (int dato : datos) {
+            total += dato;
+        }
+        int maximo = Integer.MIN_VALUE;
+        for (int dato : datos) {
+            maximo = Math.max(maximo, dato);
+        }
+        return total + maximo;
+    }
+}
+```
+
+El método `suma` ejecuta el cuerpo del bucle `n` veces, así que su coste es `n` operaciones más una
+constante: lo escribiremos `O(n)` en cuanto tengamos la notación. El método `hayRepetido` ejecuta el
+cuerpo interno una vez por cada par de índices distintos, que son `n(n−1)/2`, es decir del orden de
+`n²`. Y el método `sumaYMaximo` hace dos recorridos completos, `2n` iteraciones: el doble que
+`suma`, pero **del mismo orden**, porque al duplicar la entrada le pasa exactamente lo mismo que a
+`suma`. Esa es la razón de que las constantes multiplicativas se descarten, y conviene ver que no es
+pereza: es que la constante depende de cómo se escribió el bucle, y el orden depende de la idea del
+algoritmo.
+
+#### **Lo que la cuenta no ve**
+
+Un recorrido de `n` elementos no siempre cuesta `n` operaciones elementales, porque lo que hay
+dentro puede no ser elemental. Es el error de análisis más común y conviene tenerlo presente desde
+el principio:
+
+```java
+// Fragmento: parece O(n) y es O(n²)
+for (Resultado resultado : resultados) {
+    if (sospechosos.contains(resultado.servicio())) {   // ¿cuánto cuesta esto?
+        revisar(resultado);
+    }
+}
+```
+
+Si `sospechosos` es una `List`, el método `contains` recorre la lista entera, y el fragmento es
+`O(n·m)` con `m` el tamaño de la lista. Si es un `HashSet`, `contains` cuesta tiempo constante y el
+fragmento es `O(n)`. El mismo código, dos costes distintos, y la diferencia no se ve en el bucle:
+está en el tipo de una variable declarada en otro sitio. Toda la sección 2.2 existe para que esa
+información esté disponible cuando haga falta.
+
+::: {#wrn-cronometrar .callout-warning title="Cronometrar un fragmento de Java"}
+El cronómetro hace falta —2.3.4 insiste en que sin medir no se optimiza—, pero en la máquina virtual
+de Java medir mal es muy fácil. Cuatro precauciones:
+
+1. **Usa `System.nanoTime()`, no `System.currentTimeMillis()`.** El segundo da la hora del reloj, que
+   puede ajustarse hacia atrás mientras mides; el primero es un contador monótono pensado para
+   intervalos. Su valor absoluto no significa nada: solo sirve restado.
+2. **Calienta.** Las primeras ejecuciones de un método las interpreta la máquina virtual; solo
+   después de unos miles de llamadas el compilador JIT lo traduce a código nativo. Una medida tomada
+   en frío puede ser veinte veces más lenta que la de régimen. Se ejecuta el fragmento unas cuantas
+   veces sin medir y después se mide.
+3. **Repite y quédate con el mínimo**, no con la media. Lo que contamina una medida son siempre
+   sucesos que la alargan —una pausa del recolector de basura, otro proceso—, nunca sucesos que la
+   acorten, así que el mínimo de varias repeticiones es la estimación menos sucia.
+4. **Usa el resultado.** Si calculas algo y lo tiras, el compilador tiene derecho a eliminar el
+   cálculo entero y medirás cero. Basta con sumarlo a un acumulador e imprimirlo al final.
+
+Para medir en serio existe **JMH** (*Java Microbenchmark Harness*), que automatiza esto y bastante
+más. Queda fuera del curso, pero conviene saber que si una medición va a sostener una decisión
+importante, hacerla a mano no es suficiente.
+:::
+
+### 2.1.2 Notación asintótica
+
+Decir «del orden de `n²`» es cómodo pero vago, y en un examen o en una revisión de código hay que
+poder justificarlo. La notación asintótica es la forma precisa de decirlo.
+
+::: {#tip-o-grande .callout-tip title="Las tres cotas: O, Ω y Θ"}
+Sean `f` y `g` funciones de los naturales en los reales no negativos.
+
+- **`f(n) ∈ O(g(n))`** —se lee «`f` es de orden `g`»— si existen constantes `c > 0` y `n₀` tales que
+  `f(n) ≤ c · g(n)` para todo `n ≥ n₀`. Es una **cota superior**: a partir de cierto tamaño, `f` no
+  crece más deprisa que `g`, salvo por un factor constante.
+- **`f(n) ∈ Ω(g(n))`** si existen `c > 0` y `n₀` tales que `f(n) ≥ c · g(n)` para todo `n ≥ n₀`. Es
+  una **cota inferior**.
+- **`f(n) ∈ Θ(g(n))`** si se cumplen las dos: `f` crece exactamente como `g`, salvo constantes.
+
+Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que `3n + 100` y `n` sean lo
+mismo. «A partir de cierto `n₀`» es lo que permite ignorar lo que pase con entradas pequeñas, donde
+un algoritmo peor puede ganar: `n²` es menor que `100n` mientras `n < 100`.
+
+De la definición salen las tres reglas que se usan a diario:
+
+| Regla | Ejemplo |
+|---|---|
+| Las constantes multiplicativas se descartan | `5n ∈ O(n)` |
+| En una suma manda el término dominante | `n² + 1000n + 10⁶ ∈ O(n²)` |
+| En una composición los costes se multiplican | un bucle de `n` con cuerpo `O(log n)` es `O(n log n)` |
+
+La segunda es la más útil y la más fácil de justificar: si `n ≥ 1000`, entonces `1000n ≤ n²`, y si
+además `n ≥ 1000`, entonces `10⁶ ≤ n²`; luego `n² + 1000n + 10⁶ ≤ 3n²` para `n ≥ 1000`, que es la
+definición con `c = 3` y `n₀ = 1000`.
+
+Nótese que `O` es un conjunto de funciones, de ahí el `∈`. La costumbre es escribir `f(n) = O(g(n))`
+con un signo igual que no es simétrico —nadie escribe `O(n) = 3n`—; es un abuso de notación
+consolidado, y aquí lo usaremos como todo el mundo.
+:::
+
+Con la notación se puede ya nombrar la escalera de clases de crecimiento que aparece en la práctica.
+La tabla da el número de operaciones para tres tamaños de entrada, y es el argumento más convincente
+de todo el tema:
+
+| Clase | Nombre | `n = 10` | `n = 1 000` | `n = 1 000 000` | Ejemplo típico |
+|---|---|---|---|---|---|
+| `O(1)` | constante | 1 | 1 | 1 | acceder a un array por índice |
+| `O(log n)` | logarítmico | 3 | 10 | 20 | búsqueda binaria |
+| `O(n)` | lineal | 10 | 1 000 | 10⁶ | recorrer una lista |
+| `O(n log n)` | lineal-logarítmico | 33 | 10 000 | 2·10⁷ | ordenar por comparaciones |
+| `O(n²)` | cuadrático | 100 | 10⁶ | 10¹² | comparar todos los pares |
+| `O(n³)` | cúbico | 1 000 | 10⁹ | 10¹⁸ | multiplicar matrices (ingenuo) |
+| `O(2ⁿ)` | exponencial | 1 024 | 10³⁰¹ | — | probar todos los subconjuntos |
+
+Las dos líneas que hay que leer despacio son la cuadrática y la exponencial. Con un millón de
+elementos, `O(n²)` son `10¹²` operaciones: a mil millones de operaciones por segundo, unos
+dieciséis minutos. Y `10³⁰¹` operaciones no es «mucho tiempo»: es más que el número de átomos del
+universo observable, de modo que un algoritmo exponencial con `n = 1000` no es lento, es
+**imposible**, y ninguna mejora de hardware lo arregla. Esa frontera es la razón de que el coste se
+estudie antes de programar y no después.
+
+::: {#cau-o-grande-sin-n .callout-caution title="Decir que un algoritmo es más rápido que otro sin decir para qué tamaño"}
+«La búsqueda binaria es más rápida que la lineal» es falso tal cual está dicho. Para `n = 5` la
+búsqueda lineal gana: no ordena nada, no calcula puntos medios y recorre cinco posiciones
+contiguas de memoria. La notación asintótica habla de **cómo crece** el coste, y la definición
+(@tip-o-grande) dice explícitamente «a partir de cierto `n₀`».
+
+Lo correcto es «la búsqueda binaria es `O(log n)` y la lineal `O(n)`, así que a partir de algún
+tamaño la binaria gana, y ese tamaño suele estar entre diez y cien elementos». Por eso
+`Arrays.sort` cambia a ordenación por inserción —que es `O(n²)`— para los tramos pequeños, de menos
+de 32 elementos al ordenar objetos, y no es una incoherencia de la biblioteca: es la constante
+ganando a la clase.
+
+El error hermano es leer `O(n)` como una medida de tiempo. `O(n)` con una operación carísima dentro
+puede tardar más que `O(n²)` con una barata. La cota cuenta operaciones; cuánto cuesta cada una es
+otra pregunta.
+:::
+
+### 2.1.3 Peor caso, caso medio y coste amortizado
+
+Dos entradas del mismo tamaño pueden costar muy distinto. Buscar un elemento en una lista de mil
+cuesta una comparación si está el primero y mil si está el último o no está. Hay que decir, por
+tanto, de qué caso se habla.
+
+::: {#imp-casos .callout-important title="Peor caso, caso medio y caso mejor"}
+Para un tamaño de entrada `n`, el conjunto de entradas posibles de ese tamaño da un conjunto de
+costes. Se usan tres resúmenes:
+
+- **Peor caso**: el máximo. Es el que se da por defecto cuando se dice «este algoritmo es `O(n)`»,
+  y es el único que constituye una **garantía**: sea lo que sea lo que llegue, no costará más.
+- **Caso medio**: la media sobre todas las entradas, **suponiendo una distribución**. Esa hipótesis
+  es parte del resultado y hay que enunciarla: el caso medio de la búsqueda lineal es `n/2`
+  comparaciones *si el elemento buscado está y todas las posiciones son igual de probables*, que es
+  mucho suponer.
+- **Caso mejor**: el mínimo. No sirve para casi nada —todo algoritmo tiene una entrada afortunada—
+  salvo para detectar que una implementación tiene un atajo útil en la práctica.
+
+La distinción tiene consecuencias de diseño. Una tabla *hash* tiene caso medio constante y peor caso
+lineal; un árbol equilibrado tiene las dos cosas logarítmicas. Si lo que se programa es un servicio
+que debe responder en un tiempo acotado **siempre**, el peor caso es el que manda, aunque su caso
+medio sea peor.
+:::
+
+Hay un tercer tipo de análisis que no es ninguno de los tres y que hace falta para entender la
+estructura más usada de Java.
+
+::: {#tip-amortizado .callout-tip title="Una operación puede ser caníbal: el coste amortizado"}
+Un `ArrayList` guarda sus elementos en un array. Cuando el array se llena, el método `add` no puede
+simplemente añadir: tiene que **crear un array mayor y copiar todo**, que cuesta `O(n)`. Entonces,
+¿cuánto cuesta `add`? Su peor caso es lineal, y sin embargo nadie duda en usar `ArrayList` para
+añadir un millón de elementos.
+
+La respuesta está en que el array no crece de uno en uno, sino que **duplica su capacidad** (en la
+implementación de OpenJDK, la multiplica por 1,5). Si partimos de capacidad 1 y añadimos `n`
+elementos, las copias ocurren con `1, 2, 4, 8, …` elementos, y el total copiado es
+
+```text
+1 + 2 + 4 + … + n/2 + n < 2n
+```
+
+es decir, **menos de dos copias por elemento añadido** repartidas entre las `n` llamadas. El coste
+**amortizado** de `add` es `O(1)`: no es que cada llamada sea constante, es que `n` llamadas
+cuestan `O(n)` en total, y por tanto `O(1)` de media garantizada —no de media probabilística, que
+es la diferencia con el caso medio—.
+
+Si la capacidad creciera de 10 en 10 en lugar de duplicarse, el total copiado sería
+`10 + 20 + … + n ≈ n²/20`, y añadir un millón de elementos costaría `5·10¹⁰` copias. El factor de
+crecimiento constante no es un detalle de implementación: es lo que hace que la estructura funcione.
+
+De aquí sale también un consejo práctico: si sabes cuántos elementos vas a añadir, `new
+ArrayList<>(capacidadInicial)` elimina todas las copias.
+:::
+
+:::: {.ampliacion}
+#### **Recurrencias y el teorema maestro**
+
+Cuando el algoritmo es recursivo, el coste no se cuenta con bucles sino resolviendo una
+**recurrencia**. La búsqueda binaria descarta la mitad y se llama a sí misma una vez, lo que da
+`T(n) = T(n/2) + O(1)`; la ordenación por mezcla parte en dos, se llama dos veces y mezcla en
+tiempo lineal, lo que da `T(n) = 2T(n/2) + O(n)`.
+
+El **teorema maestro** resuelve de un golpe todas las de la forma `T(n) = a·T(n/b) + O(n^d)` con
+`a ≥ 1` y `b > 1`, comparando `d` con `log_b a`:
+
+- si `d > log_b a`, entonces `T(n) ∈ Θ(n^d)` — manda el trabajo de combinar;
+- si `d = log_b a`, entonces `T(n) ∈ Θ(n^d · log n)` — empatan, y aparece el logaritmo;
+- si `d < log_b a`, entonces `T(n) ∈ Θ(n^{log_b a})` — manda el número de hojas de la recursión.
+
+Para la búsqueda binaria, `a = 1`, `b = 2`, `d = 0`: estamos en el segundo caso, `log₂ 1 = 0 = d`,
+y sale `Θ(log n)`. Para la ordenación por mezcla, `a = 2`, `b = 2`, `d = 1`: otra vez el segundo
+caso, `log₂ 2 = 1 = d`, y sale `Θ(n log n)`. La demostración y los casos frontera están en
+[@cormen2022], capítulo 4.
+::::
+
+### 2.1.4 Búsqueda: lineal y binaria
+
+Buscar es la operación más frecuente de un programa y el ejemplo más limpio de cómo una hipótesis
+sobre los datos cambia el coste de raíz.
+
+La **búsqueda lineal** no supone nada: recorre y compara. Su peor caso es `n` comparaciones, y no se
+puede hacer mejor sin saber algo más de los datos, porque cualquier posición no examinada puede
+contener el elemento buscado.
+
+La **búsqueda binaria** supone que los datos están **ordenados**, y con eso baja a `O(log n)`: mira
+el elemento central, y como sabe que a su izquierda están todos los menores y a su derecha todos los
+mayores, descarta la mitad de un golpe. Veinte comparaciones bastan para un millón de elementos,
+porque `2²⁰ > 10⁶`.
+
+```{#busqueda-binaria .java}
+// Busquedas.java
+package es.uib.prgava.tema2.eficiencia;
+
+public final class Busquedas {
+
+    private Busquedas() { }
+
+    /** Posición de {@code buscado} en {@code datos}, o −1. Coste O(n). */
+    public static int lineal(int[] datos, int buscado) {
+        for (int i = 0; i < datos.length; i++) {
+            if (datos[i] == buscado) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Posición de {@code buscado} en {@code datos}, o −1. Coste O(log n).
+     *
+     * @param datos array <strong>ordenado</strong> de forma creciente
+     */
+    public static int binaria(int[] datos, int buscado) {
+        int izquierda = 0;
+        int derecha = datos.length - 1;
+        while (izquierda <= derecha) {
+            int centro = izquierda + (derecha - izquierda) / 2;
+            if (datos[centro] == buscado) {
+                return centro;
+            }
+            if (datos[centro] < buscado) {
+                izquierda = centro + 1;
+            } else {
+                derecha = centro - 1;
+            }
+        }
+        return -1;
+    }
+}
+```
+
+Dos detalles de la implementación merecen comentario, porque los dos son errores reales.
+
+::: {#cau-punto-medio .callout-caution title="Calcular el punto medio con `(izquierda + derecha) / 2`"}
+La forma evidente de calcular el centro es `(izquierda + derecha) / 2`, y es incorrecta: si el array
+es grande, la suma **desborda** el rango de `int` y da un número negativo, con lo que el acceso
+`datos[centro]` lanza `ArrayIndexOutOfBoundsException`. Hace falta un array de más de `2³⁰`
+elementos para provocarlo, lo que explica que el fallo sobreviviera **nueve años** en la propia
+biblioteca de Java: estaba en `java.util.Arrays.binarySearch` desde 1997 y se corrigió en 2006
+[@bloch2006extra].
+
+La forma correcta es la del listado: `izquierda + (derecha − izquierda) / 2`, que calcula el
+desplazamiento desde `izquierda` y nunca suma dos índices grandes. Es el mismo valor y no desborda.
+
+Es un error de la familia del [Error Frecuente sobre restar en `compareTo`](tema1.qmd#cau-resta-compareto)
+del Tema 1: en los dos casos la aritmética de
+`int` traiciona a una expresión que sobre los enteros matemáticos sería correcta.
+:::
+
+::: {#cau-binaria-sin-ordenar .callout-caution title="Buscar con búsqueda binaria en datos sin ordenar"}
+La búsqueda binaria **no comprueba** que los datos estén ordenados, y no puede: comprobarlo costaría
+`O(n)` y se perdería toda la ventaja. Si se le pasa un array desordenado no falla ni avisa:
+devuelve `−1` o una posición cualquiera, según le caiga.
+
+Lo que se obtiene es un programa que da resultados correctos en las pruebas pequeñas —con pocos
+elementos es fácil que el array esté ordenado por casualidad o que el elemento caiga en el centro— y
+resultados silenciosamente falsos en producción. De los errores que veremos en el tema, es el más
+difícil de localizar, porque no deja rastro.
+
+La precondición «ordenado» es parte de la firma aunque el compilador no la pueda expresar: por eso
+va escrita en el javadoc del listado. Y si los datos vienen de fuera y no hay garantía, la decisión
+correcta no es ordenar antes de cada búsqueda —eso cuesta `O(n log n)` y haría la búsqueda más cara
+que la lineal— sino mantener la estructura ordenada desde el principio, que es lo que hacen
+`TreeMap` y `TreeSet` (2.2.5, @imp-arbol-busqueda).
+:::
+
+#### **Lo que da la biblioteca**
+
+Para arrays, el método `java.util.Arrays.binarySearch` hace exactamente esto, y para listas
+ordenadas, `java.util.Collections.binarySearch`. Su valor de retorno tiene una particularidad muy
+útil: si el elemento **no está**, no devuelven `−1`, sino `−(punto de inserción) − 1`, un número
+negativo del que se recupera el lugar donde habría que insertarlo para mantener el orden.
+
+```java
+// Fragmento
+int[] puertos = {22, 25, 80, 443, 8080};
+
+System.out.println(Arrays.binarySearch(puertos, 443));   // 3
+System.out.println(Arrays.binarySearch(puertos, 1024));  // -5
+
+int posicion = Arrays.binarySearch(puertos, 1024);
+if (posicion < 0) {
+    int donde = -posicion - 1;                           // 4: iría justo antes de 8080
+}
+```
+
+La codificación con `−x − 1` en lugar de `−x` existe porque el punto de inserción puede ser 0 —si el
+elemento es menor que todos— y `−0` no se distingue de `0`, que significaría «encontrado en la
+posición 0».
+
+### 2.1.5 Ordenación
+
+Ordenar es la operación que más veces aparece como **paso previo**: permite buscar en `O(log n)`,
+detectar duplicados en un recorrido, agrupar elementos iguales y responder «los k mayores» sin
+examinar todo. Conviene saber qué cuesta y qué garantiza.
+
+La escalera de algoritmos clásicos se resume en una tabla. No vamos a implementarlos —no es el
+objetivo de la asignatura y la biblioteca los trae mejor escritos—, pero sus costes hay que
+conocerlos:
+
+| Algoritmo | Peor caso | Caso medio | Memoria extra | ¿Estable? |
+|---|---|---|---|---|
+| Inserción | `O(n²)` | `O(n²)` | `O(1)` | sí |
+| Selección | `O(n²)` | `O(n²)` | `O(1)` | no |
+| Mezcla (*merge sort*) | `O(n log n)` | `O(n log n)` | `O(n)` | sí |
+| Montículo (*heap sort*) | `O(n log n)` | `O(n log n)` | `O(1)` | no |
+| Rápida (*quicksort*) | `O(n²)` | `O(n log n)` | `O(log n)` | no |
+
+Dos columnas de esa tabla se suelen pasar por alto y son las que deciden en la práctica. La de
+**memoria extra** explica por qué la ordenación por mezcla, que tiene el mejor peor caso, no es
+siempre la elegida: necesita un array auxiliar del tamaño del original. Y la de **estabilidad**
+decide el resultado, no el coste.
+
+::: {#imp-estabilidad .callout-important title="Ordenación estable"}
+Una ordenación es **estable** si los elementos que el criterio considera iguales conservan entre sí
+el orden que tenían antes de ordenar.
+
+Importa en cuanto se ordena por un criterio que no distingue todos los elementos, que es lo normal.
+Si una lista de resultados está ordenada por instante y se reordena por servicio con una ordenación
+estable, dentro de cada servicio los resultados siguen en orden cronológico: se han ordenado por dos
+criterios haciendo dos pasadas. Con una ordenación inestable, el orden dentro de cada servicio es
+imprevisible y la segunda pasada destruye el trabajo de la primera.
+
+Por eso Java garantiza la estabilidad al ordenar **objetos** y no la garantiza al ordenar
+**primitivos**: dos `int` iguales son indistinguibles, así que la pregunta no tiene sentido.
+:::
+
+::: {#tip-dos-ordenaciones .callout-tip title="Java usa dos algoritmos de ordenación distintos, y por buenas razones"}
+La biblioteca de Java tiene dos implementaciones de `sort`, y la que se ejecuta depende del tipo de
+lo que se ordena:
+
+- Para **tipos primitivos** (`int[]`, `double[]`…), `Arrays.sort` usa **quicksort de doble pivote**.
+  Ordena en el propio array, sin memoria extra, y aprovecha la localidad de la memoria caché. Su
+  peor caso es cuadrático, pero la elección de dos pivotes hace que las entradas que lo provocan
+  sean rarísimas, y la estabilidad no importa.
+- Para **objetos** (`Integer[]`, `List<Resultado>`…), `Arrays.sort` y `Collections.sort` usan
+  **TimSort**, una variante de la ordenación por mezcla que detecta los tramos ya ordenados de la
+  entrada y los aprovecha. Es **estable**, su peor caso es `O(n log n)` garantizado, y en datos
+  parcialmente ordenados —que es lo habitual: registros que llegan casi en orden cronológico— baja
+  a casi `O(n)`. El precio es la memoria extra.
+
+La decisión de la biblioteca es, por tanto: con primitivos manda la velocidad y la memoria; con
+objetos mandan la garantía y la estabilidad, porque comparar objetos ya es caro de por sí (una
+llamada a `compareTo`) y el ahorro de memoria no compensa perder la estabilidad.
+:::
+
+::: {#tip-cota-inferior .callout-tip title="Ninguna ordenación por comparaciones puede bajar de `n log n`"}
+No es que no se haya encontrado un algoritmo mejor: es que no puede existir, y se demuestra en tres
+líneas.
+
+Un algoritmo que solo puede preguntar «¿es `a` menor que `b`?» se puede dibujar como un árbol de
+decisión: cada nodo interno es una comparación, con dos ramas, y cada hoja es una de las
+ordenaciones posibles de la entrada. Hay `n!` ordenaciones posibles, así que el árbol necesita al
+menos `n!` hojas. Un árbol binario de altura `h` tiene a lo sumo `2^h` hojas, de modo que
+`2^h ≥ n!`, es decir `h ≥ log₂(n!)`. Y por la aproximación de Stirling, `log₂(n!) ∈ Θ(n log n)`.
+
+La altura del árbol es el número de comparaciones en el peor caso, luego **toda** ordenación por
+comparaciones hace `Ω(n log n)` comparaciones. La demostración completa está en [@cormen2022],
+capítulo 8.
+
+La hipótesis que hace falta romper para bajar de ahí es «solo puede comparar»: si se sabe algo más
+de los datos, se puede. La ordenación por conteo ordena `n` enteros de un rango pequeño en `O(n)`,
+y no contradice nada, porque no compara: usa los valores como índices.
+:::
+
+#### **Ordenar con un criterio: `Comparable` y `Comparator`**
+
+Las dos interfaces ya aparecieron en el Tema 1 —el orden natural con
+[`Comparable`](tema1.qmd#imp-interfaz) y los criterios a la carta con `Comparator`, incluidos sus
+combinadores `comparing` y `thenComparing`—, así que aquí solo hace falta el aviso sobre lo que
+pasa cuando el criterio no es consistente.
+
+::: {#cau-comparator-inconsistente .callout-caution title="Ordenar con un `Comparator` que se contradice"}
+Un comparador tiene que definir un **orden total**: si `a < b` y `b < c`, entonces `a < c`; si
+`compare(a, b)` es negativo, `compare(b, a)` tiene que ser positivo; y dos elementos iguales deben
+dar 0 en los dos sentidos. TimSort **cuenta con eso** para no comparar lo que ya sabe, y cuando el
+comparador se contradice, el algoritmo descubre la incoherencia a mitad de camino y lanza
+
+```text
+java.lang.IllegalArgumentException: Comparison method violates its general contract!
+```
+
+El mensaje desconcierta porque la excepción se lanza desde dentro de `sort`, no desde el
+comparador, y porque es **intermitente**: solo salta cuando la entrada es lo bastante grande y
+lo bastante desordenada para que TimSort tome el atajo que la expone. Un comparador roto puede
+funcionar meses en listas de diez elementos.
+
+Las dos causas habituales son restar enteros que pueden desbordar —el
+[Error Frecuente sobre restar en `compareTo`](tema1.qmd#cau-resta-compareto) del Tema 1— y comparar con un criterio que no es transitivo, típicamente
+«`a` es menor que `b` si `a` está a menos de un segundo antes que `b`».
+:::
+
+### 2.1.6 El coste del monitor, medido
+
+**En el monitor.** Ya se puede analizar el problema que abre el tema. El bucle de una ronda es este,
+con los nombres del Tema 1:
+
+```java
+// Fragmento: el núcleo de Monitor.comprobar, del Tema 1
+public Resultado comprobar(Servicio servicio) {
+    var resultado = sonda.sondear(servicio);
+    repositorio.guardar(resultado);
+    if (politica.debeAlertar(repositorio.historial(servicio))) {
+        avisar(servicio);
+    }
+    return resultado;
+}
+```
+
+Llamemos `s` al número de servicios y `r` al de rondas. Al final de la ejecución el repositorio
+guarda `N = r·s` resultados. Y el método `historial` de `RepositorioEnMemoria`, tal como quedó
+escrito, **recorre los `N` resultados** y se queda con los del servicio pedido. Como se llama una
+vez por cada comprobación, y hay `r·s` comprobaciones, el coste total de las consultas es
+
+```text
+r·s llamadas × O(r·s) cada una  =  O(r²s²)
+```
+
+Cuadrático en las dos variables. Duplicar el número de rondas cuadruplica el trabajo; duplicar el
+número de servicios, también. Y no hay en el código ninguna línea señalable como culpable: el error
+está en que `historial` responde una pregunta sobre **un** servicio recorriendo los datos de
+**todos**.
+
+Medido, con `s = 20` servicios y una política de tres fallos consecutivos, quedándose con el mínimo
+de tres repeticiones y después de calentar la máquina virtual (@wrn-cronometrar):
+
+| Rondas | Resultados guardados | Comparaciones en `historial` | Tiempo |
+|---:|---:|---:|---:|
+| 100 | 2 000 | 2 001 000 | 11 ms |
+| 200 | 4 000 | 8 002 000 | 52 ms |
+| 400 | 8 000 | 32 004 000 | 217 ms |
+| 800 | 16 000 | 128 008 000 | 809 ms |
+| 1 600 | 32 000 | 512 016 000 | 3 295 ms |
+
+La columna de comparaciones es la que confirma el análisis sin depender de la máquina: al duplicar
+las rondas se multiplica **exactamente por cuatro**. El tiempo la sigue de cerca, con el ruido
+esperable. Y la última fila dice que la [monitorización]{.glos} de veinte servicios durante mil seiscientas rondas
+—unas veintisiete horas si se comprueba cada minuto— consume tres segundos y medio de cálculo para
+responder quinientas doce millones de veces a una pregunta cuya respuesta cabe en tres resultados.
+
+Lo que falta para arreglarlo no es un algoritmo mejor: es una estructura de datos que sepa
+responder «los resultados de este servicio» sin mirar los demás. Eso es la sección 2.2, y la
+respuesta medida está en 2.3.3.
+
+## 2.2. Estructuras de datos fundamentales y la Java Collections Framework
+
+**En el monitor de servicios** (@fig-monitor2) la pieza que hay que cambiar es el repositorio, y
+para elegir con qué cambiarla hace falta conocer el catálogo. Esta sección lo recorre, pero no como
+una lista de clases: cada estructura se presenta por **el mecanismo que la hace funcionar**, porque
+el mecanismo es lo que explica el coste, y el coste es lo que decide.
+
+### 2.2.1 El mapa de la biblioteca
+
+Antes del catálogo, una distinción que organiza todo lo demás.
+
+::: {#imp-tad .callout-important title="Tipo abstracto de datos"}
+Un **tipo abstracto de datos** (TAD) es la descripción de un conjunto de valores y de las
+operaciones que se pueden hacer con ellos, **sin decir cómo se representan ni cómo se implementan
+las operaciones**. «Una secuencia de elementos a la que se puede añadir al final, consultar por
+posición y recorrer» es un TAD.
+
+Una **estructura de datos** es una forma concreta de representar un TAD en memoria: un array, una
+cadena de nodos enlazados, un árbol. Un mismo TAD admite muchas estructuras, con costes distintos.
+
+En Java la distinción está en el lenguaje: el TAD es una **interfaz** (`List`, `Set`, `Map`,
+`Deque`) y la estructura es una **clase** que la implementa (`ArrayList`, `HashSet`, `TreeMap`,
+`ArrayDeque`). Esto no es un detalle de estilo, es la aplicación directa del principio de inversión
+de dependencias del Tema 1 ([Concepto Clave sobre interfaces](tema1.qmd#imp-javainterfaces)):
+
+```java
+// Fragmento
+List<Resultado> historial = new ArrayList<>();   // bien: el tipo es el TAD
+ArrayList<Resultado> otro = new ArrayList<>();   // peor: el tipo es la estructura
+```
+
+La primera forma permite cambiar `ArrayList` por `LinkedList` tocando una línea, y obliga al resto
+del código a usar solo lo que `List` promete. La segunda ata todo el código que ve esa variable a
+una implementación concreta. La regla práctica: **declara con la interfaz, construye con la clase**,
+y lo mismo en los parámetros y los tipos de retorno de tus métodos.
+:::
+
+La jerarquía de interfaces de la biblioteca es pequeña y conviene tenerla en la cabeza
+(@fig-jcf):
+
+```{mermaid}
+%%| label: fig-jcf
+%%| fig-cap: "Las interfaces de la Java Collections Framework y las implementaciones que usaremos. `Map` no hereda de `Collection`: una correspondencia no es una colección de elementos, sino de pares."
+flowchart TB
+    IT["<b>Iterable</b><br/><i>se puede recorrer</i>"]
+    CO["<b>Collection</b><br/><i>añadir, quitar, contiene, tamaño</i>"]
+    LI["<b>List</b><br/><i>orden por posición, duplicados</i>"]
+    SE["<b>Set</b><br/><i>sin duplicados</i>"]
+    QU["<b>Queue / Deque</b><br/><i>añadir y quitar por los extremos</i>"]
+    MA["<b>Map</b><br/><i>clave → valor</i>"]
+
+    IT --> CO
+    CO --> LI
+    CO --> SE
+    CO --> QU
+    LI -.-> AL["ArrayList<br/>LinkedList"]
+    SE -.-> HS["HashSet<br/>LinkedHashSet<br/>TreeSet"]
+    QU -.-> AD["ArrayDeque<br/>PriorityQueue"]
+    MA -.-> HM["HashMap<br/>LinkedHashMap<br/>TreeMap"]
+```
+
+Hay que fijarse en dos cosas del esquema (@fig-jcf). La primera es que `Map` cuelga aparte: no es una
+`Collection`, porque sus elementos son pares y no valores sueltos. La segunda es que de cada
+interfaz salen **varias** implementaciones, y todo el resto de la sección consiste en saber cuál.
+
+#### **Recorrer: `Iterable` e iteradores**
+
+Toda colección es `Iterable`, y eso es exactamente lo que permite escribir el bucle `for` mejorado:
+
+```java
+// Fragmento: las dos formas son la misma
+for (Resultado resultado : historial) {
+    System.out.println(resultado);
+}
+
+var it = historial.iterator();          // lo que el compilador genera
+while (it.hasNext()) {
+    var resultado = it.next();
+    System.out.println(resultado);
+}
+```
+
+El **iterador** es un objeto que recuerda por dónde va el recorrido. Su interés para este tema es
+que cada estructura implementa el suyo de la forma que le conviene —el de `ArrayList` lleva un
+índice, el de `LinkedList` lleva un puntero al nodo actual, el de `HashMap` recorre las cubetas—, y
+que por eso recorrer una colección completa cuesta `O(n)` en todas, aunque el acceso a un elemento
+concreto cueste cosas muy distintas.
+
+::: {#cau-modificar-mientras-recorres .callout-caution title="Añadir o quitar elementos mientras se recorre la colección"}
+Esto parece razonable y no funciona:
+
+```java
+// Fragmento: no funciona
+for (Resultado resultado : historial) {
+    if (resultado.esFallo()) {
+        historial.remove(resultado);       // ConcurrentModificationException
+    }
+}
+```
+
+El iterador lleva la cuenta de las modificaciones estructurales que ha sufrido la colección; si
+detecta una que no ha hecho él, lanza `ConcurrentModificationException`. El nombre es engañoso,
+porque no hace falta concurrencia ninguna: basta un solo hilo haciendo lo de arriba. La
+comprobación existe porque un iterador cuyo respaldo cambia por debajo puede saltarse elementos o
+devolver basura, y es mejor fallar que mentir.
+
+Hay tres salidas correctas, en orden de preferencia:
+
+```java
+// Fragmento
+historial.removeIf(Resultado::esFallo);                 // 1: lo más claro
+
+var it = historial.iterator();                          // 2: si hace falta más control
+while (it.hasNext()) {
+    if (it.next().esFallo()) {
+        it.remove();                                    // el iterador sí puede
+    }
+}
+
+var limpio = historial.stream()                         // 3: si prefieres no mutar
+        .filter(r -> !r.esFallo())
+        .toList();
+```
+
+La detección es **de mejor esfuerzo**: no está garantizada. Un programa que modifica mientras
+recorre puede no lanzar la excepción y producir resultados incorrectos, lo que lo convierte en un
+error de la misma familia que buscar sin ordenar (@cau-binaria-sin-ordenar).
+:::
+
+#### **Colecciones inmutables y vistas**
+
+En el Tema 1 apareció `List.copyOf` para devolver un historial que quien lo recibe no pueda
+modificar. Conviene distinguir tres cosas que se parecen y no son lo mismo:
+
+- **Colección inmutable**: `List.of(...)`, `Set.of(...)`, `Map.of(...)`, `List.copyOf(otra)`. No
+  tiene métodos de modificación operativos —lanzan `UnsupportedOperationException`— y su contenido
+  no puede cambiar nunca. `copyOf` hace una **copia**, así que cambiar el original no la afecta.
+- **Vista no modificable**: `Collections.unmodifiableList(otra)`. No copia: envuelve. Quien tiene la
+  vista no puede modificarla, pero **si alguien modifica la lista original, la vista cambia**. Es
+  más barata y bastante más peligrosa.
+- **Elementos inmutables**: ninguna de las dos cosas anteriores hace inmutables los elementos. Una
+  lista inmutable de objetos mutables deja que cualquiera cambie los objetos. Es el mismo problema
+  que vimos al no exponer un array: proteger el contenedor no protege el contenido.
+
+La regla del curso: los métodos que devuelven una colección interna devuelven `List.copyOf` del
+contenido, y los elementos son `record` inmutables. Las dos cosas juntas son lo que hace que el
+historial sea seguro de publicar.
+
+### 2.2.2 Secuencias: array, `ArrayList` y `LinkedList`
+
+Una secuencia guarda elementos en un orden que el programa controla y permite llegar a ellos por su
+posición. Hay dos formas de representarla, y son el ejemplo canónico de que la estructura decide el
+coste.
+
+Un **array** reserva un bloque contiguo de memoria con hueco para `n` elementos. La dirección del
+elemento `i` se calcula con una multiplicación y una suma, así que el acceso por índice cuesta
+`O(1)`. El precio es que el tamaño se fija al crearlo.
+
+Una **lista enlazada** guarda cada elemento en un nodo que, además del valor, contiene la dirección
+del nodo siguiente (y en la variante doblemente enlazada, también del anterior). Crece sin límite y
+sin copiar nada, pero para llegar al elemento `i` hay que seguir `i` enlaces: `O(n)`.
+
+```{dot}
+//| label: fig-array-vs-enlazada
+//| fig-cap: "Un array y una lista doblemente enlazada con los mismos cuatro elementos. En el array las posiciones son contiguas y calculables; en la lista hay que seguir los enlaces."
+digraph G {
+    rankdir=LR;
+    node [shape=record, fontname="sans-serif", fontsize=10];
+    bgcolor="transparent";
+
+    subgraph cluster_0 {
+        label="array";
+        color="#9aa0a6";
+        fontname="sans-serif";
+        fontsize=10;
+        a [label="{<p0>80|<p1>443|<p2>22|<p3>8080}"];
+    }
+
+    subgraph cluster_1 {
+        label="lista doblemente enlazada";
+        color="#9aa0a6";
+        fontname="sans-serif";
+        fontsize=10;
+        n0 [label="{80}"];
+        n1 [label="{443}"];
+        n2 [label="{22}"];
+        n3 [label="{8080}"];
+        n0 -> n1 -> n2 -> n3 [color="#0060A8"];
+        n3 -> n2 -> n1 -> n0 [color="#9aa0a6", constraint=false];
+    }
+}
+```
+
+Las dos representaciones (@fig-array-vs-enlazada) dan la tabla de costes que hay que memorizar, con
+una advertencia inmediatamente después:
+
+| Operación | `ArrayList` | `LinkedList` |
+|---|:---:|:---:|
+| `get(i)` / `set(i, x)` | `O(1)` | `O(n)` |
+| `add(x)` al final | `O(1)` amortizado | `O(1)` |
+| `add(0, x)` al principio | `O(n)` | `O(1)` |
+| `add(i, x)` en el medio | `O(n)` | `O(n)` |
+| `remove(i)` | `O(n)` | `O(n)` |
+| `contains(x)` / `indexOf(x)` | `O(n)` | `O(n)` |
+| recorrer con `for` mejorado | `O(n)` | `O(n)` |
+| memoria por elemento | el valor | el valor + dos enlaces |
+
+El coste amortizado del `add` al final es el de @tip-amortizado. Y las dos filas de `add(i, x)` y
+`remove(i)` en el medio son iguales por razones distintas, que es lo que más confunde: el
+`ArrayList` encuentra la posición en `O(1)` pero tiene que desplazar el resto; la `LinkedList`
+enlaza en `O(1)` pero tiene que **llegar** hasta la posición. Las dos pagan, cada una en su mitad
+del trabajo.
+
+::: {#cau-linkedlist-por-defecto .callout-caution title="Elegir `LinkedList` porque «inserta en tiempo constante»"}
+De la tabla parece seguirse que una `LinkedList` es la elección correcta cuando el programa inserta
+y borra mucho. En la práctica casi nunca lo es, y la razón no está en la tabla.
+
+La tabla cuenta operaciones elementales suponiendo que todas cuestan lo mismo (@imp-coste), y en un
+procesador real eso es falso por un factor de cien: los datos se traen de memoria principal a la
+memoria caché en bloques de 64 bytes, así que recorrer un array trae varios elementos de golpe,
+mientras que recorrer una lista enlazada salta a una dirección distinta —y probablemente lejana— en
+cada paso. Un recorrido de `ArrayList` y uno de `LinkedList` son los dos `O(n)`, y el primero es
+varias veces más rápido.
+
+A eso se añade la memoria: cada nodo de `LinkedList` es un objeto con dos referencias además del
+valor, de modo que una lista de un millón de enteros ocupa varias veces más que el `ArrayList`
+equivalente, y cada objeto extra es trabajo para el recolector de basura.
+
+El criterio honesto: usa `ArrayList` salvo que midas que no sirve. La `LinkedList` gana en un caso
+concreto —inserciones y borrados **por los extremos**, muchos y en listas grandes— y para ese caso
+hay una estructura mejor, `ArrayDeque` (2.2.3, @imp-pila-cola). Su propio javadoc, de hecho, no la
+recomienda para ningún uso concreto, y la documentación de `ArrayDeque` sí dice que es «probablemente
+más rápida que `Stack` cuando se usa como pila y más rápida que `LinkedList` cuando se usa como cola»
+[@jdk25collections].
+:::
+
+::: {#cau-borrar-en-bucle .callout-caution title="Borrar elementos de un `ArrayList` uno a uno dentro de un bucle"}
+Este bucle es `O(n²)` y se lee como si fuera `O(n)`:
+
+```java
+// Fragmento: cuadrático sin que se note
+for (int i = lista.size() - 1; i >= 0; i--) {
+    if (lista.get(i).esFallo()) {
+        lista.remove(i);              // desplaza todo lo que va detrás
+    }
+}
+```
+
+Cada `remove(i)` desplaza los elementos posteriores una posición, es decir `O(n)`, y el bucle lo
+hace hasta `n` veces. Con diez mil elementos y la mitad a borrar son veinticinco millones de
+desplazamientos.
+
+El método `removeIf` resuelve el caso en una sola pasada: recorre, compacta y ajusta el tamaño,
+todo en `O(n)`. Que además se lea mejor es casi una casualidad afortunada.
+
+El error aparece también en forma de `lista.remove(0)` repetido para «consumir» una lista por el
+principio. Para eso está `ArrayDeque`.
+:::
+
+#### **Las interfaces secuenciadas de Java 21**
+
+Hasta Java 21 no había forma uniforme de pedir el primer o el último elemento de una colección
+ordenada: en `List` era `get(0)` y `get(size() - 1)`, en `Deque` era `getFirst` y `getLast`, en
+`SortedSet` era `first` y `last`, y una `LinkedHashSet` simplemente no lo ofrecía. La interfaz
+`SequencedCollection` unificó eso:
+
+```java
+// Fragmento
+List<Integer> puertos = new ArrayList<>(List.of(22, 25, 80, 443));
+
+System.out.println(puertos.getFirst());     // 22
+System.out.println(puertos.getLast());      // 443
+System.out.println(puertos.reversed());     // [443, 80, 25, 22]  (una vista, no una copia)
+```
+
+Lo heredan `List`, `Deque`, `SortedSet` y `LinkedHashSet`, y hay `SequencedMap` para
+`LinkedHashMap` y `TreeMap`. Conviene usarlo: `getFirst()` dice lo que quiere decir y
+`get(size() - 1)` hay que descifrarlo.
+
+### 2.2.3 Pilas y colas: `Deque` y `ArrayDeque`
+
+Las dos estructuras más antiguas de la informática no se distinguen por cómo guardan los datos, sino
+por **qué elemento dejan sacar**.
+
+::: {#imp-pila-cola .callout-important title="Pila y cola"}
+Una **pila** (*stack*) es una secuencia en la que se añade y se saca por el mismo extremo: el último
+que entra es el primero que sale (LIFO, *last in, first out*). Es la estructura del deshacer, de la
+evaluación de expresiones y de las llamadas a métodos: la propia máquina virtual mantiene una pila
+de marcos de activación, y lo que imprime una traza de pila es justamente eso.
+
+Una **cola** (*queue*) añade por un extremo y saca por el otro: el primero que entra es el primero
+que sale (FIFO, *first in, first out*). Es la estructura de todo lo que espera turno —paquetes en un
+[encaminador]{.glos}, peticiones en un servidor, tareas pendientes— y la base de los recorridos en
+anchura.
+
+Las dos se pueden ver como restricciones de un TAD más general, la **cola doblemente terminada**
+(*double-ended queue*, de donde `Deque`), que permite añadir y sacar por los dos extremos. Java
+ofrece solo esa, y la pila y la cola se obtienen usando el subconjunto de operaciones que
+corresponda.
+:::
+
+La implementación recomendada es `ArrayDeque` [@jdk25collections], un **array circular**: un array con dos índices, uno
+para la cabeza y otro para la cola, que avanzan y dan la vuelta al llegar al final. Así añadir y
+quitar por cualquiera de los dos extremos cuesta `O(1)` sin desplazar nada, y el array se duplica
+cuando se llena, con el mismo argumento amortizado de @tip-amortizado.
+
+```java
+// Fragmento: la misma clase, usada como pila y como cola
+var pila = new ArrayDeque<String>();
+pila.push("primero");                 // addFirst
+pila.push("segundo");
+System.out.println(pila.pop());       // segundo     (LIFO)
+
+var cola = new ArrayDeque<String>();
+cola.addLast("primero");
+cola.addLast("segundo");
+System.out.println(cola.pollFirst()); // primero     (FIFO)
+```
+
+De los métodos de `Deque` hay que conocer una cosa: **vienen por parejas**, una versión que lanza
+excepción si la operación no se puede hacer y otra que devuelve un valor especial.
+
+| Qué hace | Lanza excepción | Devuelve valor especial |
+|---|---|---|
+| Añadir al principio | `addFirst(x)` | `offerFirst(x)` → `false` |
+| Añadir al final | `addLast(x)` | `offerLast(x)` → `false` |
+| Quitar del principio | `removeFirst()` → `NoSuchElementException` | `pollFirst()` → `null` |
+| Quitar del final | `removeLast()` | `pollLast()` → `null` |
+| Mirar sin quitar | `getFirst()` | `peekFirst()` → `null` |
+
+La pareja a elegir depende de si la cola vacía es un caso **esperado** o un **error**. Un consumidor
+que pregunta «¿hay algo pendiente?» usa `pollFirst` y comprueba el `null`; un algoritmo que sabe por
+construcción que la pila no está vacía usa `pop`, y si se equivoca prefiere la excepción a un `null`
+que se propague.
+
+::: {#cau-usar-stack .callout-caution title="Usar `java.util.Stack` o `LinkedList` para una pila"}
+Java tiene una clase que se llama `Stack`, y no hay que usarla. Es de 1995, hereda de `Vector` y por
+tanto **sincroniza todos sus métodos**, lo que cuesta tiempo en un programa de un solo hilo y no
+basta para uno concurrente. Y hereda de `Vector` otra cosa peor: al ser una `List`, permite
+`get(i)`, `add(i, x)` y recorrerse por posiciones, de modo que el tipo no impide usarla como lo que
+no es. Para colmo, su iterador recorre **desde el fondo**, al contrario de lo que `pop` devuelve.
+
+La alternativa que la gente usa en su lugar, `LinkedList`, implementa `Deque` y es correcta, pero
+arrastra los problemas de @cau-linkedlist-por-defecto: un objeto nodo por elemento y ninguna
+localidad.
+
+La respuesta es `ArrayDeque` para las dos cosas, pila y cola, declarando la variable como `Deque`.
+La documentación oficial de `Stack` lo dice con sus palabras: recomienda `Deque` para usos nuevos.
+:::
+
+#### **La ventana deslizante**
+
+**En el monitor.** La política de alerta recibe el historial completo de un servicio, y en ningún
+caso lo necesita entero. La política de tres fallos consecutivos mira los tres últimos resultados;
+la de [latencia]{.glos} media mira las últimas `muestras`. Si lo que se guarda para decidir es una **ventana
+de los últimos `n` resultados** en lugar de todo el historial, el coste de consultar deja de crecer:
+la ventana tiene siempre el mismo tamaño.
+
+Esa es exactamente una cola con un tope: se añade por el final y, cuando se llena, se descarta por
+el principio.
+
+```{#ventana .java}
+// VentanaDeslizante.java
+package es.uib.prgava.tema2.monitor;
+
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+
+import es.uib.prgava.tema1.monitor.Resultado;
+
+/**
+ * Los últimos {@code capacidad} resultados de <strong>un</strong> servicio, en orden de llegada.
+ *
+ * <p>Añadir y consultar cuestan tiempo constante, y la memoria ocupada no depende del número de
+ * comprobaciones realizadas, sino solo de la capacidad.
+ */
+public final class VentanaDeslizante {
+
+    private final int capacidad;
+    private final Deque<Resultado> ultimos = new ArrayDeque<>();
+
+    public VentanaDeslizante(int capacidad) {
+        if (capacidad < 1) {
+            throw new IllegalArgumentException("Capacidad no positiva: " + capacidad);
+        }
+        this.capacidad = capacidad;
+    }
+
+    /** Añade un resultado y, si la ventana estaba llena, olvida el más antiguo. Coste O(1). */
+    public void agregar(Resultado resultado) {
+        if (ultimos.size() == capacidad) {
+            ultimos.removeFirst();
+        }
+        ultimos.addLast(resultado);
+    }
+
+    /** Los resultados de la ventana, del más antiguo al más reciente. Coste O(capacidad). */
+    public List<Resultado> contenido() {
+        return List.copyOf(ultimos);
+    }
+
+    public int cuantos() {
+        return ultimos.size();
+    }
+}
+```
+
+La condición del método `añadir` es la clave: se comprueba **antes** de añadir, no después, para que
+la ventana nunca pase de su capacidad ni siquiera transitoriamente. Y el método `contenido` devuelve
+una copia inmutable, por la razón de siempre: quien decide no debe poder modificar lo que se le da
+para decidir.
+
+El coste de `contenido` es `O(capacidad)` y no `O(1)`, porque copia. Es un coste **constante
+respecto al tamaño del problema**, que es lo que importa: no crece con el número de comprobaciones.
+Si incluso esa copia molestara, la alternativa es devolver una vista no modificable, con la
+advertencia de 2.2.1 sobre lo que una vista no protege.
+
+### 2.2.4 Tablas *hash*: `HashMap` y `HashSet`
+
+Aquí está la estructura que resuelve el problema del monitor, y la que conviene entender por dentro
+porque su contrato ya apareció en el Tema 1 sin que se pudiera explicar por qué existe.
+
+::: {#imp-tabla-hash .callout-important title="Tabla hash"}
+Una **tabla *hash*** (o tabla de dispersión) guarda pares clave-valor en un array de `m` posiciones
+llamadas **cubetas** (*buckets*). Para saber en qué cubeta va una clave, aplica una **función de
+dispersión** (*hash function*) que convierte la clave en un entero, y toma el resto de dividir ese
+entero entre `m`. Así, encontrar la cubeta de una clave cuesta `O(1)`: no se busca, se **calcula**.
+
+El problema es que dos claves distintas pueden caer en la misma cubeta —una **colisión**—, y es
+inevitable: hay infinitas claves posibles y `m` cubetas. Las tablas de Java resuelven la colisión
+guardando en cada cubeta una **lista de los pares que han caído en ella**; al buscar, se calcula la
+cubeta y después se recorre su lista comparando con `equals`.
+
+De ahí sale el coste. Si las claves se reparten bien, cada cubeta tiene pocos elementos y la
+operación es `O(1)` **esperado**. Si todas las claves caen en la misma cubeta, la tabla degenera en
+una lista y la operación es `O(n)`: ese es su peor caso (@imp-casos). Para que el reparto siga
+siendo bueno al crecer, la tabla vigila su **factor de carga** —número de pares dividido entre
+número de cubetas— y cuando pasa de 0,75 **duplica el número de cubetas y recoloca todo**, lo que
+cuesta `O(n)` pero se amortiza igual que el crecimiento del `ArrayList` (@tip-amortizado).
+
+Desde Java 8 hay una protección extra: cuando una cubeta acumula más de ocho pares, su lista se
+convierte en un árbol equilibrado, y el peor caso de la tabla pasa de `O(n)` a `O(log n)`. Se añadió
+porque el peor caso era explotable: bastaba enviar a un servidor claves elegidas para colisionar
+—nombres de parámetros de una petición HTTP, por ejemplo— para dejarlo sin CPU.
+:::
+
+Ahora se puede contestar la pregunta que el Tema 1 dejó pendiente: **por qué `equals` y `hashCode`
+tienen que ser coherentes**, y qué pasa exactamente si no lo son
+([Error Frecuente del Tema 1](tema1.qmd#cau-equals-sin-hashcode)). La tabla usa `hashCode` para
+elegir la cubeta y `equals` para buscar dentro de ella. Si dos objetos iguales devuelven códigos
+distintos, van a cubetas distintas, y el segundo no se encuentra nunca aunque esté guardado: la
+tabla no llega a comparar, porque mira en el sitio equivocado. No es un defecto de la tabla, es que
+se le ha mentido.
+
+::: {#cau-clave-mutable .callout-caution title="Usar como clave un objeto que cambia después de insertarlo"}
+Si un objeto se usa como clave de un `HashMap` y después se modifica un atributo que participa en su
+`hashCode`, el par **sigue en la cubeta antigua** y el objeto ahora dice pertenecer a otra. El
+resultado es una entrada inaccesible: `containsKey` con la propia clave devuelve `false`, pero
+recorrer el mapa la encuentra, y el par no se puede borrar ni sustituir.
+
+```java
+// Fragmento: la entrada se pierde dentro del mapa
+var etiqueta = new EtiquetaMutable("rack-3");
+var mapa = new HashMap<EtiquetaMutable, Integer>();
+mapa.put(etiqueta, 1);
+etiqueta.renombrar("rack-4");                  // cambia su hashCode
+System.out.println(mapa.containsKey(etiqueta)); // false
+System.out.println(mapa.size());                // 1
+```
+
+No hay ninguna excepción ni ningún aviso. Por eso las claves de un mapa deben ser **inmutables**, y
+por eso los `record` del monitor —`ServicioHttp`, `ServicioTcp`, `ServicioDns`— son claves
+perfectas: no tienen métodos de modificación, y su `equals` y su `hashCode` los genera el compilador
+a partir de los mismos componentes, de modo que la coherencia está garantizada.
+
+El caso venenoso es un objeto mutable que **no** redefine `equals`: entonces la igualdad es por
+identidad, el `hashCode` no cambia nunca y todo funciona. Mezclar las dos cosas —redefinir `equals`
+por estado y dejar el estado mutable— es lo que rompe.
+:::
+
+#### **Las variantes y los métodos que ahorran código**
+
+De `Map` hay tres implementaciones que usaremos, y la diferencia visible es el **orden en que se
+recorren**:
+
+| Implementación | Orden al recorrer | Coste de `get`/`put` |
+|---|---|:---:|
+| `HashMap` | ninguno, y además imprevisible | `O(1)` esperado |
+| `LinkedHashMap` | el de inserción (o el de último acceso) | `O(1)` esperado |
+| `TreeMap` | el orden de las claves | `O(log n)` |
+
+El `HashMap` no promete orden alguno, y conviene insistir en que tampoco promete que el orden sea
+**estable entre ejecuciones**: no se puede escribir una prueba que dependa de él. El
+`LinkedHashMap` mantiene además una lista doblemente enlazada de las entradas, lo que le permite
+recorrer en el orden de inserción por un coste de memoria pequeño; es la elección cuando hay que
+imprimir algo en un orden reproducible.
+
+De los métodos de `Map` hay cuatro que evitan casi todo el código repetitivo:
+
+```java
+// Fragmento
+Map<Servicio, List<Resultado>> indice = new HashMap<>();
+
+// 1. getOrDefault: consultar sin tener que comprobar null
+List<Resultado> suyos = indice.getOrDefault(servicio, List.of());
+
+// 2. computeIfAbsent: el patrón «crea la lista si no está y devuélvela»
+indice.computeIfAbsent(servicio, s -> new ArrayList<>()).add(resultado);
+
+// 3. merge: acumular
+Map<Estado, Integer> recuento = new HashMap<>();
+recuento.merge(resultado.estado(), 1, Integer::sum);
+
+// 4. putIfAbsent: no sobrescribir lo que ya hay
+indice.putIfAbsent(servicio, new ArrayList<>());
+```
+
+El segundo es el que más se usa y el que más líneas ahorra. Sin él hay que escribir la consulta, la
+comprobación de `null`, la creación y el `put`, y es fácil olvidarse de alguna.
+
+#### **El índice por servicio**
+
+**En el monitor.** Con esto ya se puede arreglar el repositorio. El problema era que `historial`
+respondía una pregunta sobre un servicio recorriendo los resultados de todos; la solución es guardar
+los resultados **ya repartidos por servicio**, de modo que responder sea buscar una clave.
+
+```{#repositorio-indexado .java}
+// RepositorioIndexado.java
+package es.uib.prgava.tema2.monitor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import es.uib.prgava.tema1.monitor.RepositorioResultados;
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+
+/**
+ * Repositorio en memoria con un índice por servicio.
+ *
+ * <p>Misma interfaz que {@code RepositorioEnMemoria} del Tema 1 y mismos resultados; lo único que
+ * cambia es que {@code historial} no recorre los resultados de los demás servicios.
+ */
+public final class RepositorioIndexado implements RepositorioResultados {
+
+    private final Map<Servicio, List<Resultado>> porServicio = new HashMap<>();
+
+    /** Coste O(1) esperado. */
+    @Override
+    public void guardar(Resultado resultado) {
+        porServicio.computeIfAbsent(resultado.servicio(), s -> new ArrayList<>()).add(resultado);
+    }
+
+    /** Coste O(1) esperado para encontrar la lista, más O(k) para copiarla. */
+    @Override
+    public List<Resultado> historial(Servicio servicio) {
+        return List.copyOf(porServicio.getOrDefault(servicio, List.of()));
+    }
+
+    /** Coste O(s): las claves ya son exactamente los servicios vistos. */
+    @Override
+    public Set<Servicio> servicios() {
+        return Set.copyOf(porServicio.keySet());
+    }
+}
+```
+
+Hay que fijarse en que `servicios()` ha dejado de recorrer nada: en la versión del Tema 1 construía
+un conjunto recorriendo todos los resultados, y aquí las claves del mapa **son** la respuesta. Es un
+efecto lateral frecuente de elegir bien la estructura: operaciones que no se estaban optimizando se
+vuelven baratas solas.
+
+Pero el arreglo está a medias, y la medición de 2.3.3 lo demostrará. El método `historial` ya no
+mira los resultados de los demás servicios, pero sigue **copiando todos los del suyo**, que crecen
+con cada ronda. Para que el coste de consultar deje de crecer hace falta la ventana de 2.2.3
+(@imp-pila-cola) sobre este índice, y de eso se encarga 2.3.3.
+
+### 2.2.5 Árboles de búsqueda: `TreeMap` y `TreeSet`
+
+La tabla *hash* es imbatible para la pregunta «¿está esta clave?», y es completamente inútil para
+«¿qué claves hay entre estas dos?». Calcular una cubeta destruye el orden a propósito: dos claves
+consecutivas acaban en cubetas lejanas. Cuando el orden hace falta, la estructura es otra.
+
+::: {#imp-arbol-busqueda .callout-important title="Árbol binario de búsqueda"}
+Un **árbol binario de búsqueda** guarda cada elemento en un nodo con dos hijos, y cumple en todo
+nodo la misma propiedad: **todo lo que está en el subárbol izquierdo es menor, y todo lo que está en
+el derecho es mayor**. Buscar consiste entonces en comparar con la raíz y bajar por el lado que
+corresponda, descartando el otro subárbol entero: es la búsqueda binaria (@cau-binaria-sin-ordenar),
+hecha estructura.
+
+El coste de buscar, insertar y borrar es la **altura** del árbol. Y ahí está el problema: insertar
+claves en orden creciente produce un árbol en el que cada nodo tiene un solo hijo, es decir una
+lista enlazada disfrazada, con altura `n` y coste `O(n)`. Como insertar en orden es lo más natural
+del mundo —resultados que llegan por instante, identificadores que se asignan consecutivamente—, el
+caso degenerado no es raro: es el habitual.
+
+La solución son los **árboles equilibrados**, que al insertar y al borrar reorganizan unos pocos
+nodos para mantener la altura en `O(log n)`. El `TreeMap` de Java usa un **árbol rojo-negro**, que
+garantiza que el camino más largo de la raíz a una hoja no es más del doble que el más corto. De
+ahí sale que todas sus operaciones sean `O(log n)` **en el peor caso**, no en el medio: es la
+diferencia de garantía que @imp-casos anunciaba.
+:::
+
+```{dot}
+//| label: fig-arbol
+//| fig-cap: "Un árbol binario de búsqueda con los mismos puertos. Buscar el 443 son dos comparaciones: mayor que 80, luego a la derecha; mayor que 443, no, es él. Recorrerlo en orden simétrico da la secuencia ordenada."
+digraph G {
+    node [shape=circle, fontname="sans-serif", fontsize=10, color="#0060A8"];
+    edge [color="#9aa0a6"];
+    bgcolor="transparent";
+    80 -> 25;
+    80 -> 443;
+    25 -> 22;
+    443 -> 8080;
+    22 [label="22"];
+}
+```
+
+Sobre un árbol así (@fig-arbol), lo que `TreeMap` y `TreeSet` ofrecen y las tablas *hash* no es toda una familia de consultas de
+orden, que son la razón de usarlos:
+
+| Pregunta | Método |
+|---|---|
+| la clave más pequeña y la más grande | `firstKey()`, `lastKey()` |
+| la mayor clave `≤ x`, la menor `≥ x` | `floorKey(x)`, `ceilingKey(x)` |
+| la mayor clave `< x`, la menor `> x` | `lowerKey(x)`, `higherKey(x)` |
+| todas las claves entre `a` y `b` | `subMap(a, true, b, false)` |
+| las anteriores a `x` / posteriores a `x` | `headMap(x)`, `tailMap(x)` |
+| recorrer al revés | `descendingMap()` |
+
+Las tres primeras cuestan `O(log n)`. Y la cuarta tiene una propiedad que conviene subrayar:
+`subMap` **no copia nada**, devuelve una **vista** del propio árbol, así que obtenerla cuesta
+`O(log n)` y recorrerla cuesta lo que midan los elementos que contenga, no el árbol entero. Es la
+diferencia entre responder «dame los resultados de la última hora» en tiempo proporcional a esa hora
+o al historial completo.
+
+#### **Consultas por instante**
+
+**En el monitor.** La política de alerta y los informes no son las únicas preguntas que se le hacen
+al repositorio. En cuanto hay días de datos aparecen las consultas por tiempo: «¿qué pasó entre las
+nueve y las diez?», «¿cuál fue el último resultado antes de la caída?». Con una lista hay que
+recorrerla entera; con un `TreeMap` indexado por instante, cada una es una consulta de orden.
+
+```{#indice-temporal .java}
+// IndiceTemporal.java
+package es.uib.prgava.tema2.monitor;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NavigableMap;
+import java.util.Optional;
+import java.util.TreeMap;
+
+import es.uib.prgava.tema1.monitor.Resultado;
+
+/**
+ * Resultados de un servicio indexados por el instante de la comprobación.
+ *
+ * <p>Permite responder consultas de intervalo y de vecindad en tiempo logarítmico, que es lo que
+ * una tabla <em>hash</em> no sabe hacer.
+ */
+public final class IndiceTemporal {
+
+    private final NavigableMap<Instant, List<Resultado>> porInstante = new TreeMap<>();
+
+    /** Coste O(log n). Varios resultados pueden compartir instante. */
+    public void agregar(Resultado resultado) {
+        porInstante.computeIfAbsent(resultado.instante(), i -> new ArrayList<>()).add(resultado);
+    }
+
+    /**
+     * Resultados con instante en {@code [desde, hasta)}.
+     *
+     * <p>Coste O(log n) para situar el intervalo, más O(k) para recorrer sus k resultados: no
+     * depende del tamaño total del índice.
+     */
+    public List<Resultado> entre(Instant desde, Instant hasta) {
+        var encontrados = new ArrayList<Resultado>();
+        for (var resultados : porInstante.subMap(desde, true, hasta, false).values()) {
+            encontrados.addAll(resultados);
+        }
+        return List.copyOf(encontrados);
+    }
+
+    /** El último resultado anterior o igual a {@code momento}, si lo hay. Coste O(log n). */
+    public Optional<Resultado> ultimoAntesDe(Instant momento) {
+        var entrada = porInstante.floorEntry(momento);
+        if (entrada == null) {
+            return Optional.empty();
+        }
+        var resultados = entrada.getValue();
+        return Optional.of(resultados.get(resultados.size() - 1));
+    }
+
+    public int cuantos() {
+        return porInstante.size();
+    }
+}
+```
+
+El valor del mapa es una **lista** de resultados y no un resultado suelto, por una razón que hay que
+ver: el instante de dos comprobaciones puede coincidir. El método `Instant.now()` tiene resolución
+de nanosegundos en teoría, pero la que le dé el sistema operativo en la práctica puede ser de
+milisegundos, y dos servicios comprobados seguidos pueden caer en el mismo instante. Si el valor
+fuera un `Resultado`, el segundo `put` **borraría** el primero, y el error solo aparecería en
+máquinas con reloj de poca resolución. Es un caso típico de invariante que hay que descubrir
+pensando, porque las pruebas pequeñas no lo provocan.
+
+El uso de `Optional` en `ultimoAntesDe` es el del Tema 1: «puede no haber ninguno» es una respuesta
+legítima, y devolver `null` obligaría a quien llama a acordarse de comprobarlo.
+
+### 2.2.6 Montículos y colas de prioridad: `PriorityQueue`
+
+Quedan dos preguntas que ni la tabla *hash* ni el árbol responden bien: «dame el **más urgente** de
+todos los pendientes» y «dame los **k mayores** de un millón». Las dos son la misma estructura.
+
+::: {#imp-monticulo .callout-important title="Montículo y cola de prioridad"}
+Una **cola de prioridad** es un TAD en el que se añaden elementos en cualquier orden y se saca
+siempre el **mínimo** según un criterio. No es una cola: el orden de salida no tiene nada que ver
+con el de entrada.
+
+La estructura que la implementa es el **montículo binario** (*binary heap*): un árbol binario
+**completo** —todos los niveles llenos salvo el último, que se llena de izquierda a derecha— que
+cumple en todo nodo que **su valor es menor o igual que el de sus dos hijos**. Es una propiedad más
+débil que la del árbol de búsqueda (@imp-arbol-busqueda): el mínimo está en la raíz, pero los
+elementos no están ordenados entre sí.
+
+Esa debilidad es justo lo que la hace eficiente. Como el árbol es completo, **no hace falta
+representarlo con nodos y enlaces**: cabe en un array, donde el nodo `i` tiene sus hijos en `2i+1` y
+`2i+2`. No hay objetos de más, no hay enlaces, y la localidad de memoria es la de un array. Insertar
+coloca el elemento al final y lo hace **subir** intercambiándolo con su padre mientras sea menor;
+extraer el mínimo coge la raíz, pone el último elemento en su lugar y lo hace **bajar**. Las dos
+operaciones recorren la altura del árbol, que al ser completo es `log n`.
+
+| Operación | Coste |
+|---|:---:|
+| consultar el mínimo (`peek`) | `O(1)` |
+| insertar (`offer`) | `O(log n)` |
+| extraer el mínimo (`poll`) | `O(log n)` |
+| construir el montículo con `n` elementos de golpe | `O(n)` |
+| buscar un elemento cualquiera (`contains`) | `O(n)` |
+
+La última fila es la contrapartida: un montículo no sabe buscar. Si el programa necesita a la vez
+«dame el mínimo» y «¿está este elemento?», hacen falta dos estructuras.
+:::
+
+::: {#cau-iterar-priorityqueue .callout-caution title="Recorrer una `PriorityQueue` esperando ver los elementos ordenados"}
+Este código no imprime las alertas por orden de gravedad:
+
+```java
+// Fragmento: el orden de salida no es el esperado
+for (Alerta alerta : colaDeAlertas) {
+    System.out.println(alerta);
+}
+System.out.println(colaDeAlertas.toString());   // tampoco
+```
+
+El iterador de `PriorityQueue` recorre el **array interno**, que cumple la propiedad del montículo
+pero no está ordenado: solo el primer elemento está garantizado en su sitio. El `toString` usa ese
+iterador, de modo que imprimir la cola para depurar induce al error directamente, y lo peor es que
+con tres o cuatro elementos el array **sí** suele salir ordenado por casualidad.
+
+La única forma de obtener los elementos en orden es **sacarlos**, con `poll` repetido, lo que vacía
+la cola y cuesta `O(n log n)` en total. Si hace falta conservarlos, se copian a una lista y se
+ordena, o se usa un `TreeSet` si los elementos no se repiten.
+
+La documentación lo dice —«el iterador no garantiza recorrer los elementos en ningún orden
+particular»—, y es una de esas frases del javadoc que conviene leer antes y no después.
+:::
+
+#### **La cola de alertas y los `k` peores servicios**
+
+**En el monitor.** Las alertas no son todas igual de urgentes: un servicio caído importa más que uno
+degradado, y entre dos caídos importa más el que lleva más tiempo así. Si el notificador tiene una
+cuota —un correo cada diez minutos, un mensaje por turno de guardia— lo que hay que enviar es la más
+grave de las pendientes, no la primera que llegó.
+
+```{#cola-alertas .java}
+// ColaDeAlertas.java
+package es.uib.prgava.tema2.monitor;
+
+import java.util.Comparator;
+import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
+
+import es.uib.prgava.tema1.monitor.Alerta;
+import es.uib.prgava.tema1.monitor.Estado;
+
+/**
+ * Alertas pendientes de enviar, ordenadas por gravedad y, a igual gravedad, por antigüedad.
+ *
+ * <p>Encolar y extraer la más grave cuestan O(log n); consultarla sin extraerla, O(1).
+ */
+public final class ColaDeAlertas {
+
+    /** Primero los caídos, después los degradados; a igual estado, la más antigua. */
+    private static final Comparator<Pendiente> POR_GRAVEDAD =
+            Comparator.comparingInt((Pendiente p) -> gravedad(p.estado()))
+                    .thenComparing(p -> p.alerta().instante());
+
+    private record Pendiente(Alerta alerta, Estado estado) { }
+
+    private final Queue<Pendiente> pendientes = new PriorityQueue<>(POR_GRAVEDAD);
+
+    private static int gravedad(Estado estado) {
+        return switch (estado) {
+            case CAIDO -> 0;
+            case DEGRADADO -> 1;
+            case ACTIVO -> 2;
+        };
+    }
+
+    public void encolar(Alerta alerta, Estado estado) {
+        pendientes.offer(new Pendiente(alerta, estado));
+    }
+
+    /** Extrae la alerta más grave pendiente, si hay alguna. */
+    public Optional<Alerta> siguiente() {
+        var pendiente = pendientes.poll();
+        return pendiente == null ? Optional.empty() : Optional.of(pendiente.alerta());
+    }
+
+    public int pendientes() {
+        return pendientes.size();
+    }
+}
+```
+
+El comparador merece una lectura. El método `gravedad` traduce el estado a un entero porque la cola
+saca siempre el **mínimo**, de modo que al más grave le toca el número más pequeño; es más legible
+que invertir el comparador. El `switch` sobre el enumerado no lleva `default` a propósito: así, el
+día que se añada un cuarto estado al enumerado, **el compilador avisa** de que aquí falta decidir
+qué gravedad tiene, en lugar de asignarle una por omisión silenciosamente.
+
+El segundo uso del montículo es menos evidente y más útil.
+
+::: {#nte-k-peores .callout-note title="Los `k` peores servicios con un montículo de tamaño `k`"}
+Para sacar los cinco servicios con peor [disponibilidad]{.glos} entre diez mil, lo inmediato es
+ordenar los diez mil y quedarse con los cinco primeros: `O(n log n)`, y hay que tener los diez mil
+en memoria a la vez.
+
+Se puede hacer mejor. Se mantiene un montículo **de tamaño `k`** con los mejores candidatos vistos
+hasta el momento, ordenado de forma que la raíz sea **el peor de los que están dentro**. Para cada
+servicio nuevo: si el montículo no está lleno, se mete; si está lleno y el nuevo es mejor que la
+raíz, se saca la raíz y se mete el nuevo; si no, se descarta.
+
+```java
+// Fragmento: los k de menor disponibilidad
+Queue<Medida> peores = new PriorityQueue<>(Comparator.comparingDouble(Medida::valor).reversed());
+for (Medida medida : medidas) {
+    peores.offer(medida);
+    if (peores.size() > k) {
+        peores.poll();          // fuera el de mayor disponibilidad de los k+1
+    }
+}
+```
+
+El coste es `O(n log k)` y la memoria `O(k)`. Con `n = 10 000` y `k = 5`, `log k` es 2,3 frente a
+los 13,3 de `log n`: casi seis veces menos comparaciones. Y lo que más importa en la práctica: la
+memoria no depende de `n`, así que el algoritmo funciona sobre un flujo de datos que no cabe en
+memoria, lo que un `sort` no puede hacer.
+
+El comparador va **invertido** (`reversed`) respecto a lo que se busca, y es el detalle que todo el
+mundo se equivoca la primera vez: para quedarse con los `k` menores hay que poder descartar el mayor
+de los candidatos, luego el mayor tiene que estar en la raíz.
+:::
+
+### 2.2.7 Lo que la biblioteca no trae
+
+:::: {.ampliacion}
+La Java Collections Framework cubre secuencias, conjuntos, correspondencias, colas y colas de
+prioridad. Hay dos ausencias que conviene conocer para no buscarlas en vano.
+
+**Grafos.** No hay interfaz `Graph` ni implementación ninguna. Un grafo se representa a mano, y casi
+siempre con una de estas dos estructuras, que son otra vez la misma disyuntiva de array contra
+enlaces:
+
+- **Lista de adyacencia**: `Map<V, List<V>>`, un vértice y sus vecinos. Ocupa `O(V + E)` y recorrer
+  los vecinos de un vértice cuesta lo que midan. Es la representación por omisión.
+- **Matriz de adyacencia**: `boolean[V][V]`. Ocupa `O(V²)` y responde «¿hay arista entre estos dos?»
+  en `O(1)`. Solo compensa en grafos densos o cuando esa pregunta domina.
+
+Para una red de comunicaciones —que es un grafo con los [encaminadores]{.glos} por vértices y los
+[enlaces]{.glos} por aristas— la lista de adyacencia es lo correcto, porque las redes reales son
+dispersas: un encaminador tiene unos pocos vecinos, no mil. Los algoritmos sobre grafos (recorridos
+en anchura y en profundidad, caminos mínimos de Dijkstra, árbol de recubrimiento mínimo) quedan
+fuera de la asignatura; el tratamiento canónico está en [@cormen2022], partes VI y VII, y la
+conexión con el encaminamiento real se verá en las asignaturas de redes.
+
+**Estructuras concurrentes.** Ninguna de las clases de este tema es segura si varios hilos la usan a
+la vez: un `HashMap` modificado desde dos hilos puede corromperse de formas que no son una excepción
+sino datos perdidos. El paquete `java.util.concurrent` trae las versiones que sí lo son
+—`ConcurrentHashMap`, `CopyOnWriteArrayList`, `BlockingQueue`— y es materia del Tema 3. Hasta
+entonces, todo el código de este tema supone un solo hilo.
+::::
+
+## 2.3. Criterios de selección de estructura según operación dominante
+
+**En el monitor de servicios** (@fig-monitor2) ya están sobre la mesa el análisis de 2.1 y el
+catálogo de 2.2. Falta el método para juntarlos: dado un programa, decidir qué estructura usar. Esta
+sección es ese método, y acaba midiendo si funcionó.
+
+### 2.3.1 La operación dominante
+
+No existe la estructura buena. Existe la estructura adecuada para **el reparto de operaciones que
+hace este programa**, y ese reparto hay que conocerlo antes de elegir.
+
+::: {#imp-operacion-dominante .callout-important title="Operación dominante"}
+La **operación dominante** de un programa, respecto a una estructura de datos, es la que más
+contribuye al coste total: el producto de **lo que cuesta cada vez** por **cuántas veces se hace**.
+
+El método tiene tres pasos y se puede hacer en una servilleta:
+
+1. **Enumerar** las operaciones que el programa pide a la estructura: insertar, buscar por clave,
+   recorrer todo, consultar un rango, sacar el mínimo, borrar.
+2. **Estimar la frecuencia** de cada una, en órdenes de magnitud y en función del tamaño del
+   problema. No hace falta precisión: basta distinguir «una vez al arrancar» de «una vez por
+   elemento» de «una vez por elemento y por ronda».
+3. **Multiplicar** la frecuencia por el coste que cada estructura candidata ofrece para esa
+   operación, y sumar. La que dé la suma menor gana.
+
+El paso que se salta siempre es el segundo, y es el único que no se puede copiar de una tabla: las
+frecuencias no están en la documentación de Java, están en el programa que estás escribiendo. Una
+estructura que hace una operación mil veces más barata no aporta nada si esa operación se ejecuta
+una vez.
+:::
+
+Aplicado al monitor, el inventario cabe en cuatro líneas. Con `s` servicios y `r` rondas:
+
+| Operación | ¿Cuántas veces? | ¿Quién la pide? |
+|---|---|---|
+| guardar un resultado | `r·s` | el monitor, en cada comprobación |
+| consultar lo necesario para decidir | `r·s` | la política de alerta |
+| consultar el historial completo de un servicio | unas pocas | los informes, al final |
+| consultar qué servicios hay | unas pocas | los informes |
+
+Las dos primeras filas ocurren `r·s` veces; las dos últimas, un puñado de veces en toda la
+ejecución. La conclusión es inmediata y es la que el Tema 1 no podía ver: **lo que hay que hacer
+barato es guardar y consultar-para-decidir**, y da exactamente igual lo que cueste producir un
+informe. La estructura del Tema 1 hacía lo contrario: guardar era `O(1)`, pero consultar costaba un
+recorrido completo, y era lo segundo lo que se hacía `r·s` veces.
+
+### 2.3.2 Qué estructura para qué operación
+
+La tabla siguiente es el resumen de 2.2 en forma utilizable. Las filas son preguntas que un programa
+le hace a sus datos; la columna de la derecha, la estructura que las responde bien.
+
+| Lo que el programa necesita | Estructura | Coste |
+|---|---|:---:|
+| acceder por posición, recorrer, añadir al final | `ArrayList` | `O(1)` / `O(n)` / `O(1)`† |
+| añadir y quitar por los dos extremos | `ArrayDeque` | `O(1)` |
+| los últimos `n`, olvidando los viejos | `ArrayDeque` con tope | `O(1)` |
+| ¿está este elemento? | `HashSet` | `O(1)`‡ |
+| el valor asociado a esta clave | `HashMap` | `O(1)`‡ |
+| recorrer en el orden en que se insertó | `LinkedHashMap` / `LinkedHashSet` | `O(1)`‡ |
+| recorrer en orden de clave; rangos; vecinos | `TreeMap` / `TreeSet` | `O(log n)` |
+| el mínimo (o el máximo) de un conjunto que cambia | `PriorityQueue` | `O(log n)` |
+| los `k` mejores de muchos | `PriorityQueue` de tamaño `k` | `O(n log k)` |
+| contar apariciones | `HashMap` con `merge` | `O(1)` por elemento‡ |
+| agrupar por una propiedad | `HashMap` con `computeIfAbsent` | `O(1)` por elemento‡ |
+
+† amortizado (@tip-amortizado) · ‡ esperado, no garantizado (@imp-tabla-hash)
+
+Puesta en forma de árbol de decisión (@fig-decision), la misma información se recorre más rápido:
+
+```{mermaid}
+%%| label: fig-decision
+%%| fig-cap: "Árbol de decisión para elegir estructura. Se entra por la operación que domina el coste, no por la que resulta más cómoda de programar."
+flowchart TB
+    A{"¿Hay relación<br/>clave → valor?"}
+    A -- "no" --> B{"¿El orden lo<br/>decide el programa?"}
+    A -- "sí" --> C{"¿Hacen falta<br/>rangos u orden<br/>de claves?"}
+    B -- "sí, por posición" --> D["ArrayList"]
+    B -- "sí, por los extremos" --> E["ArrayDeque"]
+    B -- "no, solo pertenencia" --> F{"¿Importa el orden<br/>al recorrer?"}
+    B -- "no, quiero el mínimo" --> G["PriorityQueue"]
+    F -- "no" --> H["HashSet"]
+    F -- "el de inserción" --> I["LinkedHashSet"]
+    F -- "el natural" --> J["TreeSet"]
+    C -- "sí" --> K["TreeMap"]
+    C -- "no" --> L{"¿Importa el orden<br/>al recorrer?"}
+    L -- "no" --> M["HashMap"]
+    L -- "el de inserción" --> N["LinkedHashMap"]
+```
+
+Y una pregunta que el árbol (@fig-decision) no incluye y conviene hacerse antes que todas: **¿hace falta una
+estructura?** Si los datos son veinte y se recorren una vez, un array o una `List` están bien y
+cualquier otra cosa es trabajo de más (2.3.4).
+
+### 2.3.3 Tres decisiones del monitor, justificadas y medidas
+
+**En el monitor.** Las tres estructuras nuevas del esquema (@fig-monitor2) salen de aplicar el
+método de @imp-operacion-dominante a las tres preguntas que el repositorio recibe.
+
+**Primera decisión: índice por servicio.** La operación dominante es consultar-para-decidir, que
+pregunta por **un** servicio. Un `HashMap<Servicio, …>` responde en `O(1)` esperado, y las claves
+son `record` inmutables, que es el requisito de @cau-clave-mutable. Un `TreeMap` también serviría,
+en `O(log n)`, y no aporta nada: nadie pregunta por «los servicios entre dos nombres». Gana el
+`HashMap` (@imp-tabla-hash).
+
+**Segunda decisión: ventana de las últimas `n`.** El índice no basta, y conviene ver por qué: con él
+`historial` deja de mirar los resultados de los demás servicios, pero sigue copiando **todos los del
+suyo**, que crecen una por ronda. El coste pasa de `O(r²s²)` a `O(r²s)` —una mejora de un factor
+`s`, nada despreciable— pero sigue siendo cuadrático en `r`. La observación que lo resuelve es que
+**la política no necesita el historial**: la de tres fallos consecutivos mira tres resultados, la de
+latencia media mira `muestras`. Guardar una ventana de las últimas `n` con `n` mayor o igual que lo
+que pida la política más exigente da el **mismo resultado** con coste constante
+(@imp-pila-cola).
+
+**Tercera decisión: cola de prioridad para las alertas.** La operación dominante aquí es «dame la más
+grave de las pendientes», que es extraer el mínimo de un conjunto que cambia. Es la definición de
+cola de prioridad (@imp-monticulo). Ordenar la lista de pendientes en cada envío sería `O(n log n)`
+cada vez; el montículo da `O(log n)` por operación.
+
+El repositorio que sale de las dos primeras mantiene **dos** estructuras, y eso es deliberado:
+
+```{#repositorio-con-ventana .java}
+// RepositorioConVentana.java
+package es.uib.prgava.tema2.monitor;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import es.uib.prgava.tema1.monitor.RepositorioResultados;
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+
+/**
+ * Repositorio en memoria con dos índices: el historial completo por servicio, para los informes, y
+ * una ventana de los últimos resultados por servicio, para la política de alerta.
+ *
+ * <p>Las dos operaciones que se ejecutan una vez por comprobación —{@code guardar} y
+ * {@code ultimos}— cuestan tiempo constante y no crecen con el número de rondas.
+ */
+public final class RepositorioConVentana implements RepositorioResultados {
+
+    private final int capacidadVentana;
+    private final Map<Servicio, List<Resultado>> porServicio = new HashMap<>();
+    private final Map<Servicio, VentanaDeslizante> ventanas = new HashMap<>();
+
+    public RepositorioConVentana(int capacidadVentana) {
+        if (capacidadVentana < 1) {
+            throw new IllegalArgumentException("Capacidad no positiva: " + capacidadVentana);
+        }
+        this.capacidadVentana = capacidadVentana;
+    }
+
+    /** Coste O(1) esperado y amortizado, en las dos estructuras. */
+    @Override
+    public void guardar(Resultado resultado) {
+        var servicio = resultado.servicio();
+        porServicio.computeIfAbsent(servicio, s -> new ArrayList<>()).add(resultado);
+        ventanas.computeIfAbsent(servicio, s -> new VentanaDeslizante(capacidadVentana))
+                .agregar(resultado);
+    }
+
+    /**
+     * Lo que la política de alerta necesita para decidir: los últimos resultados del servicio.
+     *
+     * <p>Coste constante respecto al número de comprobaciones realizadas.
+     */
+    public List<Resultado> ultimos(Servicio servicio) {
+        var ventana = ventanas.get(servicio);
+        return ventana == null ? List.of() : ventana.contenido();
+    }
+
+    /** El historial completo, para los informes. Coste O(k) en los k resultados del servicio. */
+    @Override
+    public List<Resultado> historial(Servicio servicio) {
+        return List.copyOf(porServicio.getOrDefault(servicio, List.of()));
+    }
+
+    @Override
+    public Set<Servicio> servicios() {
+        return Set.copyOf(porServicio.keySet());
+    }
+}
+```
+
+El método `ultimos` es nuevo y no está en la interfaz `RepositorioResultados` del Tema 1, lo cual es
+una decisión de diseño que conviene hacer explícita: añadirlo a la interfaz obligaría a todas las
+implementaciones a tener ventana, incluida una que guarde en fichero y a la que la idea no le
+convenga. Dejarlo en la clase es aplicar la segregación de interfaces del Tema 1
+([principio I](tema1.qmd#imp-interfaz)): quien quiera la ventana depende de la clase que la ofrece;
+quien solo quiera guardar y leer sigue dependiendo de la interfaz.
+
+En el monitor, el cambio consiste en pasarle a la política lo que necesita:
+
+```java
+// Fragmento: el núcleo de Monitor.comprobar, con ventana
+public Resultado comprobar(Servicio servicio) {
+    var resultado = sonda.sondear(servicio);
+    repositorio.guardar(resultado);
+    if (politica.debeAlertar(repositorio.ultimos(servicio))) {
+        avisar(servicio);
+    }
+    return resultado;
+}
+```
+
+Una línea. El resto del monitor, las tres políticas, el notificador y los informes no se tocan, y
+esa es la mitad del Tema 1 que paga aquí: las dependencias estaban invertidas, así que la estructura
+de datos se pudo cambiar por dentro.
+
+#### **La medición**
+
+Mismo experimento que en 2.1.6 —`s = 20` servicios, política de tres fallos consecutivos, ventana de
+diez, mínimo de tres repeticiones después de calentar (@wrn-cronometrar)— con las tres versiones:
+
+| Rondas | Lista única (Tema 1) | Solo índice | Índice y ventana |
+|---:|---:|---:|---:|
+| 100 | 11 ms | 0 ms | 1 ms |
+| 200 | 52 ms | 3 ms | 2 ms |
+| 400 | 217 ms | 9 ms | 2 ms |
+| 800 | 809 ms | 26 ms | 2 ms |
+| 1 600 | 3 295 ms | 75 ms | 4 ms |
+
+Las tres columnas dicen tres cosas distintas y las tres importan.
+
+La primera **se cuadruplica** al duplicar las rondas: es el `O(r²s²)` de 2.1.6, confirmado.
+
+La segunda crece también por cuatro aproximadamente —3, 9, 26, 75— y eso es justo lo que predecía el
+análisis de la segunda decisión: el índice elimina el factor `s`, de ahí que a 1 600 rondas sea unas
+cuarenta veces más rápida, pero **sigue siendo cuadrática en `r`**. Es el resultado más instructivo
+de la tabla: una estructura bien elegida que mejora cuarenta veces y no arregla el problema de
+fondo, porque el problema no era solo mirar los resultados de otros servicios, era copiar los
+propios.
+
+La tercera **no crece**: 1, 2, 2, 2, 4 ms. Dos de esos milisegundos son ruido de medición. El
+trabajo por comprobación ha dejado de depender del número de comprobaciones anteriores, que era el
+objetivo, y el programa puede funcionar indefinidamente sin degradarse.
+
+Queda una cosa que la tabla no mide y hay que decir: el repositorio sigue guardando **todos** los
+resultados en el índice completo, de modo que la **memoria** sigue creciendo linealmente, `O(r·s)`.
+Para un monitor que funcione meses eso también es un problema, y la solución no es una estructura
+distinta: es decidir cuántos datos históricos se conservan y tirar el resto, o escribirlos en una
+base de datos, que es el Tema 4. La estructura de datos arregla el tiempo; el volumen es una
+decisión de producto.
+
+### 2.3.4 Cuándo la estructura no es el problema
+
+Todo lo anterior puede llevar a la conclusión equivocada, así que conviene cerrarla.
+
+::: {#cau-optimizar-sin-medir .callout-caution title="Cambiar de estructura sin haber medido cuál es el cuello de botella"}
+El cambio de estructura del monitor funcionó porque antes de hacerlo había un análisis
+(@imp-operacion-dominante) y una medición (2.1.6) que decían **dónde** estaba el coste. Sin esas dos
+cosas, elegir estructuras «eficientes» es decorar.
+
+Tres razones por las que el instinto falla:
+
+- **Las constantes mandan con `n` pequeño.** Un `HashMap` de cinco entradas es más lento que cinco
+  comparaciones en un array: hay que calcular el código de dispersión, indexar la cubeta y comparar
+  con `equals`. Y el `HashMap` ocupa bastante más memoria. Para `n` pequeño y conocido, lo simple
+  gana, y la frontera suele estar en unas decenas de elementos (@cau-o-grande-sin-n).
+- **El coste real puede no estar en el cálculo.** Un programa que consulta una base de datos o pide
+  algo por la red pasa el 99 % de su tiempo esperando. Cambiar una `List` por un `HashSet` en ese
+  programa mejora el 1 % restante, y el esfuerzo habría rendido cien veces más reduciendo el número
+  de consultas.
+- **La memoria es un coste.** Un índice extra ocupa espacio y da trabajo al recolector de basura;
+  el `RepositorioConVentana` guarda cada resultado **dos veces**. Fue la decisión correcta porque la
+  ventana es pequeña y acotada, pero es una decisión, no una mejora gratuita.
+
+El orden correcto es: escribir la versión simple y legible, medir con datos realistas, localizar la
+operación dominante, cambiar **esa** y volver a medir. Y conservar la medida, que es lo que permite
+defender el cambio ante quien lo revise.
+:::
+
+Hay una asimetría que conviene tener presente al decidir. Elegir mal una estructura cuando `n` es
+pequeño cuesta microsegundos; elegir mal la **clase de crecimiento** cuando `n` va a crecer cuesta
+que el programa deje de funcionar, y suele descubrirse en producción. Por eso la pregunta útil no es
+«¿qué es más rápido?», sino «**¿qué pasa cuando esto tenga cien veces más datos?**». La primera se
+contesta midiendo; la segunda, analizando, y es la que este tema enseña a contestar.
+
+### 2.3.5 Probar una decisión de estructura
+
+Si la elección de una estructura es una decisión de diseño, hay que poder comprobar que sigue
+cumpliéndose cuando alguien toque el código. Las pruebas unitarias del Tema 1
+([Concepto Clave sobre pruebas](tema1.qmd#imp-prueba-unitaria)) sirven, con un cambio de enfoque.
+
+Lo primero es que la mayoría de las pruebas **no deben cambiar**. Si el repositorio nuevo hace lo
+mismo que el viejo, las pruebas de comportamiento del viejo tienen que pasar sobre el nuevo tal cual
+están, y eso es la mejor comprobación de que el cambio no rompió nada. Que las dos clases
+implementen la misma interfaz permite escribir la prueba contra la interfaz y ejecutarla dos veces.
+
+Lo segundo es que el coste **no se prueba cronometrando**. Una prueba que afirma «esto tarda menos de
+50 ms» falla en la máquina de integración continua un martes cualquiera y hay que acabar
+desactivándola. Lo que sí se puede probar es el **número de operaciones**, contándolas con un doble
+de prueba, que es la técnica del Tema 1 aplicada a otra cosa:
+
+```java
+// CosteHistorialTest.java
+package es.uib.prgava.tema2.monitor;
+
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import org.junit.jupiter.api.Test;
+
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class CosteHistorialTest {
+
+    /** Un servicio que cuenta cuántas veces se le pregunta la identidad. */
+    private record ServicioEspia(String nombreReal, AtomicInteger comparaciones)
+            implements Servicio {
+
+        @Override
+        public String nombre() {
+            return nombreReal;
+        }
+
+        @Override
+        public boolean equals(Object otro) {
+            comparaciones.incrementAndGet();
+            return otro instanceof ServicioEspia ese && nombreReal.equals(ese.nombreReal);
+        }
+
+        @Override
+        public int hashCode() {
+            return nombreReal.hashCode();
+        }
+    }
+
+    @Test
+    void laVentanaNoCreceConElNumeroDeRondas() {
+        var repositorio = new RepositorioConVentana(10);
+        var servicio = Servicio.desde("tcp:web01:80");
+
+        for (int i = 0; i < 1_000; i++) {
+            repositorio.guardar(Resultado.activo(servicio, Duration.ofMillis(10)));
+        }
+
+        assertEquals(10, repositorio.ultimos(servicio).size(),
+                "la ventana debe quedarse en su capacidad, no crecer con las rondas");
+        assertEquals(1_000, repositorio.historial(servicio).size(),
+                "el historial completo sí conserva todo");
+    }
+
+    @Test
+    void consultarLaVentanaNoDependeDeLosDemasServicios() {
+        var contador = new AtomicInteger();
+        var vigilado = new ServicioEspia("web01", contador);
+        var repositorio = new RepositorioConVentana(10);
+
+        for (int i = 0; i < 200; i++) {
+            repositorio.guardar(Resultado.activo(new ServicioEspia("otro" + i, contador),
+                    Duration.ofMillis(5)));
+        }
+        repositorio.guardar(Resultado.activo(vigilado, Duration.ofMillis(5)));
+
+        contador.set(0);
+        repositorio.ultimos(vigilado);
+
+        assertTrue(contador.get() < 10,
+                "consultar un servicio no debe comparar con los 200 demás; fueron "
+                        + contador.get());
+    }
+}
+```
+
+La segunda prueba es la interesante y conviene leerla con atención. No mide tiempo: cuenta
+**llamadas a `equals`**, que es la operación que el repositorio del Tema 1 hacía `N` veces y el
+nuevo hace un puñado. El umbral es generoso a propósito —menos de diez, no exactamente una—, porque
+el número exacto depende de cómo el `HashMap` resuelva las colisiones y una prueba que lo fijara
+sería frágil sin ser más informativa. Lo que la prueba defiende es la **clase de crecimiento**: si
+alguien sustituye el índice por un recorrido, el contador se va a doscientos y la prueba falla con
+un mensaje que explica qué se ha perdido.
+
+Esa es la forma de que una decisión de este tema sobreviva al paso del tiempo: escrita en el código,
+con un número que la delata si desaparece.
+
+## Resumen del tema
+
+Las tres secciones responden a tres preguntas distintas, y conviene saber cuál se está haciendo.
+
+| Pregunta | Herramienta | Dónde |
+|---|---|---|
+| ¿Cuánto trabajo hace esto cuando la entrada crece? | notación asintótica, peor caso, amortizado | 2.1.2, 2.1.3 |
+| ¿Cuánto cuesta esta operación en esta estructura? | el catálogo y sus mecanismos internos | 2.2.2 a 2.2.6 |
+| ¿Qué estructura debo usar aquí? | operación dominante: coste × frecuencia | 2.3.1, 2.3.2 |
+| ¿Ha servido de algo? | medición, y una prueba que cuente operaciones | 2.3.3, 2.3.5 |
+
+Cinco ideas para llevarse:
+
+1. **El coste se analiza contando operaciones, y se confirma midiendo.** Lo uno sin lo otro no vale:
+   el análisis sin medición ignora las constantes, y la medición sin análisis no dice qué pasará con
+   diez veces más datos.
+2. **El mecanismo explica el coste.** Un `HashMap` es `O(1)` porque calcula la cubeta, y por eso
+   necesita `hashCode` coherente con `equals` y claves inmutables; un `TreeMap` es `O(log n)` porque
+   mantiene el árbol equilibrado, y por eso sabe hacer rangos. Memorizar la tabla de costes sin el
+   mecanismo no permite decidir en un caso nuevo.
+3. **La estructura se elige por la operación dominante, no por la más visible.** En el monitor la
+   operación que mandaba se ejecutaba `r·s` veces dentro de otra, y no se veía en el código del
+   monitor sino en el del repositorio.
+4. **Casi siempre se paga memoria por tiempo.** El índice, la ventana y el montículo del monitor son
+   datos duplicados que compran operaciones constantes. Es un intercambio, y hay que saber qué se
+   está dando.
+5. **Un diseño con las dependencias en el sitio correcto permite cambiar la estructura sin tocar
+   nada más.** El monitor pasó de cuadrático a constante cambiando una clase y una línea, y eso fue
+   mérito del Tema 1.
+
+Lo que queda fuera y hay que saber que existe, con un tratamiento accesible en [@sedgewick2011] y el
+canónico en [@cormen2022]: los algoritmos sobre grafos, el análisis amortizado
+más allá del array dinámico, las estructuras probabilísticas (filtros de Bloom, *HyperLogLog*) y
+todo lo que tiene que ver con datos que no caben en memoria, que es el Tema 4. Las estructuras
+seguras para varios hilos son el Tema 3, y hasta entonces todo lo de aquí supone un solo hilo.
+
+## Referencias
+
+::: {#refs}
+:::
