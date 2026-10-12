@@ -97,16 +97,16 @@ El **coste** (o **complejidad**) de un algoritmo es el **número de operaciones 
 ejecuta **para cada entrada posible**. Para convertir eso en una función del **tamaño de
 la entrada** —que es lo que permite comparar algoritmos— hay que fijar tres cosas:
 
-- **El tamaño de la entrada:** se denota casi siempre con un entero no negativo `n`. Para una lista es el número de elementos; para una cadena, su longitud; para una matriz cuadrada, la cantidad de filas (o columnas); para un grafo, dos números, vértices y aristas. Elegirlo mal invalida el análisis: el coste de recorrer una lista de listas no depende del número de listas, sino del total de elementos.
+- **El tamaño de la entrada:** se denota casi siempre con un entero no negativo $n$. Para una lista es el número de elementos; para una cadena, su longitud; para una matriz cuadrada, la cantidad de filas (o columnas); para un grafo, dos números, vértices y aristas. Elegirlo mal invalida el análisis: el coste de recorrer una lista de listas no depende del número de listas, sino del total de elementos.
 - **Qué cuenta como operación elemental**: una comparación, una asignación, una operación aritmética, un acceso por índice. Se supone que todas cuestan lo mismo y que ese coste es constante. Esto no es realmente cierto —acceder a memoria caché es cien veces más rápido que acceder a memoria principal— pero se asume para simplificar el análisis. En 2.3.4 veremos cuándo dejar de asumirlo es relevante.
 - **Qué se hace con entradas de un mismo tamaño pero características diferentes:** Ocurre
-que para un mismo algoritmo y varias entradas de tamaño `n` no todas cuestan lo mismo. Por
+que para un mismo algoritmo y varias entradas de tamaño $n$ no todas cuestan lo mismo. Por
 ejemplo, buscar un elemento en una lista de mil elementos cuesta una comparación si el elemento 
 está el primero y mil si está el último. Conceptualizar esto requiere varias funciones
 que se presentan en 2.1.3 (@imp-casos).
 
-La función así obtenida se llama asintótica porque lo que interesa es cómo crece la función
-cuando `n` crece, no cuánto vale para un `n` concreto.
+La función así obtenida se llama **asintótica** porque lo que interesa es cómo crece la función
+cuando $n$ crece, no cuánto vale para un $n$ concreto.
 :::
 
 El cambio de mentalidad es este: no se pregunta «¿cuánto tarda?», sino «**si duplico la entrada,
@@ -115,7 +115,7 @@ aceptable; uno que lo eleva al cuadrado no, y da igual en qué ordenador se ejec
 
 #### **Contar operaciones**
 
-Contar las operaciones elementales (el coste) de un fragmento de código sin bucles es prácticamente contar las líneas que lo componen. Por lo general es un número fijo, que no depende de `n`.
+Contar las operaciones elementales (el coste) de un fragmento de código sin bucles es prácticamente contar las líneas que lo componen. Por lo general es un número fijo, que no depende de $n$.
 
 Todo lo interesante pasa en los bucles, y ahí la regla es sencilla: el coste de un bucle es el
 número de iteraciones multiplicado por el coste de su cuerpo.
@@ -175,7 +175,7 @@ algoritmo.
 
 #### **Lo que la cuenta no ve**
 
-Un recorrido de `n` elementos no siempre cuesta `n` operaciones elementales, porque lo que hay
+Un recorrido de $n$ elementos no siempre cuesta $n$ operaciones elementales, porque lo que hay
 dentro puede no ser elemental. Es el error de análisis más común y conviene tenerlo presente desde
 el principio:
 
@@ -189,8 +189,8 @@ for (Resultado resultado : resultados) {
 ```
 
 Si `sospechosos` es una `List`, el método `contains` recorre la lista entera, y el fragmento es
-`O(n·m)` con `m` el tamaño de la lista. Si es un `HashSet`, `contains` cuesta tiempo constante y el
-fragmento es `O(n)`. El mismo código, dos costes distintos, y la diferencia no se ve en el bucle:
+$O(n \cdot m)$ con $m$ el tamaño de la lista. Si es un `HashSet`, `contains` cuesta tiempo constante y el
+fragmento es $O(n)$. El mismo código, dos costes distintos, y la diferencia no se ve en el bucle:
 está en el tipo de una variable declarada en otro sitio. Toda la sección 2.2 existe para que esa
 información esté disponible cuando haga falta.
 
@@ -218,37 +218,37 @@ importante, hacerla a mano no es suficiente.
 
 ### 2.1.2 Notación asintótica
 
-Decir «del orden de `n²`» es cómodo pero vago, y en un examen o en una revisión de código hay que
+Decir «del orden de $n^2$» es cómodo pero vago, y en un examen o en una revisión de código hay que
 poder justificarlo. La notación asintótica es la forma precisa de decirlo.
 
 ::: {#tip-o-grande .callout-tip title="Las tres cotas: O, Ω y Θ"}
-Sean `f` y `g` funciones de los naturales en los reales no negativos.
+Sean $f$ y $g$ funciones de los naturales en los reales no negativos.
 
-- **`f(n) ∈ O(g(n))`** —se lee «`f` es de orden `g`»— si existen constantes `c > 0` y `n₀` tales que
-  `f(n) ≤ c · g(n)` para todo `n ≥ n₀`. Es una **cota superior**: a partir de cierto tamaño, `f` no
-  crece más deprisa que `g`, salvo por un factor constante.
-- **`f(n) ∈ Ω(g(n))`** si existen `c > 0` y `n₀` tales que `f(n) ≥ c · g(n)` para todo `n ≥ n₀`. Es
+- **$f(n) \in O(g(n))$** —se lee «$f$ es de orden $g$»— si existen constantes $c > 0$ y $n_0$ tales que
+  $f(n) \le c \cdot g(n)$ para todo $n \ge n_0$. Es una **cota superior**: a partir de cierto tamaño, $f$ no
+  crece más deprisa que $g$, salvo por un factor constante.
+- **$f(n) \in \Omega(g(n))$** si existen $c > 0$ y $n_0$ tales que $f(n) \ge c \cdot g(n)$ para todo $n \ge n_0$. Es
   una **cota inferior**.
-- **`f(n) ∈ Θ(g(n))`** si se cumplen las dos: `f` crece exactamente como `g`, salvo constantes.
+- **$f(n) \in \Theta(g(n))$** si se cumplen las dos: $f$ crece exactamente como $g$, salvo constantes.
 
-Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que `3n + 100` y `n` sean lo
-mismo. «A partir de cierto `n₀`» es lo que permite ignorar lo que pase con entradas pequeñas, donde
-un algoritmo peor puede ganar: `n²` es menor que `100n` mientras `n < 100`.
+Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que `3n + 100` y $n$ sean lo
+mismo. «A partir de cierto $n_0$» es lo que permite ignorar lo que pase con entradas pequeñas, donde
+un algoritmo peor puede ganar: $n^2$ es menor que `100n` mientras `n < 100`.
 
 De la definición salen las tres reglas que se usan a diario:
 
 | Regla | Ejemplo |
 |---|---|
-| Las constantes multiplicativas se descartan | `5n ∈ O(n)` |
-| En una suma manda el término dominante | `n² + 1000n + 10⁶ ∈ O(n²)` |
-| En una composición los costes se multiplican | un bucle de `n` con cuerpo `O(log n)` es `O(n log n)` |
+| Las constantes multiplicativas se descartan | $5n \in O(n)$ |
+| En una suma manda el término dominante | $n^2 + 1000n + 10^6 \in O(n^2)$ |
+| En una composición los costes se multiplican | un bucle de $n$ con cuerpo $O(\log n)$ es $O(n \log n)$ |
 
-La segunda es la más útil y la más fácil de justificar: si `n ≥ 1000`, entonces `1000n ≤ n²`, y si
-además `n ≥ 1000`, entonces `10⁶ ≤ n²`; luego `n² + 1000n + 10⁶ ≤ 3n²` para `n ≥ 1000`, que es la
-definición con `c = 3` y `n₀ = 1000`.
+La segunda es la más útil y la más fácil de justificar: si $n \ge 1000$, entonces $1000n \le n^2$, y si
+además $n \ge 1000$, entonces $10^6 \le n^2$; luego $n^2 + 1000n + 10^6 \le 3n^2$ para $n \ge 1000$, que es la
+definición con $c = 3$ y $n_0 = 1000$.
 
-Nótese que `O` es un conjunto de funciones, de ahí el `∈`. La costumbre es escribir `f(n) = O(g(n))`
-con un signo igual que no es simétrico —nadie escribe `O(n) = 3n`—; es un abuso de notación
+Nótese que $O$ es un conjunto de funciones, de ahí el $\in$. La costumbre es escribir $f(n) = O(g(n))$
+con un signo igual que no es simétrico —nadie escribe $O(n) = 3n$—; es un abuso de notación
 consolidado, y aquí lo usaremos como todo el mundo.
 :::
 
@@ -256,37 +256,37 @@ Con la notación se puede ya nombrar la escalera de clases de crecimiento que ap
 La tabla da el número de operaciones para tres tamaños de entrada, y es el argumento más convincente
 de todo el tema:
 
-| Clase | Nombre | `n = 10` | `n = 1 000` | `n = 1 000 000` | Ejemplo típico |
+| Clase | Nombre | $n = 10$ | `n = 1 000` | `n = 1 000 000` | Ejemplo típico |
 |---|---|---|---|---|---|
-| `O(1)` | constante | 1 | 1 | 1 | acceder a un array por índice |
-| `O(log n)` | logarítmico | 3 | 10 | 20 | búsqueda binaria |
-| `O(n)` | lineal | 10 | 1 000 | 10⁶ | recorrer una lista |
-| `O(n log n)` | lineal-logarítmico | 33 | 10 000 | 2·10⁷ | ordenar por comparaciones |
-| `O(n²)` | cuadrático | 100 | 10⁶ | 10¹² | comparar todos los pares |
-| `O(n³)` | cúbico | 1 000 | 10⁹ | 10¹⁸ | multiplicar matrices (ingenuo) |
-| `O(2ⁿ)` | exponencial | 1 024 | 10³⁰¹ | — | probar todos los subconjuntos |
+| $O(1)$ | constante | 1 | 1 | 1 | acceder a un array por índice |
+| $O(\log n)$ | logarítmico | 3 | 10 | 20 | búsqueda binaria |
+| $O(n)$ | lineal | 10 | 1 000 | 10⁶ | recorrer una lista |
+| $O(n \log n)$ | lineal-logarítmico | 33 | 10 000 | 2·10⁷ | ordenar por comparaciones |
+| $O(n^2)$ | cuadrático | 100 | 10⁶ | 10¹² | comparar todos los pares |
+| $O(n^3)$ | cúbico | 1 000 | 10⁹ | 10¹⁸ | multiplicar matrices (ingenuo) |
+| $O(2^n)$ | exponencial | 1 024 | 10³⁰¹ | — | probar todos los subconjuntos |
 
 Las dos líneas que hay que leer despacio son la cuadrática y la exponencial. Con un millón de
-elementos, `O(n²)` son `10¹²` operaciones: a mil millones de operaciones por segundo, unos
-dieciséis minutos. Y `10³⁰¹` operaciones no es «mucho tiempo»: es más que el número de átomos del
-universo observable, de modo que un algoritmo exponencial con `n = 1000` no es lento, es
+elementos, $O(n^2)$ son $10^{12}$ operaciones: a mil millones de operaciones por segundo, unos
+dieciséis minutos. Y $10^{301}$ operaciones no es «mucho tiempo»: es más que el número de átomos del
+universo observable, de modo que un algoritmo exponencial con $n = 1000$ no es lento, es
 **imposible**, y ninguna mejora de hardware lo arregla. Esa frontera es la razón de que el coste se
 estudie antes de programar y no después.
 
 ::: {#cau-o-grande-sin-n .callout-caution title="Decir que un algoritmo es más rápido que otro sin decir para qué tamaño"}
-«La búsqueda binaria es más rápida que la lineal» es falso tal cual está dicho. Para `n = 5` la
+«La búsqueda binaria es más rápida que la lineal» es falso tal cual está dicho. Para $n = 5$ la
 búsqueda lineal gana: no ordena nada, no calcula puntos medios y recorre cinco posiciones
 contiguas de memoria. La notación asintótica habla de **cómo crece** el coste, y la definición
-(@tip-o-grande) dice explícitamente «a partir de cierto `n₀`».
+(@tip-o-grande) dice explícitamente «a partir de cierto $n_0$».
 
-Lo correcto es «la búsqueda binaria es `O(log n)` y la lineal `O(n)`, así que a partir de algún
+Lo correcto es «la búsqueda binaria es $O(\log n)$ y la lineal $O(n)$, así que a partir de algún
 tamaño la binaria gana, y ese tamaño suele estar entre diez y cien elementos». Por eso
-`Arrays.sort` cambia a ordenación por inserción —que es `O(n²)`— para los tramos pequeños, de menos
+`Arrays.sort` cambia a ordenación por inserción —que es $O(n^2)$— para los tramos pequeños, de menos
 de 32 elementos al ordenar objetos, y no es una incoherencia de la biblioteca: es la constante
 ganando a la clase.
 
-El error hermano es leer `O(n)` como una medida de tiempo. `O(n)` con una operación carísima dentro
-puede tardar más que `O(n²)` con una barata. La cota cuenta operaciones; cuánto cuesta cada una es
+El error hermano es leer $O(n)$ como una medida de tiempo. $O(n)$ con una operación carísima dentro
+puede tardar más que $O(n^2)$ con una barata. La cota cuenta operaciones; cuánto cuesta cada una es
 otra pregunta.
 :::
 
@@ -297,13 +297,13 @@ cuesta una comparación si está el primero y mil si está el último o no está
 tanto, de qué caso se habla.
 
 ::: {#imp-casos .callout-important title="Peor caso, caso medio y caso mejor"}
-Para un tamaño de entrada `n`, el conjunto de entradas posibles de ese tamaño da un conjunto de
+Para un tamaño de entrada $n$, el conjunto de entradas posibles de ese tamaño da un conjunto de
 costes. Se usan tres resúmenes:
 
-- **Peor caso**: el máximo. Es el que se da por defecto cuando se dice «este algoritmo es `O(n)`»,
+- **Peor caso**: el máximo. Es el que se da por defecto cuando se dice «este algoritmo es $O(n)$»,
   y es el único que constituye una **garantía**: sea lo que sea lo que llegue, no costará más.
 - **Caso medio**: la media sobre todas las entradas, **suponiendo una distribución**. Esa hipótesis
-  es parte del resultado y hay que enunciarla: el caso medio de la búsqueda lineal es `n/2`
+  es parte del resultado y hay que enunciarla: el caso medio de la búsqueda lineal es $n/2$
   comparaciones *si el elemento buscado está y todas las posiciones son igual de probables*, que es
   mucho suponer.
 - **Caso mejor**: el mínimo. No sirve para casi nada —todo algoritmo tiene una entrada afortunada—
@@ -320,25 +320,23 @@ estructura más usada de Java.
 
 ::: {#tip-amortizado .callout-tip title="Una operación puede ser caníbal: el coste amortizado"}
 Un `ArrayList` guarda sus elementos en un array. Cuando el array se llena, el método `add` no puede
-simplemente añadir: tiene que **crear un array mayor y copiar todo**, que cuesta `O(n)`. Entonces,
+simplemente añadir: tiene que **crear un array mayor y copiar todo**, que cuesta $O(n)$. Entonces,
 ¿cuánto cuesta `add`? Su peor caso es lineal, y sin embargo nadie duda en usar `ArrayList` para
 añadir un millón de elementos.
 
 La respuesta está en que el array no crece de uno en uno, sino que **duplica su capacidad** (en la
-implementación de OpenJDK, la multiplica por 1,5). Si partimos de capacidad 1 y añadimos `n`
-elementos, las copias ocurren con `1, 2, 4, 8, …` elementos, y el total copiado es
+implementación de OpenJDK, la multiplica por 1,5). Si partimos de capacidad 1 y añadimos $n$
+elementos, las copias ocurren con $1, 2, 4, 8, \dots$ elementos, y el total copiado es
 
-```text
-1 + 2 + 4 + … + n/2 + n < 2n
-```
+$$1 + 2 + 4 + \dots + n/2 + n < 2n$$
 
-es decir, **menos de dos copias por elemento añadido** repartidas entre las `n` llamadas. El coste
-**amortizado** de `add` es `O(1)`: no es que cada llamada sea constante, es que `n` llamadas
-cuestan `O(n)` en total, y por tanto `O(1)` de media garantizada —no de media probabilística, que
+es decir, **menos de dos copias por elemento añadido** repartidas entre las $n$ llamadas. El coste
+**amortizado** de `add` es $O(1)$: no es que cada llamada sea constante, es que $n$ llamadas
+cuestan $O(n)$ en total, y por tanto $O(1)$ de media garantizada —no de media probabilística, que
 es la diferencia con el caso medio—.
 
 Si la capacidad creciera de 10 en 10 en lugar de duplicarse, el total copiado sería
-`10 + 20 + … + n ≈ n²/20`, y añadir un millón de elementos costaría `5·10¹⁰` copias. El factor de
+$10 + 20 + \dots + n \approx n^2/20$, y añadir un millón de elementos costaría $5 \cdot 10^{10}$ copias. El factor de
 crecimiento constante no es un detalle de implementación: es lo que hace que la estructura funcione.
 
 De aquí sale también un consejo práctico: si sabes cuántos elementos vas a añadir, `new
@@ -350,19 +348,19 @@ ArrayList<>(capacidadInicial)` elimina todas las copias.
 
 Cuando el algoritmo es recursivo, el coste no se cuenta con bucles sino resolviendo una
 **recurrencia**. La búsqueda binaria descarta la mitad y se llama a sí misma una vez, lo que da
-`T(n) = T(n/2) + O(1)`; la ordenación por mezcla parte en dos, se llama dos veces y mezcla en
-tiempo lineal, lo que da `T(n) = 2T(n/2) + O(n)`.
+$T(n) = T(n/2) + O(1)$; la ordenación por mezcla parte en dos, se llama dos veces y mezcla en
+tiempo lineal, lo que da $T(n) = 2T(n/2) + O(n)$.
 
-El **teorema maestro** resuelve de un golpe todas las de la forma `T(n) = a·T(n/b) + O(n^d)` con
-`a ≥ 1` y `b > 1`, comparando `d` con `log_b a`:
+El **teorema maestro** resuelve de un golpe todas las de la forma $T(n) = a \cdot T(n/b) + O(n^d)$ con
+$a \ge 1$ y $b > 1$, comparando $d$ con $\log_b a$:
 
-- si `d > log_b a`, entonces `T(n) ∈ Θ(n^d)` — manda el trabajo de combinar;
-- si `d = log_b a`, entonces `T(n) ∈ Θ(n^d · log n)` — empatan, y aparece el logaritmo;
-- si `d < log_b a`, entonces `T(n) ∈ Θ(n^{log_b a})` — manda el número de hojas de la recursión.
+- si $d > \log_b a$, entonces $T(n) \in \Theta(n^d)$ — manda el trabajo de combinar;
+- si $d = \log_b a$, entonces $T(n) \in \Theta(n^d \cdot \log n)$ — empatan, y aparece el logaritmo;
+- si $d < \log_b a$, entonces $T(n) \in \Theta(n^{\log_b a})$ — manda el número de hojas de la recursión.
 
-Para la búsqueda binaria, `a = 1`, `b = 2`, `d = 0`: estamos en el segundo caso, `log₂ 1 = 0 = d`,
-y sale `Θ(log n)`. Para la ordenación por mezcla, `a = 2`, `b = 2`, `d = 1`: otra vez el segundo
-caso, `log₂ 2 = 1 = d`, y sale `Θ(n log n)`. La demostración y los casos frontera están en
+Para la búsqueda binaria, $a = 1$, $b = 2$, $d = 0$: estamos en el segundo caso, $\log_2 1 = 0 = d$,
+y sale $\Theta(\log n)$. Para la ordenación por mezcla, $a = 2$, $b = 2$, $d = 1$: otra vez el segundo
+caso, $\log_2 2 = 1 = d$, y sale $\Theta(n \log n)$. La demostración y los casos frontera están en
 [@cormen2022], capítulo 4.
 ::::
 
@@ -371,14 +369,14 @@ caso, `log₂ 2 = 1 = d`, y sale `Θ(n log n)`. La demostración y los casos fro
 Buscar es la operación más frecuente de un programa y el ejemplo más limpio de cómo una hipótesis
 sobre los datos cambia el coste de raíz.
 
-La **búsqueda lineal** no supone nada: recorre y compara. Su peor caso es `n` comparaciones, y no se
+La **búsqueda lineal** no supone nada: recorre y compara. Su peor caso es $n$ comparaciones, y no se
 puede hacer mejor sin saber algo más de los datos, porque cualquier posición no examinada puede
 contener el elemento buscado.
 
-La **búsqueda binaria** supone que los datos están **ordenados**, y con eso baja a `O(log n)`: mira
+La **búsqueda binaria** supone que los datos están **ordenados**, y con eso baja a $O(\log n)$: mira
 el elemento central, y como sabe que a su izquierda están todos los menores y a su derecha todos los
 mayores, descarta la mitad de un golpe. Veinte comparaciones bastan para un millón de elementos,
-porque `2²⁰ > 10⁶`.
+porque $2^{20} > 10^6$.
 
 ```{#busqueda-binaria .java}
 // Busquedas.java
@@ -427,12 +425,12 @@ Dos detalles de la implementación merecen comentario, porque los dos son errore
 ::: {#cau-punto-medio .callout-caution title="Calcular el punto medio con `(izquierda + derecha) / 2`"}
 La forma evidente de calcular el centro es `(izquierda + derecha) / 2`, y es incorrecta: si el array
 es grande, la suma **desborda** el rango de `int` y da un número negativo, con lo que el acceso
-`datos[centro]` lanza `ArrayIndexOutOfBoundsException`. Hace falta un array de más de `2³⁰`
+`datos[centro]` lanza `ArrayIndexOutOfBoundsException`. Hace falta un array de más de $2^{30}$
 elementos para provocarlo, lo que explica que el fallo sobreviviera **nueve años** en la propia
 biblioteca de Java: estaba en `java.util.Arrays.binarySearch` desde 1997 y se corrigió en 2006
 [@bloch2006extra].
 
-La forma correcta es la del listado: `izquierda + (derecha − izquierda) / 2`, que calcula el
+La forma correcta es la del listado: `izquierda + (derecha - izquierda) / 2`, que calcula el
 desplazamiento desde `izquierda` y nunca suma dos índices grandes. Es el mismo valor y no desborda.
 
 Es un error de la familia del [Error Frecuente sobre restar en `compareTo`](tema1.qmd#cau-resta-compareto)
@@ -442,8 +440,8 @@ del Tema 1: en los dos casos la aritmética de
 
 ::: {#cau-binaria-sin-ordenar .callout-caution title="Buscar con búsqueda binaria en datos sin ordenar"}
 La búsqueda binaria **no comprueba** que los datos estén ordenados, y no puede: comprobarlo costaría
-`O(n)` y se perdería toda la ventaja. Si se le pasa un array desordenado no falla ni avisa:
-devuelve `−1` o una posición cualquiera, según le caiga.
+$O(n)$ y se perdería toda la ventaja. Si se le pasa un array desordenado no falla ni avisa:
+devuelve `-1` o una posición cualquiera, según le caiga.
 
 Lo que se obtiene es un programa que da resultados correctos en las pruebas pequeñas —con pocos
 elementos es fácil que el array esté ordenado por casualidad o que el elemento caiga en el centro— y
@@ -452,7 +450,7 @@ difícil de localizar, porque no deja rastro.
 
 La precondición «ordenado» es parte de la firma aunque el compilador no la pueda expresar: por eso
 va escrita en el javadoc del listado. Y si los datos vienen de fuera y no hay garantía, la decisión
-correcta no es ordenar antes de cada búsqueda —eso cuesta `O(n log n)` y haría la búsqueda más cara
+correcta no es ordenar antes de cada búsqueda —eso cuesta $O(n \log n)$ y haría la búsqueda más cara
 que la lineal— sino mantener la estructura ordenada desde el principio, que es lo que hacen
 `TreeMap` y `TreeSet` (2.2.5, @imp-arbol-busqueda).
 :::
@@ -461,7 +459,7 @@ que la lineal— sino mantener la estructura ordenada desde el principio, que es
 
 Para arrays, el método `java.util.Arrays.binarySearch` hace exactamente esto, y para listas
 ordenadas, `java.util.Collections.binarySearch`. Su valor de retorno tiene una particularidad muy
-útil: si el elemento **no está**, no devuelven `−1`, sino `−(punto de inserción) − 1`, un número
+útil: si el elemento **no está**, no devuelven `-1`, sino $-(\text{punto de inserción}) - 1$, un número
 negativo del que se recupera el lugar donde habría que insertarlo para mantener el orden.
 
 ```java
@@ -477,13 +475,13 @@ if (posicion < 0) {
 }
 ```
 
-La codificación con `−x − 1` en lugar de `−x` existe porque el punto de inserción puede ser 0 —si el
-elemento es menor que todos— y `−0` no se distingue de `0`, que significaría «encontrado en la
+La codificación con $-x - 1$ en lugar de $-x$ existe porque el punto de inserción puede ser 0 —si el
+elemento es menor que todos— y `-0` no se distingue de `0`, que significaría «encontrado en la
 posición 0».
 
 ### 2.1.5 Ordenación
 
-Ordenar es la operación que más veces aparece como **paso previo**: permite buscar en `O(log n)`,
+Ordenar es la operación que más veces aparece como **paso previo**: permite buscar en $O(\log n)$,
 detectar duplicados en un recorrido, agrupar elementos iguales y responder «los k mayores» sin
 examinar todo. Conviene saber qué cuesta y qué garantiza.
 
@@ -493,11 +491,11 @@ conocerlos:
 
 | Algoritmo | Peor caso | Caso medio | Memoria extra | ¿Estable? |
 |---|---|---|---|---|
-| Inserción | `O(n²)` | `O(n²)` | `O(1)` | sí |
-| Selección | `O(n²)` | `O(n²)` | `O(1)` | no |
-| Mezcla (*merge sort*) | `O(n log n)` | `O(n log n)` | `O(n)` | sí |
-| Montículo (*heap sort*) | `O(n log n)` | `O(n log n)` | `O(1)` | no |
-| Rápida (*quicksort*) | `O(n²)` | `O(n log n)` | `O(log n)` | no |
+| Inserción | $O(n^2)$ | $O(n^2)$ | $O(1)$ | sí |
+| Selección | $O(n^2)$ | $O(n^2)$ | $O(1)$ | no |
+| Mezcla (*merge sort*) | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | sí |
+| Montículo (*heap sort*) | $O(n \log n)$ | $O(n \log n)$ | $O(1)$ | no |
+| Rápida (*quicksort*) | $O(n^2)$ | $O(n \log n)$ | $O(\log n)$ | no |
 
 Dos columnas de esa tabla se suelen pasar por alto y son las que deciden en la práctica. La de
 **memoria extra** explica por qué la ordenación por mezcla, que tiene el mejor peor caso, no es
@@ -528,31 +526,31 @@ lo que se ordena:
   sean rarísimas, y la estabilidad no importa.
 - Para **objetos** (`Integer[]`, `List<Resultado>`…), `Arrays.sort` y `Collections.sort` usan
   **TimSort**, una variante de la ordenación por mezcla que detecta los tramos ya ordenados de la
-  entrada y los aprovecha. Es **estable**, su peor caso es `O(n log n)` garantizado, y en datos
+  entrada y los aprovecha. Es **estable**, su peor caso es $O(n \log n)$ garantizado, y en datos
   parcialmente ordenados —que es lo habitual: registros que llegan casi en orden cronológico— baja
-  a casi `O(n)`. El precio es la memoria extra.
+  a casi $O(n)$. El precio es la memoria extra.
 
 La decisión de la biblioteca es, por tanto: con primitivos manda la velocidad y la memoria; con
 objetos mandan la garantía y la estabilidad, porque comparar objetos ya es caro de por sí (una
 llamada a `compareTo`) y el ahorro de memoria no compensa perder la estabilidad.
 :::
 
-::: {#tip-cota-inferior .callout-tip title="Ninguna ordenación por comparaciones puede bajar de `n log n`"}
+::: {#tip-cota-inferior .callout-tip title="Ninguna ordenación por comparaciones puede bajar de $n \log n$"}
 No es que no se haya encontrado un algoritmo mejor: es que no puede existir, y se demuestra en tres
 líneas.
 
-Un algoritmo que solo puede preguntar «¿es `a` menor que `b`?» se puede dibujar como un árbol de
+Un algoritmo que solo puede preguntar «¿es $a$ menor que $b$?» se puede dibujar como un árbol de
 decisión: cada nodo interno es una comparación, con dos ramas, y cada hoja es una de las
-ordenaciones posibles de la entrada. Hay `n!` ordenaciones posibles, así que el árbol necesita al
-menos `n!` hojas. Un árbol binario de altura `h` tiene a lo sumo `2^h` hojas, de modo que
-`2^h ≥ n!`, es decir `h ≥ log₂(n!)`. Y por la aproximación de Stirling, `log₂(n!) ∈ Θ(n log n)`.
+ordenaciones posibles de la entrada. Hay $n!$ ordenaciones posibles, así que el árbol necesita al
+menos $n!$ hojas. Un árbol binario de altura $h$ tiene a lo sumo $2^h$ hojas, de modo que
+$2^h \ge n!$, es decir $h \ge \log_2(n!)$. Y por la aproximación de Stirling, $\log_2(n!) \in \Theta(n \log n)$.
 
 La altura del árbol es el número de comparaciones en el peor caso, luego **toda** ordenación por
-comparaciones hace `Ω(n log n)` comparaciones. La demostración completa está en [@cormen2022],
+comparaciones hace $\Omega(n \log n)$ comparaciones. La demostración completa está en [@cormen2022],
 capítulo 8.
 
 La hipótesis que hace falta romper para bajar de ahí es «solo puede comparar»: si se sabe algo más
-de los datos, se puede. La ordenación por conteo ordena `n` enteros de un rango pequeño en `O(n)`,
+de los datos, se puede. La ordenación por conteo ordena $n$ enteros de un rango pequeño en $O(n)$,
 y no contradice nada, porque no compara: usa los valores como índices.
 :::
 
@@ -580,7 +578,7 @@ funcionar meses en listas de diez elementos.
 
 Las dos causas habituales son restar enteros que pueden desbordar —el
 [Error Frecuente sobre restar en `compareTo`](tema1.qmd#cau-resta-compareto) del Tema 1— y comparar con un criterio que no es transitivo, típicamente
-«`a` es menor que `b` si `a` está a menos de un segundo antes que `b`».
+«$a$ es menor que $b$ si $a$ está a menos de un segundo antes que $b$».
 :::
 
 ### 2.1.6 El coste del monitor, medido
@@ -600,21 +598,19 @@ public Resultado comprobar(Servicio servicio) {
 }
 ```
 
-Llamemos `s` al número de servicios y `r` al de rondas. Al final de la ejecución el repositorio
-guarda `N = r·s` resultados. Y el método `historial` de `RepositorioEnMemoria`, tal como quedó
-escrito, **recorre los `N` resultados** y se queda con los del servicio pedido. Como se llama una
-vez por cada comprobación, y hay `r·s` comprobaciones, el coste total de las consultas es
+Llamemos $s$ al número de servicios y $r$ al de rondas. Al final de la ejecución el repositorio
+guarda $N = r \cdot s$ resultados. Y el método `historial` de `RepositorioEnMemoria`, tal como quedó
+escrito, **recorre los $N$ resultados** y se queda con los del servicio pedido. Como se llama una
+vez por cada comprobación, y hay $r \cdot s$ comprobaciones, el coste total de las consultas es
 
-```text
-r·s llamadas × O(r·s) cada una  =  O(r²s²)
-```
+$$\underbrace{r \cdot s}_{\text{llamadas}} \times \underbrace{O(r \cdot s)}_{\text{cada una}} \;=\; O(r^2 s^2)$$
 
 Cuadrático en las dos variables. Duplicar el número de rondas cuadruplica el trabajo; duplicar el
 número de servicios, también. Y no hay en el código ninguna línea señalable como culpable: el error
 está en que `historial` responde una pregunta sobre **un** servicio recorriendo los datos de
 **todos**.
 
-Medido, con `s = 20` servicios y una política de tres fallos consecutivos, quedándose con el mínimo
+Medido, con $s = 20$ servicios y una política de tres fallos consecutivos, quedándose con el mínimo
 de tres repeticiones y después de calentar la máquina virtual (@wrn-cronometrar):
 
 | Rondas | Resultados guardados | Comparaciones en `historial` | Tiempo |
@@ -720,7 +716,7 @@ while (it.hasNext()) {
 El **iterador** es un objeto que recuerda por dónde va el recorrido. Su interés para este tema es
 que cada estructura implementa el suyo de la forma que le conviene —el de `ArrayList` lleva un
 índice, el de `LinkedList` lleva un puntero al nodo actual, el de `HashMap` recorre las cubetas—, y
-que por eso recorrer una colección completa cuesta `O(n)` en todas, aunque el acceso a un elemento
+que por eso recorrer una colección completa cuesta $O(n)$ en todas, aunque el acceso a un elemento
 concreto cueste cosas muy distintas.
 
 ::: {#cau-modificar-mientras-recorres .callout-caution title="Añadir o quitar elementos mientras se recorre la colección"}
@@ -789,13 +785,13 @@ Una secuencia guarda elementos en un orden que el programa controla y permite ll
 posición. Hay dos formas de representarla, y son el ejemplo canónico de que la estructura decide el
 coste.
 
-Un **array** reserva un bloque contiguo de memoria con hueco para `n` elementos. La dirección del
-elemento `i` se calcula con una multiplicación y una suma, así que el acceso por índice cuesta
-`O(1)`. El precio es que el tamaño se fija al crearlo.
+Un **array** reserva un bloque contiguo de memoria con hueco para $n$ elementos. La dirección del
+elemento $i$ se calcula con una multiplicación y una suma, así que el acceso por índice cuesta
+$O(1)$. El precio es que el tamaño se fija al crearlo.
 
 Una **lista enlazada** guarda cada elemento en un nodo que, además del valor, contiene la dirección
 del nodo siguiente (y en la variante doblemente enlazada, también del anterior). Crece sin límite y
-sin copiar nada, pero para llegar al elemento `i` hay que seguir `i` enlaces: `O(n)`.
+sin copiar nada, pero para llegar al elemento $i$ hay que seguir $i$ enlaces: $O(n)$.
 
 ```{dot}
 //| label: fig-array-vs-enlazada
@@ -833,19 +829,19 @@ una advertencia inmediatamente después:
 
 | Operación | `ArrayList` | `LinkedList` |
 |---|:---:|:---:|
-| `get(i)` / `set(i, x)` | `O(1)` | `O(n)` |
-| `add(x)` al final | `O(1)` amortizado | `O(1)` |
-| `add(0, x)` al principio | `O(n)` | `O(1)` |
-| `add(i, x)` en el medio | `O(n)` | `O(n)` |
-| `remove(i)` | `O(n)` | `O(n)` |
-| `contains(x)` / `indexOf(x)` | `O(n)` | `O(n)` |
-| recorrer con `for` mejorado | `O(n)` | `O(n)` |
+| `get(i)` / `set(i, x)` | $O(1)$ | $O(n)$ |
+| `add(x)` al final | $O(1)$ amortizado | $O(1)$ |
+| `add(0, x)` al principio | $O(n)$ | $O(1)$ |
+| `add(i, x)` en el medio | $O(n)$ | $O(n)$ |
+| `remove(i)` | $O(n)$ | $O(n)$ |
+| `contains(x)` / `indexOf(x)` | $O(n)$ | $O(n)$ |
+| recorrer con `for` mejorado | $O(n)$ | $O(n)$ |
 | memoria por elemento | el valor | el valor + dos enlaces |
 
 El coste amortizado del `add` al final es el de @tip-amortizado. Y las dos filas de `add(i, x)` y
 `remove(i)` en el medio son iguales por razones distintas, que es lo que más confunde: el
-`ArrayList` encuentra la posición en `O(1)` pero tiene que desplazar el resto; la `LinkedList`
-enlaza en `O(1)` pero tiene que **llegar** hasta la posición. Las dos pagan, cada una en su mitad
+`ArrayList` encuentra la posición en $O(1)$ pero tiene que desplazar el resto; la `LinkedList`
+enlaza en $O(1)$ pero tiene que **llegar** hasta la posición. Las dos pagan, cada una en su mitad
 del trabajo.
 
 ::: {#cau-linkedlist-por-defecto .callout-caution title="Elegir `LinkedList` porque «inserta en tiempo constante»"}
@@ -856,7 +852,7 @@ La tabla cuenta operaciones elementales suponiendo que todas cuestan lo mismo (@
 procesador real eso es falso por un factor de cien: los datos se traen de memoria principal a la
 memoria caché en bloques de 64 bytes, así que recorrer un array trae varios elementos de golpe,
 mientras que recorrer una lista enlazada salta a una dirección distinta —y probablemente lejana— en
-cada paso. Un recorrido de `ArrayList` y uno de `LinkedList` son los dos `O(n)`, y el primero es
+cada paso. Un recorrido de `ArrayList` y uno de `LinkedList` son los dos $O(n)$, y el primero es
 varias veces más rápido.
 
 A eso se añade la memoria: cada nodo de `LinkedList` es un objeto con dos referencias además del
@@ -872,7 +868,7 @@ más rápida que `Stack` cuando se usa como pila y más rápida que `LinkedList`
 :::
 
 ::: {#cau-borrar-en-bucle .callout-caution title="Borrar elementos de un `ArrayList` uno a uno dentro de un bucle"}
-Este bucle es `O(n²)` y se lee como si fuera `O(n)`:
+Este bucle es $O(n^2)$ y se lee como si fuera $O(n)$:
 
 ```java
 // Fragmento: cuadrático sin que se note
@@ -883,12 +879,12 @@ for (int i = lista.size() - 1; i >= 0; i--) {
 }
 ```
 
-Cada `remove(i)` desplaza los elementos posteriores una posición, es decir `O(n)`, y el bucle lo
-hace hasta `n` veces. Con diez mil elementos y la mitad a borrar son veinticinco millones de
+Cada `remove(i)` desplaza los elementos posteriores una posición, es decir $O(n)$, y el bucle lo
+hace hasta $n$ veces. Con diez mil elementos y la mitad a borrar son veinticinco millones de
 desplazamientos.
 
 El método `removeIf` resuelve el caso en una sola pasada: recorre, compacta y ajusta el tamaño,
-todo en `O(n)`. Que además se lea mejor es casi una casualidad afortunada.
+todo en $O(n)$. Que además se lea mejor es casi una casualidad afortunada.
 
 El error aparece también en forma de `lista.remove(0)` repetido para «consumir» una lista por el
 principio. Para eso está `ArrayDeque`.
@@ -938,7 +934,7 @@ corresponda.
 
 La implementación recomendada es `ArrayDeque` [@jdk25collections], un **array circular**: un array con dos índices, uno
 para la cabeza y otro para la cola, que avanzan y dan la vuelta al llegar al final. Así añadir y
-quitar por cualquiera de los dos extremos cuesta `O(1)` sin desplazar nada, y el array se duplica
+quitar por cualquiera de los dos extremos cuesta $O(1)$ sin desplazar nada, y el array se duplica
 cuando se llena, con el mismo argumento amortizado de @tip-amortizado.
 
 ```java
@@ -990,7 +986,7 @@ La documentación oficial de `Stack` lo dice con sus palabras: recomienda `Deque
 **En el monitor.** La política de alerta recibe el historial completo de un servicio, y en ningún
 caso lo necesita entero. La política de tres fallos consecutivos mira los tres últimos resultados;
 la de [latencia]{.glos} media mira las últimas `muestras`. Si lo que se guarda para decidir es una **ventana
-de los últimos `n` resultados** en lugar de todo el historial, el coste de consultar deja de crecer:
+de los últimos $n$ resultados** en lugar de todo el historial, el coste de consultar deja de crecer:
 la ventana tiene siempre el mismo tamaño.
 
 Esa es exactamente una cola con un tope: se añade por el final y, cuando se llena, se descarta por
@@ -1048,7 +1044,7 @@ la ventana nunca pase de su capacidad ni siquiera transitoriamente. Y el método
 una copia inmutable, por la razón de siempre: quien decide no debe poder modificar lo que se le da
 para decidir.
 
-El coste de `contenido` es `O(capacidad)` y no `O(1)`, porque copia. Es un coste **constante
+El coste de `contenido` es $O(\text{capacidad})$ y no $O(1)$, porque copia. Es un coste **constante
 respecto al tamaño del problema**, que es lo que importa: no crece con el número de comprobaciones.
 Si incluso esa copia molestara, la alternativa es devolver una vista no modificable, con la
 advertencia de 2.2.1 sobre lo que una vista no protege.
@@ -1059,25 +1055,25 @@ Aquí está la estructura que resuelve el problema del monitor, y la que convien
 porque su contrato ya apareció en el Tema 1 sin que se pudiera explicar por qué existe.
 
 ::: {#imp-tabla-hash .callout-important title="Tabla hash"}
-Una **tabla *hash*** (o tabla de dispersión) guarda pares clave-valor en un array de `m` posiciones
+Una **tabla *hash*** (o tabla de dispersión) guarda pares clave-valor en un array de $m$ posiciones
 llamadas **cubetas** (*buckets*). Para saber en qué cubeta va una clave, aplica una **función de
 dispersión** (*hash function*) que convierte la clave en un entero, y toma el resto de dividir ese
-entero entre `m`. Así, encontrar la cubeta de una clave cuesta `O(1)`: no se busca, se **calcula**.
+entero entre $m$. Así, encontrar la cubeta de una clave cuesta $O(1)$: no se busca, se **calcula**.
 
 El problema es que dos claves distintas pueden caer en la misma cubeta —una **colisión**—, y es
-inevitable: hay infinitas claves posibles y `m` cubetas. Las tablas de Java resuelven la colisión
+inevitable: hay infinitas claves posibles y $m$ cubetas. Las tablas de Java resuelven la colisión
 guardando en cada cubeta una **lista de los pares que han caído en ella**; al buscar, se calcula la
 cubeta y después se recorre su lista comparando con `equals`.
 
 De ahí sale el coste. Si las claves se reparten bien, cada cubeta tiene pocos elementos y la
-operación es `O(1)` **esperado**. Si todas las claves caen en la misma cubeta, la tabla degenera en
-una lista y la operación es `O(n)`: ese es su peor caso (@imp-casos). Para que el reparto siga
+operación es $O(1)$ **esperado**. Si todas las claves caen en la misma cubeta, la tabla degenera en
+una lista y la operación es $O(n)$: ese es su peor caso (@imp-casos). Para que el reparto siga
 siendo bueno al crecer, la tabla vigila su **factor de carga** —número de pares dividido entre
 número de cubetas— y cuando pasa de 0,75 **duplica el número de cubetas y recoloca todo**, lo que
-cuesta `O(n)` pero se amortiza igual que el crecimiento del `ArrayList` (@tip-amortizado).
+cuesta $O(n)$ pero se amortiza igual que el crecimiento del `ArrayList` (@tip-amortizado).
 
 Desde Java 8 hay una protección extra: cuando una cubeta acumula más de ocho pares, su lista se
-convierte en un árbol equilibrado, y el peor caso de la tabla pasa de `O(n)` a `O(log n)`. Se añadió
+convierte en un árbol equilibrado, y el peor caso de la tabla pasa de $O(n)$ a $O(\log n)$. Se añadió
 porque el peor caso era explotable: bastaba enviar a un servidor claves elegidas para colisionar
 —nombres de parámetros de una petición HTTP, por ejemplo— para dejarlo sin CPU.
 :::
@@ -1123,9 +1119,9 @@ recorren**:
 
 | Implementación | Orden al recorrer | Coste de `get`/`put` |
 |---|---|:---:|
-| `HashMap` | ninguno, y además imprevisible | `O(1)` esperado |
-| `LinkedHashMap` | el de inserción (o el de último acceso) | `O(1)` esperado |
-| `TreeMap` | el orden de las claves | `O(log n)` |
+| `HashMap` | ninguno, y además imprevisible | $O(1)$ esperado |
+| `LinkedHashMap` | el de inserción (o el de último acceso) | $O(1)$ esperado |
+| `TreeMap` | el orden de las claves | $O(\log n)$ |
 
 El `HashMap` no promete orden alguno, y conviene insistir en que tampoco promete que el orden sea
 **estable entre ejecuciones**: no se puede escribir una prueba que dependa de él. El
@@ -1231,14 +1227,14 @@ hecha estructura.
 
 El coste de buscar, insertar y borrar es la **altura** del árbol. Y ahí está el problema: insertar
 claves en orden creciente produce un árbol en el que cada nodo tiene un solo hijo, es decir una
-lista enlazada disfrazada, con altura `n` y coste `O(n)`. Como insertar en orden es lo más natural
+lista enlazada disfrazada, con altura $n$ y coste $O(n)$. Como insertar en orden es lo más natural
 del mundo —resultados que llegan por instante, identificadores que se asignan consecutivamente—, el
 caso degenerado no es raro: es el habitual.
 
 La solución son los **árboles equilibrados**, que al insertar y al borrar reorganizan unos pocos
-nodos para mantener la altura en `O(log n)`. El `TreeMap` de Java usa un **árbol rojo-negro**, que
+nodos para mantener la altura en $O(\log n)$. El `TreeMap` de Java usa un **árbol rojo-negro**, que
 garantiza que el camino más largo de la raíz a una hoja no es más del doble que el más corto. De
-ahí sale que todas sus operaciones sean `O(log n)` **en el peor caso**, no en el medio: es la
+ahí sale que todas sus operaciones sean $O(\log n)$ **en el peor caso**, no en el medio: es la
 diferencia de garantía que @imp-casos anunciaba.
 :::
 
@@ -1263,15 +1259,15 @@ orden, que son la razón de usarlos:
 | Pregunta | Método |
 |---|---|
 | la clave más pequeña y la más grande | `firstKey()`, `lastKey()` |
-| la mayor clave `≤ x`, la menor `≥ x` | `floorKey(x)`, `ceilingKey(x)` |
-| la mayor clave `< x`, la menor `> x` | `lowerKey(x)`, `higherKey(x)` |
-| todas las claves entre `a` y `b` | `subMap(a, true, b, false)` |
+| la mayor clave $\le x$, la menor $\ge x$ | `floorKey(x)`, `ceilingKey(x)` |
+| la mayor clave $< x$, la menor $> x$ | `lowerKey(x)`, `higherKey(x)` |
+| todas las claves entre $a$ y $b$ | `subMap(a, true, b, false)` |
 | las anteriores a `x` / posteriores a `x` | `headMap(x)`, `tailMap(x)` |
 | recorrer al revés | `descendingMap()` |
 
-Las tres primeras cuestan `O(log n)`. Y la cuarta tiene una propiedad que conviene subrayar:
+Las tres primeras cuestan $O(\log n)$. Y la cuarta tiene una propiedad que conviene subrayar:
 `subMap` **no copia nada**, devuelve una **vista** del propio árbol, así que obtenerla cuesta
-`O(log n)` y recorrerla cuesta lo que midan los elementos que contenga, no el árbol entero. Es la
+$O(\log n)$ y recorrerla cuesta lo que midan los elementos que contenga, no el árbol entero. Es la
 diferencia entre responder «dame los resultados de la última hora» en tiempo proporcional a esa hora
 o al historial completo.
 
@@ -1368,19 +1364,19 @@ débil que la del árbol de búsqueda (@imp-arbol-busqueda): el mínimo está en
 elementos no están ordenados entre sí.
 
 Esa debilidad es justo lo que la hace eficiente. Como el árbol es completo, **no hace falta
-representarlo con nodos y enlaces**: cabe en un array, donde el nodo `i` tiene sus hijos en `2i+1` y
-`2i+2`. No hay objetos de más, no hay enlaces, y la localidad de memoria es la de un array. Insertar
+representarlo con nodos y enlaces**: cabe en un array, donde el nodo $i$ tiene sus hijos en $2i+1$ y
+$2i+2$. No hay objetos de más, no hay enlaces, y la localidad de memoria es la de un array. Insertar
 coloca el elemento al final y lo hace **subir** intercambiándolo con su padre mientras sea menor;
 extraer el mínimo coge la raíz, pone el último elemento en su lugar y lo hace **bajar**. Las dos
-operaciones recorren la altura del árbol, que al ser completo es `log n`.
+operaciones recorren la altura del árbol, que al ser completo es $\log n$.
 
 | Operación | Coste |
 |---|:---:|
-| consultar el mínimo (`peek`) | `O(1)` |
-| insertar (`offer`) | `O(log n)` |
-| extraer el mínimo (`poll`) | `O(log n)` |
-| construir el montículo con `n` elementos de golpe | `O(n)` |
-| buscar un elemento cualquiera (`contains`) | `O(n)` |
+| consultar el mínimo (`peek`) | $O(1)$ |
+| insertar (`offer`) | $O(\log n)$ |
+| extraer el mínimo (`poll`) | $O(\log n)$ |
+| construir el montículo con $n$ elementos de golpe | $O(n)$ |
+| buscar un elemento cualquiera (`contains`) | $O(n)$ |
 
 La última fila es la contrapartida: un montículo no sabe buscar. Si el programa necesita a la vez
 «dame el mínimo» y «¿está este elemento?», hacen falta dos estructuras.
@@ -1403,14 +1399,14 @@ iterador, de modo que imprimir la cola para depurar induce al error directamente
 con tres o cuatro elementos el array **sí** suele salir ordenado por casualidad.
 
 La única forma de obtener los elementos en orden es **sacarlos**, con `poll` repetido, lo que vacía
-la cola y cuesta `O(n log n)` en total. Si hace falta conservarlos, se copian a una lista y se
+la cola y cuesta $O(n \log n)$ en total. Si hace falta conservarlos, se copian a una lista y se
 ordena, o se usa un `TreeSet` si los elementos no se repiten.
 
 La documentación lo dice —«el iterador no garantiza recorrer los elementos en ningún orden
 particular»—, y es una de esas frases del javadoc que conviene leer antes y no después.
 :::
 
-#### **La cola de alertas y los `k` peores servicios**
+#### **La cola de alertas y los $k$ peores servicios**
 
 **En el monitor.** Las alertas no son todas igual de urgentes: un servicio caído importa más que uno
 degradado, y entre dos caídos importa más el que lleva más tiempo así. Si el notificador tiene una
@@ -1477,12 +1473,12 @@ qué gravedad tiene, en lugar de asignarle una por omisión silenciosamente.
 
 El segundo uso del montículo es menos evidente y más útil.
 
-::: {#nte-k-peores .callout-note title="Los `k` peores servicios con un montículo de tamaño `k`"}
+::: {#nte-k-peores .callout-note title="Los $k$ peores servicios con un montículo de tamaño $k$"}
 Para sacar los cinco servicios con peor [disponibilidad]{.glos} entre diez mil, lo inmediato es
-ordenar los diez mil y quedarse con los cinco primeros: `O(n log n)`, y hay que tener los diez mil
+ordenar los diez mil y quedarse con los cinco primeros: $O(n \log n)$, y hay que tener los diez mil
 en memoria a la vez.
 
-Se puede hacer mejor. Se mantiene un montículo **de tamaño `k`** con los mejores candidatos vistos
+Se puede hacer mejor. Se mantiene un montículo **de tamaño $k$** con los mejores candidatos vistos
 hasta el momento, ordenado de forma que la raíz sea **el peor de los que están dentro**. Para cada
 servicio nuevo: si el montículo no está lleno, se mete; si está lleno y el nuevo es mejor que la
 raíz, se saca la raíz y se mete el nuevo; si no, se descarta.
@@ -1498,13 +1494,13 @@ for (Medida medida : medidas) {
 }
 ```
 
-El coste es `O(n log k)` y la memoria `O(k)`. Con `n = 10 000` y `k = 5`, `log k` es 2,3 frente a
-los 13,3 de `log n`: casi seis veces menos comparaciones. Y lo que más importa en la práctica: la
-memoria no depende de `n`, así que el algoritmo funciona sobre un flujo de datos que no cabe en
+El coste es $O(n \log k)$ y la memoria $O(k)$. Con $n = 10\,000$ y $k = 5$, $\log k$ es 2,3 frente a
+los 13,3 de $\log n$: casi seis veces menos comparaciones. Y lo que más importa en la práctica: la
+memoria no depende de $n$, así que el algoritmo funciona sobre un flujo de datos que no cabe en
 memoria, lo que un `sort` no puede hacer.
 
 El comparador va **invertido** (`reversed`) respecto a lo que se busca, y es el detalle que todo el
-mundo se equivoca la primera vez: para quedarse con los `k` menores hay que poder descartar el mayor
+mundo se equivoca la primera vez: para quedarse con los $k$ menores hay que poder descartar el mayor
 de los candidatos, luego el mayor tiene que estar en la raíz.
 :::
 
@@ -1518,10 +1514,10 @@ prioridad. Hay dos ausencias que conviene conocer para no buscarlas en vano.
 siempre con una de estas dos estructuras, que son otra vez la misma disyuntiva de array contra
 enlaces:
 
-- **Lista de adyacencia**: `Map<V, List<V>>`, un vértice y sus vecinos. Ocupa `O(V + E)` y recorrer
+- **Lista de adyacencia**: `Map<V, List<V>>`, un vértice y sus vecinos. Ocupa $O(V + E)$ y recorrer
   los vecinos de un vértice cuesta lo que midan. Es la representación por omisión.
-- **Matriz de adyacencia**: `boolean[V][V]`. Ocupa `O(V²)` y responde «¿hay arista entre estos dos?»
-  en `O(1)`. Solo compensa en grafos densos o cuando esa pregunta domina.
+- **Matriz de adyacencia**: `boolean[V][V]`. Ocupa $O(V^2)$ y responde «¿hay arista entre estos dos?»
+  en $O(1)$. Solo compensa en grafos densos o cuando esa pregunta domina.
 
 Para una red de comunicaciones —que es un grafo con los [encaminadores]{.glos} por vértices y los
 [enlaces]{.glos} por aristas— la lista de adyacencia es lo correcto, porque las redes reales son
@@ -1568,20 +1564,20 @@ estructura que hace una operación mil veces más barata no aporta nada si esa o
 una vez.
 :::
 
-Aplicado al monitor, el inventario cabe en cuatro líneas. Con `s` servicios y `r` rondas:
+Aplicado al monitor, el inventario cabe en cuatro líneas. Con $s$ servicios y $r$ rondas:
 
 | Operación | ¿Cuántas veces? | ¿Quién la pide? |
 |---|---|---|
-| guardar un resultado | `r·s` | el monitor, en cada comprobación |
-| consultar lo necesario para decidir | `r·s` | la política de alerta |
+| guardar un resultado | $r \cdot s$ | el monitor, en cada comprobación |
+| consultar lo necesario para decidir | $r \cdot s$ | la política de alerta |
 | consultar el historial completo de un servicio | unas pocas | los informes, al final |
 | consultar qué servicios hay | unas pocas | los informes |
 
-Las dos primeras filas ocurren `r·s` veces; las dos últimas, un puñado de veces en toda la
+Las dos primeras filas ocurren $r \cdot s$ veces; las dos últimas, un puñado de veces en toda la
 ejecución. La conclusión es inmediata y es la que el Tema 1 no podía ver: **lo que hay que hacer
 barato es guardar y consultar-para-decidir**, y da exactamente igual lo que cueste producir un
-informe. La estructura del Tema 1 hacía lo contrario: guardar era `O(1)`, pero consultar costaba un
-recorrido completo, y era lo segundo lo que se hacía `r·s` veces.
+informe. La estructura del Tema 1 hacía lo contrario: guardar era $O(1)$, pero consultar costaba un
+recorrido completo, y era lo segundo lo que se hacía $r \cdot s$ veces.
 
 ### 2.3.2 Qué estructura para qué operación
 
@@ -1590,17 +1586,17 @@ le hace a sus datos; la columna de la derecha, la estructura que las responde bi
 
 | Lo que el programa necesita | Estructura | Coste |
 |---|---|:---:|
-| acceder por posición, recorrer, añadir al final | `ArrayList` | `O(1)` / `O(n)` / `O(1)`† |
-| añadir y quitar por los dos extremos | `ArrayDeque` | `O(1)` |
-| los últimos `n`, olvidando los viejos | `ArrayDeque` con tope | `O(1)` |
-| ¿está este elemento? | `HashSet` | `O(1)`‡ |
-| el valor asociado a esta clave | `HashMap` | `O(1)`‡ |
-| recorrer en el orden en que se insertó | `LinkedHashMap` / `LinkedHashSet` | `O(1)`‡ |
-| recorrer en orden de clave; rangos; vecinos | `TreeMap` / `TreeSet` | `O(log n)` |
-| el mínimo (o el máximo) de un conjunto que cambia | `PriorityQueue` | `O(log n)` |
-| los `k` mejores de muchos | `PriorityQueue` de tamaño `k` | `O(n log k)` |
-| contar apariciones | `HashMap` con `merge` | `O(1)` por elemento‡ |
-| agrupar por una propiedad | `HashMap` con `computeIfAbsent` | `O(1)` por elemento‡ |
+| acceder por posición, recorrer, añadir al final | `ArrayList` | $O(1)$ / $O(n)$ / $O(1)$† |
+| añadir y quitar por los dos extremos | `ArrayDeque` | $O(1)$ |
+| los últimos $n$, olvidando los viejos | `ArrayDeque` con tope | $O(1)$ |
+| ¿está este elemento? | `HashSet` | $O(1)$‡ |
+| el valor asociado a esta clave | `HashMap` | $O(1)$‡ |
+| recorrer en el orden en que se insertó | `LinkedHashMap` / `LinkedHashSet` | $O(1)$‡ |
+| recorrer en orden de clave; rangos; vecinos | `TreeMap` / `TreeSet` | $O(\log n)$ |
+| el mínimo (o el máximo) de un conjunto que cambia | `PriorityQueue` | $O(\log n)$ |
+| los $k$ mejores de muchos | `PriorityQueue` de tamaño $k$ | $O(n \log k)$ |
+| contar apariciones | `HashMap` con `merge` | $O(1)$ por elemento‡ |
+| agrupar por una propiedad | `HashMap` con `computeIfAbsent` | $O(1)$ por elemento‡ |
 
 † amortizado (@tip-amortizado) · ‡ esperado, no garantizado (@imp-tabla-hash)
 
@@ -1636,24 +1632,24 @@ cualquier otra cosa es trabajo de más (2.3.4).
 método de @imp-operacion-dominante a las tres preguntas que el repositorio recibe.
 
 **Primera decisión: índice por servicio.** La operación dominante es consultar-para-decidir, que
-pregunta por **un** servicio. Un `HashMap<Servicio, …>` responde en `O(1)` esperado, y las claves
+pregunta por **un** servicio. Un `HashMap<Servicio, …>` responde en $O(1)$ esperado, y las claves
 son `record` inmutables, que es el requisito de @cau-clave-mutable. Un `TreeMap` también serviría,
-en `O(log n)`, y no aporta nada: nadie pregunta por «los servicios entre dos nombres». Gana el
+en $O(\log n)$, y no aporta nada: nadie pregunta por «los servicios entre dos nombres». Gana el
 `HashMap` (@imp-tabla-hash).
 
-**Segunda decisión: ventana de las últimas `n`.** El índice no basta, y conviene ver por qué: con él
+**Segunda decisión: ventana de las últimas $n$.** El índice no basta, y conviene ver por qué: con él
 `historial` deja de mirar los resultados de los demás servicios, pero sigue copiando **todos los del
-suyo**, que crecen una por ronda. El coste pasa de `O(r²s²)` a `O(r²s)` —una mejora de un factor
-`s`, nada despreciable— pero sigue siendo cuadrático en `r`. La observación que lo resuelve es que
+suyo**, que crecen una por ronda. El coste pasa de $O(r^2 s^2)$ a $O(r^2 s)$ —una mejora de un factor
+$s$, nada despreciable— pero sigue siendo cuadrático en $r$. La observación que lo resuelve es que
 **la política no necesita el historial**: la de tres fallos consecutivos mira tres resultados, la de
-latencia media mira `muestras`. Guardar una ventana de las últimas `n` con `n` mayor o igual que lo
+latencia media mira `muestras`. Guardar una ventana de las últimas $n$ con $n$ mayor o igual que lo
 que pida la política más exigente da el **mismo resultado** con coste constante
 (@imp-pila-cola).
 
 **Tercera decisión: cola de prioridad para las alertas.** La operación dominante aquí es «dame la más
 grave de las pendientes», que es extraer el mínimo de un conjunto que cambia. Es la definición de
-cola de prioridad (@imp-monticulo). Ordenar la lista de pendientes en cada envío sería `O(n log n)`
-cada vez; el montículo da `O(log n)` por operación.
+cola de prioridad (@imp-monticulo). Ordenar la lista de pendientes en cada envío sería $O(n \log n)$
+cada vez; el montículo da $O(\log n)$ por operación.
 
 El repositorio que sale de las dos primeras mantiene **dos** estructuras, y eso es deliberado:
 
@@ -1750,7 +1746,7 @@ de datos se pudo cambiar por dentro.
 
 #### **La medición**
 
-Mismo experimento que en 2.1.6 —`s = 20` servicios, política de tres fallos consecutivos, ventana de
+Mismo experimento que en 2.1.6 —$s = 20$ servicios, política de tres fallos consecutivos, ventana de
 diez, mínimo de tres repeticiones después de calentar (@wrn-cronometrar)— con las tres versiones:
 
 | Rondas | Lista única (Tema 1) | Solo índice | Índice y ventana |
@@ -1763,11 +1759,11 @@ diez, mínimo de tres repeticiones después de calentar (@wrn-cronometrar)— co
 
 Las tres columnas dicen tres cosas distintas y las tres importan.
 
-La primera **se cuadruplica** al duplicar las rondas: es el `O(r²s²)` de 2.1.6, confirmado.
+La primera **se cuadruplica** al duplicar las rondas: es el $O(r^2 s^2)$ de 2.1.6, confirmado.
 
 La segunda crece también por cuatro aproximadamente —3, 9, 26, 75— y eso es justo lo que predecía el
-análisis de la segunda decisión: el índice elimina el factor `s`, de ahí que a 1 600 rondas sea unas
-cuarenta veces más rápida, pero **sigue siendo cuadrática en `r`**. Es el resultado más instructivo
+análisis de la segunda decisión: el índice elimina el factor $s$, de ahí que a 1 600 rondas sea unas
+cuarenta veces más rápida, pero **sigue siendo cuadrática en $r$**. Es el resultado más instructivo
 de la tabla: una estructura bien elegida que mejora cuarenta veces y no arregla el problema de
 fondo, porque el problema no era solo mirar los resultados de otros servicios, era copiar los
 propios.
@@ -1777,7 +1773,7 @@ trabajo por comprobación ha dejado de depender del número de comprobaciones an
 objetivo, y el programa puede funcionar indefinidamente sin degradarse.
 
 Queda una cosa que la tabla no mide y hay que decir: el repositorio sigue guardando **todos** los
-resultados en el índice completo, de modo que la **memoria** sigue creciendo linealmente, `O(r·s)`.
+resultados en el índice completo, de modo que la **memoria** sigue creciendo linealmente, $O(r \cdot s)$.
 Para un monitor que funcione meses eso también es un problema, y la solución no es una estructura
 distinta: es decidir cuántos datos históricos se conservan y tirar el resto, o escribirlos en una
 base de datos, que es el Tema 4. La estructura de datos arregla el tiempo; el volumen es una
@@ -1794,9 +1790,9 @@ cosas, elegir estructuras «eficientes» es decorar.
 
 Tres razones por las que el instinto falla:
 
-- **Las constantes mandan con `n` pequeño.** Un `HashMap` de cinco entradas es más lento que cinco
+- **Las constantes mandan con $n$ pequeño.** Un `HashMap` de cinco entradas es más lento que cinco
   comparaciones en un array: hay que calcular el código de dispersión, indexar la cubeta y comparar
-  con `equals`. Y el `HashMap` ocupa bastante más memoria. Para `n` pequeño y conocido, lo simple
+  con `equals`. Y el `HashMap` ocupa bastante más memoria. Para $n$ pequeño y conocido, lo simple
   gana, y la frontera suele estar en unas decenas de elementos (@cau-o-grande-sin-n).
 - **El coste real puede no estar en el cálculo.** Un programa que consulta una base de datos o pide
   algo por la red pasa el 99 % de su tiempo esperando. Cambiar una `List` por un `HashSet` en ese
@@ -1811,8 +1807,8 @@ operación dominante, cambiar **esa** y volver a medir. Y conservar la medida, q
 defender el cambio ante quien lo revise.
 :::
 
-Hay una asimetría que conviene tener presente al decidir. Elegir mal una estructura cuando `n` es
-pequeño cuesta microsegundos; elegir mal la **clase de crecimiento** cuando `n` va a crecer cuesta
+Hay una asimetría que conviene tener presente al decidir. Elegir mal una estructura cuando $n$ es
+pequeño cuesta microsegundos; elegir mal la **clase de crecimiento** cuando $n$ va a crecer cuesta
 que el programa deje de funcionar, y suele descubrirse en producción. Por eso la pregunta útil no es
 «¿qué es más rápido?», sino «**¿qué pasa cuando esto tenga cien veces más datos?**». La primera se
 contesta midiendo; la segunda, analizando, y es la que este tema enseña a contestar.
@@ -1909,7 +1905,7 @@ class CosteHistorialTest {
 ```
 
 La segunda prueba es la interesante y conviene leerla con atención. No mide tiempo: cuenta
-**llamadas a `equals`**, que es la operación que el repositorio del Tema 1 hacía `N` veces y el
+**llamadas a `equals`**, que es la operación que el repositorio del Tema 1 hacía $N$ veces y el
 nuevo hace un puñado. El umbral es generoso a propósito —menos de diez, no exactamente una—, porque
 el número exacto depende de cómo el `HashMap` resuelva las colisiones y una prueba que lo fijara
 sería frágil sin ser más informativa. Lo que la prueba defiende es la **clase de crecimiento**: si
@@ -1935,12 +1931,12 @@ Cinco ideas para llevarse:
 1. **El coste se analiza contando operaciones, y se confirma midiendo.** Lo uno sin lo otro no vale:
    el análisis sin medición ignora las constantes, y la medición sin análisis no dice qué pasará con
    diez veces más datos.
-2. **El mecanismo explica el coste.** Un `HashMap` es `O(1)` porque calcula la cubeta, y por eso
-   necesita `hashCode` coherente con `equals` y claves inmutables; un `TreeMap` es `O(log n)` porque
+2. **El mecanismo explica el coste.** Un `HashMap` es $O(1)$ porque calcula la cubeta, y por eso
+   necesita `hashCode` coherente con `equals` y claves inmutables; un `TreeMap` es $O(\log n)$ porque
    mantiene el árbol equilibrado, y por eso sabe hacer rangos. Memorizar la tabla de costes sin el
    mecanismo no permite decidir en un caso nuevo.
 3. **La estructura se elige por la operación dominante, no por la más visible.** En el monitor la
-   operación que mandaba se ejecutaba `r·s` veces dentro de otra, y no se veía en el código del
+   operación que mandaba se ejecutaba $r \cdot s$ veces dentro de otra, y no se veía en el código del
    monitor sino en el del repositorio.
 4. **Casi siempre se paga memoria por tiempo.** El índice, la ventana y el montículo del monitor son
    datos duplicados que compran operaciones constantes. Es un intercambio, y hay que saber qué se
