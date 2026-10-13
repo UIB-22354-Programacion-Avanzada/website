@@ -218,9 +218,21 @@ Este conteo exhaustivo no se realiza en la práctica, sino que se plantea la ide
 `suma`, pero **del mismo orden**, porque al duplicar la entrada le pasa exactamente lo mismo que a
 `suma`. 
 
-Esa es la razón de que las constantes multiplicativas se descarten, y conviene ver que no es
-pereza: es que la constante depende de cómo se escribió el bucle, y el orden depende de la idea del
-algoritmo.
+Hay dos razones para descartar las constantes multiplicativas, y ninguna es la pereza. La primera
+es que **la constante no está determinada**: el recuento de arriba da $5n + 3$ con un modelo en el
+que `i++` vale una operación y el acceso al array otra, y con un modelo que cuente el incremento
+como dos, o el acceso como dos, sale $7n$ o más. Ninguno de los dos modelos es el correcto, son
+convenios, de modo que un número que depende de cómo se escribió el bucle y de qué se considera operación elemental no describe el algoritmo. 
+
+La segunda es que **en la respuesta a la pregunta que nos hacemos la constante no aparece**. Lo que se le pide a la notación es contestar «si la entrada se multiplica por diez, ¿por cuánto se multiplica el trabajo?», y con coste $cn$ la respuesta es $T(10n)/T(n) = 10cn/cn = 10$: el factor se cancela. Con coste $cn^2$ sale 100, y se cancela igual. El cociente depende solo del orden de $n$, así que la constante no interviene en la predicción. Y cuando hay que **comparar** dos algoritmos de distinto orden, la constante tampoco decide quién gana, solo a partir de dónde: un algoritmo de $100n$ le gana a uno de $n^2$ desde $n = 100$, y si su constante fuera mil le ganaría desde $n = 1000$; gana el lineal en los dos casos (@cau-o-grande-sin-n).
+
+Lo que queda al quitar la constante, el orden, sí es propio del algoritmo, y se ve comparando los
+dos primeros métodos: escribir `sumaYMaximo` con dos bucles en lugar de uno cambia la constante de 1
+a 2, pero no puede cambiarle el orden, porque sigue siendo un recorrido. Para cambiar el orden hay
+que cambiar el procedimiento: `hayRepetido` compara todos los pares y es cuadrático, y el mismo
+problema resuelto metiendo cada elemento en un conjunto y preguntando si ya estaba es lineal, como
+veremos en 2.2 (@imp-tabla-hash). Reescribir el bucle mueve la constante; cambiar la idea mueve el
+orden.
 
 Los tres métodos llevan un contador y lo imprimen antes de devolver el resultado, de modo que los
 números del análisis se pueden comprobar en lugar de creer. Lo que cuentan son **iteraciones del
