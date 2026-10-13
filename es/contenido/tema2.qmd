@@ -76,12 +76,12 @@ no se vuelven a listar.
 Esta sección aborda el problema del coste, en términos computacionales, de los algoritmos. Lo
 primero es definir qué se mide y cómo. En la implementación computacional de los algoritmos hay dos
 costes fundamentales a considerar: el **tiempo** y el **espacio** (o **memoria**). Ambos se refieren 
-a la cantidad de recursos que un algoritmo requiere, dada una instancia del problema (una entrada), 
+a la cantidad de recursos que un algoritmo, dada una instancia del problema (una entrada), requiere 
 para ejecutarse. Por ejemplo, podemos medir el tiempo que tarda un algoritmo en ejecutarse en segundos 
 y la cantidad de memoria que utiliza en bytes. En esta sección nos enfocaremos principalmente en 
 coste en tiempo que también se conoce como **complejidad** del algoritmo.
 
-### 2.1.1 Qué se mide y por qué no es el tiempo
+### 2.1.1 Qué se mide y por qué no es exactamente el tiempo
 
 Lo primero que uno piensa es cronometrar. Es una medida real y necesaria, pero no permite
 **razonar**: el número que sale depende del procesador, de la memoria, de lo que esté haciendo el
@@ -130,7 +130,7 @@ public final class Conteos {
     public static long suma(int[] datos) {
         long total = 0;                          // 1
         for (int i = 0; i < datos.length; i++) { // n veces
-            total += datos[i];                   //   coste constante
+            total += datos[i];                   // coste constante
         }
         return total;                            // 1
     }
@@ -162,8 +162,7 @@ public final class Conteos {
 }
 ```
 
-- El método `suma` ejecuta el cuerpo del bucle $n$ veces, así que su coste es $n$ operaciones más una
-constante: diremos que es del orden $n$, y lo escribiremos $O(n)$ en cuanto tengamos la notación. 
+- El método `suma` ejecuta el cuerpo del bucle $n$ veces (con $n$ = `datos.length`), así que su coste es $n$ operaciones más una constante: diremos que es del orden $n$, y lo escribiremos $O(n)$ en cuanto tengamos la notación. 
 - El método `hayRepetido` ejecuta el cuerpo interno una vez por cada par de índices distintos, que son $n(n−1)/2$, es decir del orden de $n^2$. 
 - Y el método `sumaYMaximo` hace dos recorridos completos, $2n$ iteraciones: el doble que
 `suma`, pero **del mismo orden**, porque al duplicar la entrada le pasa exactamente lo mismo que a
