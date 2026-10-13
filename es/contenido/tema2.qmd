@@ -539,24 +539,41 @@ contener el elemento buscado.
 
 La **búsqueda binaria** supone que los datos están **ordenados**, y con eso baja a $O(\log n)$: mira
 el elemento central, y como sabe que a su izquierda están todos los menores y a su derecha todos los
-mayores, descarta la mitad de un golpe. Veinte comparaciones bastan para un millón de elementos,
-porque $2^{20} > 10^6$.
+mayores, descarta la mitad de un golpe. Veinte comparaciones bastan para $2^{20}$ elementos, algo
+más de un millón, y el programa de abajo lo comprueba.
 
 ```{#busqueda-binaria .java}
 // Busquedas.java
 package es.uib.prgava.tema2.eficiencia;
 
+/**
+ * Búsqueda lineal y búsqueda binaria, cada una contando su propio trabajo.
+ *
+ * <p>Como en {@link Conteos}, el contador lleva las <strong>iteraciones del cuerpo</strong> del
+ * bucle y se imprime antes de devolver el resultado. Aquí cada iteración es una comparación con un
+ * elemento del array, así que el número es directamente el de comparaciones.
+ */
 public final class Busquedas {
 
     private Busquedas() { }
 
+    /** Imprime una línea con el recuento y la cota que lo predice. */
+    private static void anunciar(String metodo, int n, long comparaciones, String cota) {
+        System.out.printf("%-8s n = %-9d comparaciones = %-9d  (%s)%n",
+                metodo, n, comparaciones, cota);
+    }
+
     /** Posición de {@code buscado} en {@code datos}, o −1. Coste O(n). */
     public static int lineal(int[] datos, int buscado) {
+        long comparaciones = 0;
         for (int i = 0; i < datos.length; i++) {
+            comparaciones++;
             if (datos[i] == buscado) {
+                anunciar("lineal", datos.length, comparaciones, "n como maximo");
                 return i;
             }
         }
+        anunciar("lineal", datos.length, comparaciones, "n");
         return -1;
     }
 
@@ -566,11 +583,14 @@ public final class Busquedas {
      * @param datos array <strong>ordenado</strong> de forma creciente
      */
     public static int binaria(int[] datos, int buscado) {
+        long comparaciones = 0;
         int izquierda = 0;
         int derecha = datos.length - 1;
         while (izquierda <= derecha) {
+            comparaciones++;
             int centro = izquierda + (derecha - izquierda) / 2;
             if (datos[centro] == buscado) {
+                anunciar("binaria", datos.length, comparaciones, "log2(n) + 1 como maximo");
                 return centro;
             }
             if (datos[centro] < buscado) {
@@ -579,6 +599,7 @@ public final class Busquedas {
                 derecha = centro - 1;
             }
         }
+        anunciar("binaria", datos.length, comparaciones, "log2(n) + 1");
         return -1;
     }
 }
@@ -626,22 +647,98 @@ ordenadas, `java.util.Collections.binarySearch`. Su valor de retorno tiene una p
 útil: si el elemento **no está**, no devuelven `-1`, sino $-(\text{punto de inserción}) - 1$, un número
 negativo del que se recupera el lugar donde habría que insertarlo para mantener el orden.
 
-```java
-// Fragmento
-int[] puertos = {22, 25, 80, 443, 8080};
-
-System.out.println(Arrays.binarySearch(puertos, 443));   // 3
-System.out.println(Arrays.binarySearch(puertos, 1024));  // -5
-
-int posicion = Arrays.binarySearch(puertos, 1024);
-if (posicion < 0) {
-    int donde = -posicion - 1;                           // 4: iría justo antes de 8080
-}
-```
-
 La codificación con $-x - 1$ en lugar de $-x$ existe porque el punto de inserción puede ser 0 —si el
 elemento es menor que todos— y `-0` no se distingue de `0`, que significaría «encontrado en la
 posición 0».
+
+#### **Las dos búsquedas, ejecutadas**
+
+El programa siguiente compara el trabajo de las dos implementaciones y, al final, enseña lo que
+devuelve la de la biblioteca en los tres casos que importan: el elemento está, el elemento no está y
+va en medio, y el elemento no está y va al principio.
+
+```java
+// DemoBusquedas.java
+package es.uib.prgava.tema2.eficiencia;
+
+import java.util.Arrays;
+
+/** Compara el trabajo de las dos búsquedas y muestra qué devuelve la de la biblioteca. */
+public final class DemoBusquedas {
+
+    /** Un array ordenado con los n primeros pares: 0, 2, 4, ... */
+    private static int[] pares(int n) {
+        var datos = new int[n];
+        for (int i = 0; i < n; i++) {
+            datos[i] = 2 * i;
+        }
+        return datos;
+    }
+
+    public static void main(String[] args) {
+        System.out.println("--- cinco puertos, para leer los numeros a mano");
+        int[] puertos = {22, 25, 80, 443, 8080};
+        System.out.println("   posicion de 8080 = " + Busquedas.lineal(puertos, 8080));
+        System.out.println("   posicion de 8080 = " + Busquedas.binaria(puertos, 8080));
+        System.out.println("   posicion de 1024 = " + Busquedas.lineal(puertos, 1024));
+        System.out.println("   posicion de 1024 = " + Busquedas.binaria(puertos, 1024));
+
+        System.out.println();
+        System.out.println("--- un millon de elementos: el elemento no esta");
+        var muchos = pares(1 << 20);
+        System.out.println("   posicion = " + Busquedas.lineal(muchos, -1));
+        System.out.println("   posicion = " + Busquedas.binaria(muchos, -1));
+
+        System.out.println();
+        System.out.println("--- lo que devuelve la biblioteca");
+        System.out.println("   buscar 443  -> " + Arrays.binarySearch(puertos, 443));
+        System.out.println("   buscar 1024 -> " + Arrays.binarySearch(puertos, 1024));
+        int posicion = Arrays.binarySearch(puertos, 1024);
+        if (posicion < 0) {
+            System.out.println("   1024 iria en la posicion " + (-posicion - 1));
+        }
+        System.out.println("   buscar 10   -> " + Arrays.binarySearch(puertos, 10));
+        System.out.println("   10 iria en la posicion " + (-Arrays.binarySearch(puertos, 10) - 1));
+    }
+}
+```
+
+```text
+--- cinco puertos, para leer los numeros a mano
+lineal   n = 5         comparaciones = 5          (n como maximo)
+   posicion de 8080 = 4
+binaria  n = 5         comparaciones = 3          (log2(n) + 1 como maximo)
+   posicion de 8080 = 4
+lineal   n = 5         comparaciones = 5          (n)
+   posicion de 1024 = -1
+binaria  n = 5         comparaciones = 3          (log2(n) + 1)
+   posicion de 1024 = -1
+
+--- un millon de elementos: el elemento no esta
+lineal   n = 1048576   comparaciones = 1048576    (n)
+   posicion = -1
+binaria  n = 1048576   comparaciones = 20         (log2(n) + 1)
+   posicion = -1
+
+--- lo que devuelve la biblioteca
+   buscar 443  -> 3
+   buscar 1024 -> -5
+   1024 iria en la posicion 4
+   buscar 10   -> -1
+   10 iria en la posicion 0
+```
+
+Los dos números del medio son el argumento de la sección: con $2^{20}$ elementos y el elemento
+ausente, la lineal hace 1.048.576 comparaciones y la binaria **20**. Y los dos de arriba son el
+aviso de @cau-o-grande-sin-n visto desde dentro: con cinco elementos la binaria también gana, 3
+frente a 5, pero por tan poco que cualquier constante oculta podría darle la vuelta.
+
+El último par de líneas merece atención, porque esconde una trampa. Buscar el 10, que es menor que
+todos los puertos, devuelve `-1`, y ese `-1` **no significa lo mismo** que el `-1` de nuestra
+`binaria`: aquí quiere decir «no está, y va en la posición 0», mientras que allí quiere decir «no
+está» y nada más. Dos métodos con la misma intención y el mismo valor de retorno para dos cosas
+distintas, en la misma página. Al pasar de una implementación a otra, ese es el primer sitio donde
+mirar.
 
 ### 2.1.5 Ordenación
 
