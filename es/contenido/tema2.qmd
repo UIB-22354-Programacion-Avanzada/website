@@ -241,9 +241,15 @@ c_1 \cdot g(n) \le f(n) \le c_2 \cdot g(n)
 $$
 para todo $n \ge n_0$. Es una **cota asintótica ajustada** y equivale a que $f$ pertenece simultáneamente a $O(g(n))$ y a $\Omega(g(n))$.
 
-Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que $3n + 100$ y $n$ sean lo
-mismo. «A partir de cierto $n_0$» es lo que permite ignorar lo que pase con entradas pequeñas, donde
-un algoritmo peor puede ganar: $n^2$ es menor que `100n` mientras `n < 100`.
+Esa equivalencia es la que se usa en la práctica: nadie busca $c_1$ y $c_2$ a la vez, sino que
+demuestra por separado la cota superior y la inferior y concluye la ajustada.
+
+Las dos cláusulas importan. «Salvo un factor constante» es lo que hace que $3n + 100$ sea $O(n)$:
+con $c = 4$ y $n_0 = 100$ se cumple $3n + 100 \le 4n$, y la misma constante $c=4$ absorbe el factor
+y el sumando. «A partir de cierto $n_0$» es imprescindible porque sin él ninguna función con término
+constante estaría en $O$ de alguna otra: en $n = 0$, la función $n^2 + 1000n + 10^6$ vale un millón y
+$c \cdot n^2$ vale cero, para cualquier $c$. De paso permite ignorar lo que pase con entradas
+pequeñas, donde un algoritmo peor puede ganar: $n^2$ es menor que $100n$ mientras $n < 100$.
 
 De la definición salen las tres reglas que se usan a diario:
 
