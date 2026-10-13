@@ -482,7 +482,7 @@ medio sea peor.
 Hay un tercer tipo de análisis que no es ninguno de los tres y que hace falta para entender la
 estructura más usada de Java.
 
-::: {#tip-amortizado .callout-tip title="Una operación puede ser caníbal: el coste amortizado"}
+::: {#tip-amortizado .callout-tip title="Coste amortizado: el coste se reparte sobre la serie de llamadas, no sobre cada una"}
 Un `ArrayList` guarda sus elementos en un array. Cuando el array se llena, el método `add` no puede
 simplemente añadir: tiene que **crear un array mayor y copiar todo**, que cuesta $O(n)$. Entonces,
 ¿cuánto cuesta `add`? Su peor caso es lineal, y sin embargo nadie duda en usar `ArrayList` para
