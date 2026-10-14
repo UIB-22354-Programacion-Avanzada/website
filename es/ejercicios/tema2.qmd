@@ -421,8 +421,11 @@ public long copiasRealizadas()
    devuelve la nueva: `c -> 2 * c` duplica y `c -> c + 10` crece de diez en diez. Es el
    [patrón Strategy del Tema 1](../contenido/tema1.qmd#strategy) aplicado a una decisión que
    normalmente está enterrada en la implementación, y es lo que permite comparar las dos políticas
-   sin escribir la clase dos veces. Rechaza con `IllegalStateException` una estrategia que no haga
-   crecer la capacidad, porque si no el bucle de `anadir` no terminaría nunca.
+   sin escribir la clase dos veces. Cuando toque crecer, si la estrategia devuelve una capacidad que
+   no es mayor que la actual, lanza `IllegalStateException`: con una estrategia así el almacén no
+   podría seguir creciendo nunca. Un `crecimiento` nulo es `NullPointerException` —te sirve
+   `java.util.Objects.requireNonNull`— y una capacidad inicial menor que 1,
+   `IllegalArgumentException`.
 
 3. **`anadir`.** Si el array está lleno, crea uno nuevo con la capacidad que diga la estrategia,
    copia los elementos —te sirve `java.util.Arrays.copyOf`— y **suma al contador de copias el número
@@ -648,8 +651,10 @@ public final class RepositorioEnMemoria implements RepositorioResultados {
    `RepositorioContador`, construya los servicios que se le piden, y haga `rondas` rondas en las que
    cada servicio se guarda y después se consulta su historial —el orden del
    [bucle del Tema 1](../contenido/tema2.qmd#el-coste-del-monitor-medido): primero `guardar`,
-   después `historial`—. No necesitas el `Monitor`, ni la sonda, ni la política: lo que se mide es
-   el repositorio, y meter el resto solo añade ruido.
+   después `historial`—. Los servicios los creas con `new ServicioTcp("s" + i, 9000 + i)`, o con
+   cualquier otro tipo del monitor: lo único que importa es que sean distintos entre sí. No
+   necesitas el `Monitor`, ni la sonda, ni la política: lo que se mide es el repositorio, y meter el
+   resto solo añade ruido.
 
 3. **La fórmula.** Llamemos $r$ al número de rondas, $s$ al de servicios y $N = r \cdot s$ al
    número de resultados guardados al final. En la llamada $k$-ésima el repositorio tiene $k$ resultados y los recorre todos, de modo
