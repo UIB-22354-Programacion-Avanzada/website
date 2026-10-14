@@ -120,6 +120,35 @@ Contar las operaciones elementales (el coste) de un fragmento de código sin buc
 Todo lo interesante pasa en los bucles, y ahí la regla es sencilla: el coste de un bucle es el
 número de iteraciones multiplicado por el coste de su cuerpo. Veamos en la clase `Conteos` tres recorridos que cuentan su propio trabajo y lo imprimen antes de devolver el resultado.
 
+Antes de los recorridos, una clase pequeña y con un propósito concreto. A lo largo de esta sección
+vamos a contar operaciones y a compararlas con la fórmula que las predice, y conviene que todos esos
+recuentos se lean igual: el mismo orden de los datos y las mismas columnas, para poder ponerlos uno
+debajo de otro sin traducir nada. La clase `Recuento` fija ese formato en un único sitio, de modo
+que cuando más adelante las búsquedas cuenten lo suyo (2.1.4), su salida se pueda comparar con la de
+aquí directamente.
+
+```java
+// Recuento.java
+package es.uib.prgava.tema2.eficiencia;
+
+/**
+ * Formato único con el que las clases de esta sección informan de lo que han contado.
+ *
+ * <p>Existe para que todos los recuentos del tema se lean igual: el nombre del método, el tamaño de
+ * la entrada, las operaciones contadas y la fórmula que predice ese número. Lo que se cuenta son
+ * siempre <strong>iteraciones del cuerpo</strong> de los bucles, no operaciones elementales.
+ */
+public final class Recuento {
+
+    private Recuento() { }
+
+    public static void anunciar(String metodo, int n, long operaciones, String formula) {
+        System.out.printf("%-12s n = %-9d operaciones = %-9d  (%s)%n",
+                metodo, n, operaciones, formula);
+    }
+}
+```
+
 ```java
 // Conteos.java
 package es.uib.prgava.tema2.eficiencia;
@@ -128,8 +157,8 @@ package es.uib.prgava.tema2.eficiencia;
  * Tres recorridos que cuentan su propio trabajo.
  *
  * <p>Cada método lleva un contador de las <strong>iteraciones del cuerpo de sus 
- * bucles</strong> y lo imprime antes de devolver el resultado, junto con la fórmula 
- * que predice ese número. No cuenta todas las operaciones elementales —cada iteración 
+ * bucles</strong> y lo anuncia con {@link Recuento} antes de devolver el resultado, junto con la 
+ * fórmula que predice ese número. No cuenta todas las operaciones elementales —cada iteración 
  * son unas cuantas: el acceso al array, la suma, la comparación y el incremento—, 
  * sino las iteraciones, que es lo que cuenta el análisis del coste. Las dos cuentas 
  * se diferencian en un factor constante.
@@ -143,12 +172,6 @@ public final class Conteos {
 
     private Conteos() { }
 
-    /** Imprime una línea con el recuento y la fórmula que lo predice. */
-    private static void anunciar(String metodo, int n, long operaciones, String formula) {
-        System.out.printf("%-12s n = %-6d operaciones = %-9d  (%s)%n",
-                metodo, n, operaciones, formula);
-    }
-
     /** Un recorrido: el cuerpo se ejecuta n veces. */
     public static long suma(int[] datos) {
         long operaciones = 0;
@@ -157,7 +180,7 @@ public final class Conteos {
             total += datos[i];
             operaciones++;
         }
-        anunciar("suma", datos.length, operaciones, "n");
+        Recuento.anunciar("suma", datos.length, operaciones, "n");
         return total;
     }
 
@@ -168,12 +191,12 @@ public final class Conteos {
             for (int j = i + 1; j < datos.length; j++) {
                 operaciones++;
                 if (datos[i] == datos[j]) {
-                    anunciar("hayRepetido", datos.length, operaciones, "n(n-1)/2 como maximo");
+                    Recuento.anunciar("hayRepetido", datos.length, operaciones, "n(n-1)/2 como maximo");
                     return true;
                 }
             }
         }
-        anunciar("hayRepetido", datos.length, operaciones, "n(n-1)/2");
+        Recuento.anunciar("hayRepetido", datos.length, operaciones, "n(n-1)/2");
         return false;
     }
 
@@ -190,7 +213,7 @@ public final class Conteos {
             maximo = Math.max(maximo, dato);
             operaciones++;
         }
-        anunciar("sumaYMaximo", datos.length, operaciones, "2n");
+        Recuento.anunciar("sumaYMaximo", datos.length, operaciones, "2n");
         return total + maximo;
     }
 }
@@ -284,19 +307,19 @@ public final class DemoConteos {
 
 ```text
 --- un array pequeno, para leer los numeros a mano
-suma         n = 3      operaciones = 3          (n)
+suma         n = 3         operaciones = 3          (n)
    total = 60
-sumaYMaximo  n = 3      operaciones = 6          (2n)
+sumaYMaximo  n = 3         operaciones = 6          (2n)
    total + maximo = 90
-hayRepetido  n = 3      operaciones = 3          (n(n-1)/2)
+hayRepetido  n = 3         operaciones = 3          (n(n-1)/2)
    hay repetido = false
 
 --- tres arrays del mismo tamano y distinto contenido
-hayRepetido  n = 2000   operaciones = 1999000    (n(n-1)/2)
+hayRepetido  n = 2000      operaciones = 1999000    (n(n-1)/2)
    hay repetido = false
-hayRepetido  n = 2000   operaciones = 1498501    (n(n-1)/2 como maximo)
+hayRepetido  n = 2000      operaciones = 1498501    (n(n-1)/2 como maximo)
    hay repetido = true
-hayRepetido  n = 2000   operaciones = 1          (n(n-1)/2 como maximo)
+hayRepetido  n = 2000      operaciones = 1          (n(n-1)/2 como maximo)
    hay repetido = true
 ```
 
@@ -458,7 +481,34 @@ otra pregunta.
 
 Dos entradas del mismo tamaño pueden costar muy distinto. Buscar un elemento en una lista de mil
 cuesta una comparación si está el primero y mil si está el último o no está. Hay que decir, por
-tanto, de qué caso se habla.
+tanto, de qué caso se habla. Y conviene ver antes por qué no hay manera de evitarlo.
+
+::: {#tip-no-factoriza .callout-tip title="El coste es una función de la entrada, no del tamaño"}
+Lo que un algoritmo determina es un número por **entrada**: si llamamos $I$ al conjunto de entradas
+válidas, el coste es una función
+
+$$T : I \to \mathbb{N}, \qquad T(x) = \text{operaciones que ejecuta con la entrada } x$$
+
+y ahí no hay ninguna ambigüedad. El tamaño es **otra** función sobre el mismo conjunto,
+$\mathit{tam} : I \to \mathbb{N}$, y el problema es que $T$ **no se factoriza a través de ella**: no
+existe ninguna $\hat{T}$ tal que $T = \hat{T} \circ \mathit{tam}$. Dicho sin notación, $T$ no es
+constante en el conjunto de las entradas de tamaño $n$, y por eso «el coste para $n = 2000$» no es un
+número, como los 1.999.000 y el 1 de `hayRepetido` dejaron ver en 2.1.1.
+
+Para obtener una función de $n$ hay que **resumir** ese conjunto, y resumir admite varias respuestas:
+el máximo, la media con una distribución, el mínimo. Cada una da una función distinta y perfectamente
+definida, así que no existe «la» función de coste de un algoritmo: existe una familia, una por
+resumen. De aquí salen tres cosas que conviene no confundir.
+
+- Decir «este algoritmo es $O(n)$» **presupone un resumen elegido**, y por convenio es el peor caso.
+  Si se habla de otro, hay que decirlo.
+- Las cotas $O$ y $\Omega$ acotan por arriba y por abajo **una misma** función, la ya resumida, y no
+  son el peor y el mejor caso. Tiene pleno sentido decir que la búsqueda lineal es $\Theta(n)$ en el
+  peor caso y $\Theta(1)$ en el mejor: son dos funciones, cada una con sus tres cotas.
+- El coste **amortizado** de @tip-amortizado no es un cuarto resumen de este conjunto. Su dominio son
+  las **sucesiones de operaciones**, no las entradas de una sola, y por eso la garantía que da es de
+  otra naturaleza y no se compara con el caso medio.
+:::
 
 ::: {#imp-casos .callout-important title="Peor caso, caso medio y caso mejor"}
 Para un tamaño de entrada $n$, el conjunto de entradas posibles de ese tamaño produce un conjunto de
@@ -549,30 +599,25 @@ package es.uib.prgava.tema2.eficiencia;
  * Búsqueda lineal y búsqueda binaria, cada una contando su propio trabajo.
  *
  * <p>Como en {@link Conteos}, el contador lleva las <strong>iteraciones del cuerpo</strong> del
- * bucle y se imprime antes de devolver el resultado. Aquí cada iteración es una comparación con un
- * elemento del array, así que el número es directamente el de comparaciones.
+ * bucle y se anuncia con {@link Recuento} antes de devolver el resultado. Aquí cada iteración es
+ * una comparación con un elemento del array, así que lo que la columna llama operaciones son,
+ * exactamente, comparaciones.
  */
 public final class Busquedas {
 
     private Busquedas() { }
 
-    /** Imprime una línea con el recuento y la cota que lo predice. */
-    private static void anunciar(String metodo, int n, long comparaciones, String cota) {
-        System.out.printf("%-8s n = %-9d comparaciones = %-9d  (%s)%n",
-                metodo, n, comparaciones, cota);
-    }
-
     /** Posición de {@code buscado} en {@code datos}, o −1. Coste O(n). */
     public static int lineal(int[] datos, int buscado) {
-        long comparaciones = 0;
+        long operaciones = 0;
         for (int i = 0; i < datos.length; i++) {
-            comparaciones++;
+            operaciones++;
             if (datos[i] == buscado) {
-                anunciar("lineal", datos.length, comparaciones, "n como maximo");
+                Recuento.anunciar("lineal", datos.length, operaciones, "n como maximo");
                 return i;
             }
         }
-        anunciar("lineal", datos.length, comparaciones, "n");
+        Recuento.anunciar("lineal", datos.length, operaciones, "n");
         return -1;
     }
 
@@ -582,14 +627,14 @@ public final class Busquedas {
      * @param datos array <strong>ordenado</strong> de forma creciente
      */
     public static int binaria(int[] datos, int buscado) {
-        long comparaciones = 0;
+        long operaciones = 0;
         int izquierda = 0;
         int derecha = datos.length - 1;
         while (izquierda <= derecha) {
-            comparaciones++;
+            operaciones++;
             int centro = izquierda + (derecha - izquierda) / 2;
             if (datos[centro] == buscado) {
-                anunciar("binaria", datos.length, comparaciones, "log2(n) + 1 como maximo");
+                Recuento.anunciar("binaria", datos.length, operaciones, "log2(n) + 1 como maximo");
                 return centro;
             }
             if (datos[centro] < buscado) {
@@ -598,7 +643,7 @@ public final class Busquedas {
                 derecha = centro - 1;
             }
         }
-        anunciar("binaria", datos.length, comparaciones, "log2(n) + 1");
+        Recuento.anunciar("binaria", datos.length, operaciones, "log2(n) + 1");
         return -1;
     }
 }
@@ -704,19 +749,19 @@ public final class DemoBusquedas {
 
 ```text
 --- cinco puertos, para leer los numeros a mano
-lineal   n = 5         comparaciones = 5          (n como maximo)
+lineal       n = 5         operaciones = 5          (n como maximo)
    posicion de 8080 = 4
-binaria  n = 5         comparaciones = 3          (log2(n) + 1 como maximo)
+binaria      n = 5         operaciones = 3          (log2(n) + 1 como maximo)
    posicion de 8080 = 4
-lineal   n = 5         comparaciones = 5          (n)
+lineal       n = 5         operaciones = 5          (n)
    posicion de 1024 = -1
-binaria  n = 5         comparaciones = 3          (log2(n) + 1)
+binaria      n = 5         operaciones = 3          (log2(n) + 1)
    posicion de 1024 = -1
 
 --- un millon de elementos: el elemento no esta
-lineal   n = 1048576   comparaciones = 1048576    (n)
+lineal       n = 1048576   operaciones = 1048576    (n)
    posicion = -1
-binaria  n = 1048576   comparaciones = 20         (log2(n) + 1)
+binaria      n = 1048576   operaciones = 20         (log2(n) + 1)
    posicion = -1
 
 --- lo que devuelve la biblioteca
@@ -2171,6 +2216,11 @@ el número exacto depende de cómo el `HashMap` resuelva las colisiones y una pr
 sería frágil sin ser más informativa. Lo que la prueba defiende es la **clase de crecimiento**: si
 alguien sustituye el índice por un recorrido, el contador se va a doscientos y la prueba falla con
 un mensaje que explica qué se ha perdido.
+
+Es la misma idea de los contadores de 2.1.1, con otro destino. Allí el recuento se imprimía con
+`Recuento` porque el lector estaba aprendiendo a contar y necesitaba verlo; aquí no se imprime, se
+afirma, porque lo que hace falta es que alguien se entere si el número cambia. Contar en lugar de
+cronometrar sirve para las dos cosas.
 
 Esa es la forma de que una decisión de este tema sobreviva al paso del tiempo: escrita en el código,
 con un número que la delata si desaparece.
