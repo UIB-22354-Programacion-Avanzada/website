@@ -461,11 +461,10 @@ cuesta una comparación si está el primero y mil si está el último o no está
 tanto, de qué caso se habla.
 
 ::: {#imp-casos .callout-important title="Peor caso, caso medio y caso mejor"}
-Para un tamaño de entrada $n$, el conjunto de entradas posibles de ese tamaño da un conjunto de
-costes. Se usan tres resúmenes:
+Para un tamaño de entrada $n$, el conjunto de entradas posibles de ese tamaño produce un conjunto de
+costes del algoritmo. Se usan tres resúmenes:
 
-- **Peor caso**: el máximo. Es el que se da por defecto cuando se dice «este algoritmo es $O(n)$»,
-  y es el único que constituye una **garantía**: sea lo que sea lo que llegue, no costará más.
+- **Peor caso**: el máximo de los costes. Es el que se da por defecto cuando se dice «este algoritmo es $O(n)$», y es el único que constituye una **garantía**: sea lo que sea lo que llegue, no costará más.
 - **Caso medio**: la media sobre todas las entradas, **suponiendo una distribución**. Esa hipótesis
   es parte del resultado y hay que enunciarla: el caso medio de la búsqueda lineal es $n/2$
   comparaciones *si el elemento buscado está y todas las posiciones son igual de probables*, que es
