@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -72,6 +107,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Ejercicios — Tema 2: Algoritmos, Complejidad y Estructuras de Datos – Programación Avanzada (22354)">
@@ -461,8 +525,15 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#cómo-trabajar-estos-ejercicios" id="toc-cómo-trabajar-estos-ejercicios" class="nav-link active" data-scroll-target="#cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</a></li>
+  <li><a href="#eficiencia-de-algoritmos" id="toc-eficiencia-de-algoritmos" class="nav-link" data-scroll-target="#eficiencia-de-algoritmos">2.1. Eficiencia de algoritmos</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -487,9 +558,540 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><em>Contenido pendiente.</em></p>
+<section id="cómo-trabajar-estos-ejercicios" class="level2">
+<h2 class="anchored" data-anchor-id="cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</h2>
+<p>Los ejercicios de esta página acompañan al <a href="../../es/contenido/tema2.html">contenido del Tema 2</a> y se numeran <code>2.X.k</code>, donde <code>X</code> es el subapartado del tema al que corresponden. De momento está publicada la sección <strong>2.1</strong>; las de 2.2 y 2.3 se añaden a esta misma página al empezar cada sección.</p>
+<p>Todo lo que hace falta para resolverlos está en el Tema 2 y en el Tema 1, y solo ahí: ningún enunciado usa nada que no se haya explicado antes. En particular, los ejercicios de 2.1 <strong>no usan ninguna estructura de datos de 2.2</strong>: con arrays, <code>List</code> y los <code>Comparator</code> del Tema 1 hay de sobra. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio enunciado.</p>
+<p>No empiezas desde una carpeta vacía. En la organización del curso hay <strong>una plantilla por cada sección</strong>, con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejemplos"><code>t2-ejemplos</code></a>:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Sección</th>
+<th>Plantilla</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>2.1</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1"><code>t2-ejercicios-2-1</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:</p>
+<ul>
+<li>un <strong>esqueleto</strong> de cada clase que se pide, con las firmas de sus métodos y las cláusulas <code>implements</code> del ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 2.X.k</code>;</li>
+<li>el <strong>código de partida</strong> de los ejercicios que consisten en corregir o instrumentar algo ya escrito; ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;</li>
+<li>una <strong>copia del código del monitor</strong> del Tema 1 (paquete <code>es.uib.prgava.tema1.monitor</code>) y de las clases del tema que los ejercicios usan —<code>Recuento</code>, <code>Conteos</code>, <code>Busquedas</code>—, que puedes leer y, cuando el enunciado lo pida, modificar libremente;</li>
+<li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>.</li>
+</ul>
+<p>El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que completas el código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde.</p>
+<p>Cada ejercicio se comprueba con <strong>una clase de prueba, y solo una</strong>. Para trabajar en uno, abre su clase de prueba y pulsa el botón ▶ que aparece junto al nombre de la clase: se ejecutan solo sus pruebas. El <code>README</code> de la plantilla trae la tabla de correspondencia entre ejercicios y clases de prueba.</p>
+<p>Sobre los paquetes: las clases que <strong>implementan una interfaz del monitor</strong> —en 2.1 solo <code>RepositorioContador</code>— viven en <code>es.uib.prgava.tema2.monitor</code>, junto a sus compañeras; todas las demás, en <code>es.uib.prgava.tema2.ejercicios</code>. El esqueleto ya trae cada fichero en su sitio, así que basta con que respetes el que te encuentres.</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>El convenio para contar.</strong> Varios ejercicios piden <strong>contar operaciones</strong>, y las pruebas tienen que poder leer el número, no solo verlo impreso. El convenio es el mismo en todos: el método devuelve lo que tiene que devolver, anuncia su recuento con <a href="../../es/contenido/tema2.html#qué-se-mide-y-por-qué-no-es-exactamente-el-tiempo"><code>Recuento.anunciar</code></a> —la clase del tema, que la plantilla trae— y además deja el número en un contador que se consulta con un método de clase, <code>ultimasOperaciones()</code>. Las clases del tema solo imprimen; las de los ejercicios imprimen y guardan.</p>
+<p>Y lo que se cuenta son <strong>iteraciones del cuerpo</strong> del bucle, no operaciones elementales, igual que en el tema: las dos cuentas se diferencian en un factor constante y cualquiera de las dos sirve para hablar del orden.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Cómo están escritos.</strong> Cada enunciado empieza explicando para qué sirve lo que se pide, sigue con los pasos, y termina con dos cosas que no puntúan pero que son la mitad del ejercicio: qué comprueban las pruebas y una pregunta para pensar. Las preguntas que aparecen <strong>dentro</strong> de los pasos tienen respuesta en el tema y se enlaza dónde; la de <strong>Para pensar</strong> no la tiene, y se responde decidiendo.</p>
+<p>Vienes del Tema 1, así que el nivel de detalle arranca donde lo dejó: se te dice qué método de la biblioteca usar cuando es poco conocido, y no cuando ya lo has usado. Lo que sí está dicho con precisión en todos es <strong>qué se cuenta y con qué fórmula hay que comparar el recuento</strong>, porque ahí un malentendido invalida el ejercicio entero.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión, no que el código funcione.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="eficiencia-de-algoritmos" class="level2">
+<h2 class="anchored" data-anchor-id="eficiencia-de-algoritmos">2.1. Eficiencia de algoritmos</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1"><code>t2-ejercicios-2-1</code></a></p>
+<p>Ejercicios sobre <a href="../../es/contenido/tema2.html#eficiencia-de-algoritmos">2.1 del tema</a>: qué se mide, notación asintótica, los tres casos y el coste amortizado, búsqueda, ordenación y el coste del monitor.</p>
+<p>Los nueve tienen una cosa en común que conviene anunciar: en casi todos, <strong>lo que se entrega no es un programa que funcione, sino un número que coincida con una fórmula</strong>. Un <code>maximoYSegundo</code> que devuelve el máximo correcto pero ejecuta su bucle dos veces no resuelve el ejercicio 2.1.1. Es el cambio de mentalidad de la sección, y los ejercicios están hechos para que se note.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.1 Método `maximoYSegundo` de `RecorridosEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.1 Método <code>maximoYSegundo</code> de <code>RecorridosEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El <a href="../../es/contenido/tema2.html#imp-coste">coste de un algoritmo</a> se cuenta, y el sitio donde se cuenta es el bucle: el coste de un bucle es el número de iteraciones multiplicado por el coste de su cuerpo. Este ejercicio es el caso más simple y el más instructivo, porque el mismo problema admite dos soluciones del mismo orden y con constantes distintas, y hay que elegir la pequeña a conciencia. El modelo es <a href="../../es/contenido/tema2.html#qué-se-mide-y-por-qué-no-es-exactamente-el-tiempo"><code>Conteos</code></a>, que la plantilla trae completa.</p>
+<p>Escribe en <code>RecorridosEjercicio</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span><span class="op">[]</span> <span class="fu">maximoYSegundo</span><span class="op">(</span><span class="dt">int</span><span class="op">[]</span> datos<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que devuelva un array de dos posiciones con el <strong>mayor</strong> y el <strong>segundo mayor</strong> elemento de <code>datos</code>, en ese orden.</p>
+<ol type="1">
+<li><p><strong>Qué significa «segundo mayor» cuando hay repetidos.</strong> El segundo mayor es el segundo elemento más grande <strong>contando las repeticiones</strong>: en <code>{3, 17, 9, 17, 2}</code> el mayor es 17 y el segundo mayor también es 17, porque hay dos. No se pide el mayor de los distintos.</p></li>
+<li><p><strong>Un solo recorrido.</strong> La solución evidente es buscar el máximo, y después recorrer otra vez buscando el mayor de los restantes: son <span class="math inline">\(2n\)</span> iteraciones. Se puede hacer con <span class="math inline">\(n\)</span> llevando dos variables a la vez, <code>maximo</code> y <code>segundo</code>, e inicializándolas a <code>Integer.MIN_VALUE</code>. En cada elemento hay dos casos, y el orden en que se comprueban importa: si el elemento supera al máximo, el máximo viejo pasa a ser el segundo; si no lo supera pero supera al segundo, sustituye al segundo.</p></li>
+<li><p><strong>Validación.</strong> Un array <code>null</code> o de menos de dos elementos no tiene segundo mayor: <code>IllegalArgumentException</code> con el mensaje <code>"Hacen falta al menos dos elementos"</code>. Es el criterio de siempre, un objeto o una llamada sin sentido no debe seguir adelante.</p></li>
+<li><p><strong>El recuento.</strong> Cuenta las iteraciones del cuerpo del bucle, anúncialas con <code>Recuento.anunciar("maximoYSegundo", datos.length, operaciones, "n")</code> antes del <code>return</code>, y deja el número accesible en <code>ultimasOperaciones()</code>, como dice el convenio de la cabecera de esta página.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="bu">Arrays</span><span class="op">.</span><span class="fu">toString</span><span class="op">(</span>RecorridosEjercicio<span class="op">.</span><span class="fu">maximoYSegundo</span><span class="op">(</span><span class="kw">new</span> <span class="dt">int</span><span class="op">[]</span> <span class="op">{</span><span class="dv">3</span><span class="op">,</span> <span class="dv">17</span><span class="op">,</span> <span class="dv">9</span><span class="op">,</span> <span class="dv">17</span><span class="op">,</span> <span class="dv">2</span><span class="op">})));</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>RecorridosEjercicio<span class="op">.</span><span class="fu">ultimasOperaciones</span><span class="op">());</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="bu">Arrays</span><span class="op">.</span><span class="fu">toString</span><span class="op">(</span>RecorridosEjercicio<span class="op">.</span><span class="fu">maximoYSegundo</span><span class="op">(</span><span class="kw">new</span> <span class="dt">int</span><span class="op">[]</span> <span class="op">{</span><span class="dv">3</span><span class="op">,</span> <span class="dv">17</span><span class="op">,</span> <span class="dv">9</span><span class="op">})));</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a></span>
+<span id="cb2-5"><a href="#cb2-5"></a>RecorridosEjercicio<span class="op">.</span><span class="fu">maximoYSegundo</span><span class="op">(</span><span class="kw">new</span> <span class="dt">int</span><span class="op">[]</span> <span class="op">{</span><span class="dv">7</span><span class="op">});</span>   <span class="co">// IllegalArgumentException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime, con la línea de <code>Recuento</code> intercalada:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb3-1"><a href="#cb3-1"></a>maximoYSegundo n = 5         operaciones = 5          (n)</span>
+<span id="cb3-2"><a href="#cb3-2"></a>[17, 17]</span>
+<span id="cb3-3"><a href="#cb3-3"></a>5</span>
+<span id="cb3-4"><a href="#cb3-4"></a>maximoYSegundo n = 3         operaciones = 3          (n)</span>
+<span id="cb3-5"><a href="#cb3-5"></a>[17, 9]</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el resultado con repetidos, con el máximo al principio y al final, y con arrays de dos elementos; el rechazo de <code>null</code> y de un array de uno; y —esta es la que falla si recorres dos veces— que <code>ultimasOperaciones()</code> sea <strong>exactamente</strong> <code>datos.length</code> para arrays de varios tamaños.</p>
+<p><strong>Para pensar.</strong> La versión de dos recorridos es más fácil de leer y de convencerse de que es correcta. ¿En qué situación preferirías entregarla, sabiendo que hace el doble de trabajo?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.2 Método `porEstado` de `EstadosEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.2 Método <code>porEstado</code> de <code>EstadosEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Dos bucles anidados no significan coste cuadrático. Lo que decide es <strong>de qué depende el número de iteraciones del bucle interior</strong>, y confundir «anidado» con «cuadrático» es el error de análisis más frecuente al empezar. Este ejercicio construye un contraejemplo a propósito, con el historial del monitor del Tema 1.</p>
+<p>Escribe en <code>EstadosEjercicio</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span><span class="op">[]</span> <span class="fu">porEstado</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> historial<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que devuelva cuántos resultados hay de cada <a href="../../es/contenido/tema1.html#imp-enum"><code>Estado</code></a>, en un array indexado por <code>Estado.ordinal()</code>: la posición 0 es <code>ACTIVO</code>, la 1 <code>DEGRADADO</code> y la 2 <code>CAIDO</code>.</p>
+<ol type="1">
+<li><p><strong>Con dos bucles anidados, a propósito.</strong> El exterior recorre el historial; el interior recorre <code>Estado.values()</code> y, cuando el estado del resultado coincide con el valor que toca, incrementa su casilla. No pongas <code>break</code> al encontrar la coincidencia: queremos que el recuento sea limpio.</p></li>
+<li><p><strong>El tamaño del array</strong> no se escribe a mano: es <code>Estado.values().length</code>. Si mañana el enum crece, el método sigue siendo correcto.</p></li>
+<li><p><strong>El recuento.</strong> Cuenta las iteraciones del cuerpo <strong>interior</strong>, que son las que hacen el trabajo, y anúncialas con <code>Recuento.anunciar("porEstado", historial.size(), operaciones, "3n")</code>. El 3 no es <span class="math inline">\(n\)</span>: es el número de valores del enum, una constante del programa.</p></li>
+<li><p><strong>La conclusión, en un comentario</strong> de dos líneas sobre el método: a qué clase de crecimiento pertenece <code>porEstado</code> y por qué, con la fórmula del recuento como argumento. La regla que lo justifica es la de las constantes multiplicativas del <a href="../../es/contenido/tema2.html#tip-o-grande">Fundamento Teórico sobre las tres cotas</a>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="dt">var</span> historial <span class="op">=</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>        <span class="kw">new</span> <span class="fu">Resultado</span><span class="op">(</span>web<span class="op">,</span> i0<span class="op">,</span> Estado<span class="op">.</span><span class="fu">ACTIVO</span><span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">40</span><span class="op">)),</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a>        <span class="kw">new</span> <span class="fu">Resultado</span><span class="op">(</span>web<span class="op">,</span> i0<span class="op">.</span><span class="fu">plusSeconds</span><span class="op">(</span><span class="dv">60</span><span class="op">),</span> Estado<span class="op">.</span><span class="fu">CAIDO</span><span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ZERO</span><span class="op">),</span></span>
+<span id="cb5-4"><a href="#cb5-4"></a>        <span class="kw">new</span> <span class="fu">Resultado</span><span class="op">(</span>web<span class="op">,</span> i0<span class="op">.</span><span class="fu">plusSeconds</span><span class="op">(</span><span class="dv">120</span><span class="op">),</span> Estado<span class="op">.</span><span class="fu">CAIDO</span><span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ZERO</span><span class="op">),</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>        <span class="kw">new</span> <span class="fu">Resultado</span><span class="op">(</span>web<span class="op">,</span> i0<span class="op">.</span><span class="fu">plusSeconds</span><span class="op">(</span><span class="dv">180</span><span class="op">),</span> Estado<span class="op">.</span><span class="fu">DEGRADADO</span><span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">900</span><span class="op">)));</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a></span>
+<span id="cb5-7"><a href="#cb5-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="bu">Arrays</span><span class="op">.</span><span class="fu">toString</span><span class="op">(</span>EstadosEjercicio<span class="op">.</span><span class="fu">porEstado</span><span class="op">(</span>historial<span class="op">)));</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>EstadosEjercicio<span class="op">.</span><span class="fu">ultimasOperaciones</span><span class="op">());</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb6-1"><a href="#cb6-1"></a>porEstado    n = 4         operaciones = 12         (3n)</span>
+<span id="cb6-2"><a href="#cb6-2"></a>[1, 1, 2]</span>
+<span id="cb6-3"><a href="#cb6-3"></a>12</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban las tres casillas con historiales mezclados, el caso del historial vacío —que debe dar ceros y cero operaciones— y que <code>ultimasOperaciones()</code> valga <code>3 * historial.size()</code> para varios tamaños.</p>
+<p><strong>Para pensar.</strong> El mismo recuento se puede hacer sin el bucle interior, con una sola línea por resultado, y entonces son <span class="math inline">\(n\)</span> iteraciones en lugar de <span class="math inline">\(3n\)</span>. ¿Merece la pena el cambio? ¿Y si el enum tuviera cincuenta valores en lugar de tres?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.3 Clase `CotasEjercicio`: los testigos de una cota">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.3 Clase <code>CotasEjercicio</code>: los testigos de una cota
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Decir «esto es <span class="math inline">\(O(n^2)\)</span>» no es una impresión, es una afirmación con una <a href="../../es/contenido/tema2.html#tip-o-grande">demostración de dos líneas</a>: basta exhibir una constante <span class="math inline">\(c\)</span> y un tamaño <span class="math inline">\(n_0\)</span> tales que la desigualdad se cumpla para todo <span class="math inline">\(n \ge n_0\)</span>. Este ejercicio consiste en exhibirlos, y las pruebas los van a comprobar uno por uno. Es el único ejercicio de la página en el que lo que se entrega son dos números.</p>
+<p>La función de la que hay que hablar es</p>
+<p><span class="math display">\[f(n) = 3n^2 + 50n + 200\]</span></p>
+<p>Escribe en <code>CotasEjercicio</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">f</span><span class="op">(</span><span class="dt">long</span> n<span class="op">)</span>              <span class="co">// la función de arriba, tal cual</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">constanteCSuperior</span><span class="op">()</span>   <span class="co">// la c de la cota superior</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">n0Superior</span><span class="op">()</span>           <span class="co">// el n0 de la cota superior</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">constanteCInferior</span><span class="op">()</span>   <span class="co">// la c de la cota inferior</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">n0Inferior</span><span class="op">()</span>           <span class="co">// el n0 de la cota inferior</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>La cota superior.</strong> Hay que dar <span class="math inline">\(c\)</span> y <span class="math inline">\(n_0\)</span> con <span class="math inline">\(f(n) \le c \cdot n^2\)</span> para todo <span class="math inline">\(n \ge n_0\)</span>. El camino es el de la segunda regla del tema: acotar cada sumando por algo que sea <span class="math inline">\(n^2\)</span> a partir de cierto tamaño. Con <span class="math inline">\(c = 4\)</span> te queda por resolver desde qué <span class="math inline">\(n\)</span> se cumple <span class="math inline">\(50n + 200 \le n^2\)</span>, que es una inecuación de segundo grado y sale a mano.</p></li>
+<li><p><strong>La cota inferior.</strong> Hay que dar <span class="math inline">\(c\)</span> y <span class="math inline">\(n_0\)</span> con <span class="math inline">\(f(n) \ge c \cdot n^2\)</span> para todo <span class="math inline">\(n \ge n_0\)</span>. Esta es mucho más fácil que la anterior, y si te está costando es señal de que estás buscando algo más fino de lo que hace falta: los tres sumandos son positivos.</p></li>
+<li><p><strong>La conclusión.</strong> Escribe en un comentario qué se puede afirmar sobre <span class="math inline">\(f\)</span> a la vista de los dos apartados, usando el nombre de la cota que corresponda, y por qué no hacía falta buscar <span class="math inline">\(c_1\)</span> y <span class="math inline">\(c_2\)</span> a la vez.</p></li>
+<li><p><strong>Elegir <span class="math inline">\(c\)</span> cambia el <span class="math inline">\(n_0\)</span>.</strong> Con <span class="math inline">\(c = 4\)</span> el <span class="math inline">\(n_0\)</span> mínimo es uno; con <span class="math inline">\(c = 53\)</span> es otro mucho menor. Las dos respuestas son correctas, y <strong>¿por qué la definición admite las dos sin que una sea mejor que la otra?</strong> La respuesta está en el papel que juegan las dos cláusulas del <a href="../../es/contenido/tema2.html#tip-o-grande">Fundamento Teórico sobre las tres cotas</a>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">// Con c = 4, el n0 minimo es 54: en 53 la desigualdad todavia falla y en 54 ya se cumple.</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CotasEjercicio<span class="op">.</span><span class="fu">f</span><span class="op">(</span><span class="dv">53</span><span class="op">)</span> <span class="op">+</span> <span class="st">" &lt;= "</span> <span class="op">+</span> <span class="dv">4</span> <span class="op">*</span> <span class="dv">53</span> <span class="op">*</span> <span class="dv">53</span><span class="op">);</span>   <span class="co">// 11277 &lt;= 11236  -&gt; falso</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CotasEjercicio<span class="op">.</span><span class="fu">f</span><span class="op">(</span><span class="dv">54</span><span class="op">)</span> <span class="op">+</span> <span class="st">" &lt;= "</span> <span class="op">+</span> <span class="dv">4</span> <span class="op">*</span> <span class="dv">54</span> <span class="op">*</span> <span class="dv">54</span><span class="op">);</span>   <span class="co">// 11648 &lt;= 11664  -&gt; cierto</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas no comprueban que hayas dado <em>los</em> números esperados, sino que <strong>los tuyos cumplen la definición</strong>: recorren todos los <span class="math inline">\(n\)</span> desde tu <code>n0</code> hasta cien mil y exigen la desigualdad en los dos sentidos. Además comprueban que <code>f</code> es la función del enunciado, y que tu <code>n0Superior()</code> es el <strong>mínimo</strong> para la <code>c</code> que has elegido —es decir, que en <code>n0 - 1</code> la desigualdad falla—, porque si no, bastaría con dar un <span class="math inline">\(n_0\)</span> enorme.</p>
+<p><strong>Para pensar.</strong> Las pruebas comprueban la desigualdad hasta cien mil, no para todo <span class="math inline">\(n\)</span>. ¿Qué tendrías que escribir, y en qué lenguaje, para comprobarla de verdad para todo <span class="math inline">\(n\)</span>? ¿Es eso una prueba unitaria?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.4 Método `primerNDondeGana` de `CruceEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.4 Método <code>primerNDondeGana</code> de <code>CruceEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>«La búsqueda binaria es más rápida que la lineal» es una frase incompleta, y el <a href="../../es/contenido/tema2.html#cau-o-grande-sin-n">Error Frecuente</a> explica por qué: la notación asintótica habla de cómo crece el coste, de modo que la pregunta con respuesta es <strong>a partir de qué tamaño</strong> gana. Este ejercicio calcula ese tamaño, y de paso practica el paso de funciones como argumento del Tema 1.</p>
+<p>Escribe en <code>CruceEjercicio</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">primerNDondeGana</span><span class="op">(</span>LongUnaryOperator coste1<span class="op">,</span> LongUnaryOperator coste2<span class="op">,</span> <span class="dt">int</span> limite<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que devuelva el <strong>menor</strong> <span class="math inline">\(n \ge 1\)</span> para el que <span class="math inline">\(coste_1(n) &lt; coste_2(n)\)</span>, o <code>-1</code> si no ocurre en ningún <span class="math inline">\(n\)</span> hasta <code>limite</code> incluido.</p>
+<ol type="1">
+<li><p><strong>Qué es cada parámetro.</strong> <code>coste1</code> y <code>coste2</code> son funciones de coste: reciben el tamaño de la entrada y devuelven el número de operaciones. <code>java.util.function.LongUnaryOperator</code> es la interfaz funcional de las que <a href="../../es/contenido/tema1.html#lambdas-e-interfaces-funcionales">vimos en el Tema 1</a> para una función de <code>long</code> en <code>long</code>, y se invoca con <code>applyAsLong</code>.</p></li>
+<li><p><strong>El bucle.</strong> Recorre <span class="math inline">\(n\)</span> de 1 a <code>limite</code> y devuelve el primero que cumpla la desigualdad. Fíjate en que es <code>&lt;</code> estricto: en el punto donde las dos funciones <strong>empatan</strong> todavía no gana ninguna.</p></li>
+<li><p><strong>Validación.</strong> <code>limite</code> menor que 1, o una función <code>null</code>, es un error de quien llama: <code>IllegalArgumentException</code>.</p></li>
+<li><p><strong>No cuentes operaciones aquí.</strong> Este método no es el objeto de estudio, sino la herramienta: es el único de la página que no lleva contador.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CruceEjercicio<span class="op">.</span><span class="fu">primerNDondeGana</span><span class="op">(</span>n <span class="op">-&gt;</span> <span class="dv">100</span> <span class="op">*</span> n<span class="op">,</span> n <span class="op">-&gt;</span> n <span class="op">*</span> n<span class="op">,</span> <span class="dv">100_000</span><span class="op">));</span>   <span class="co">// 101</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CruceEjercicio<span class="op">.</span><span class="fu">primerNDondeGana</span><span class="op">(</span>n <span class="op">-&gt;</span> n <span class="op">*</span> n<span class="op">,</span> n <span class="op">-&gt;</span> <span class="dv">100</span> <span class="op">*</span> n<span class="op">,</span> <span class="dv">100_000</span><span class="op">));</span>   <span class="co">// 1</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CruceEjercicio<span class="op">.</span><span class="fu">primerNDondeGana</span><span class="op">(</span>n <span class="op">-&gt;</span> <span class="dv">1000</span> <span class="op">*</span> n<span class="op">,</span> n <span class="op">-&gt;</span> n <span class="op">*</span> n<span class="op">,</span> <span class="dv">100_000</span><span class="op">));</span>  <span class="co">// 1001</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CruceEjercicio<span class="op">.</span><span class="fu">primerNDondeGana</span><span class="op">(</span>n <span class="op">-&gt;</span> n<span class="op">,</span> n <span class="op">-&gt;</span> <span class="dv">2</span> <span class="op">*</span> n<span class="op">,</span> <span class="dv">100_000</span><span class="op">));</span>         <span class="co">// 1</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CruceEjercicio<span class="op">.</span><span class="fu">primerNDondeGana</span><span class="op">(</span>n <span class="op">-&gt;</span> <span class="dv">2</span> <span class="op">*</span> n<span class="op">,</span> n <span class="op">-&gt;</span> n<span class="op">,</span> <span class="dv">100_000</span><span class="op">));</span>         <span class="co">// -1</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>El tema dice que «un algoritmo de <span class="math inline">\(100n\)</span> le gana a uno de <span class="math inline">\(n^2\)</span> desde <span class="math inline">\(n = 100\)</span>», y aquí sale 101. No es una contradicción: en <span class="math inline">\(n = 100\)</span> los dos cuestan exactamente <span class="math inline">\(10^4\)</span> operaciones, y el primer tamaño en el que uno hace <strong>menos</strong> trabajo que el otro es el siguiente. Las dos lecturas son razonables; lo que no es razonable es no saber cuál se está usando.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban los cinco casos de arriba, el caso en que la primera función gana desde el principio, el caso en que no gana nunca —que debe dar <code>-1</code> y no quedarse colgado— y el rechazo de un <code>limite</code> inválido.</p>
+<p><strong>Para pensar.</strong> Con <code>coste1 = n -&gt; n * n</code> y <code>coste2 = n -&gt; 2 * n</code> el método devuelve 1, porque en <span class="math inline">\(n = 1\)</span> el cuadrático hace una operación y el lineal dos. ¿Qué te dice eso sobre el valor de este método como criterio para elegir un algoritmo?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.5 Clase `CasosEjercicio`: peor caso, mejor caso y caso medio, medidos">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.5 Clase <code>CasosEjercicio</code>: peor caso, mejor caso y caso medio, medidos
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Los <a href="../../es/contenido/tema2.html#imp-casos">tres casos</a> son tres <strong>resúmenes</strong> del conjunto de costes de las entradas de un tamaño dado, y el tema insiste en que <a href="../../es/contenido/tema2.html#tip-no-factoriza">no son tres cotas de la misma función</a>, sino tres funciones distintas. Este ejercicio las calcula para la búsqueda lineal recorriendo de verdad todas las entradas, en lugar de citarlas de memoria.</p>
+<p>Escribe en <code>CasosEjercicio</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">peorCaso</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">mejorCaso</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">double</span> <span class="fu">casoMedio</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>La búsqueda que se mide la escribes tú, y devuelve el recuento.</strong> Un método privado <code>private static long comparaciones(int[] datos, int buscado)</code> que recorra el array comparando y devuelva <strong>cuántas comparaciones ha hecho</strong> hasta encontrar el elemento o agotar el array. No necesitas la posición. La <code>Busquedas.lineal</code> del tema no sirve aquí, porque imprime su recuento pero no lo devuelve: compárala con la tuya y fíjate en qué cambia.</p></li>
+<li><p><strong>El array de pruebas.</strong> Para un tamaño <span class="math inline">\(n\)</span>, usa el array <code>{0, 1, 2, …, n-1}</code>, que es el más cómodo para razonar: el elemento de valor <span class="math inline">\(i\)</span> está en la posición <span class="math inline">\(i\)</span>.</p></li>
+<li><p><strong>Peor caso</strong>: el máximo de los costes. Buscar un valor que <strong>no está</strong> en el array, por ejemplo <code>-1</code>. <strong>Mejor caso</strong>: el mínimo. Buscar el elemento que está en la primera posición.</p></li>
+<li><p><strong>Caso medio</strong>: la media sobre todas las entradas, <em>bajo la hipótesis de que el elemento buscado está y todas las posiciones son igual de probables</em>. Esa hipótesis no es un adorno: aquí se traduce en que hay que buscar los <span class="math inline">\(n\)</span> elementos, uno por uno, sumar los recuentos y dividir entre <span class="math inline">\(n\)</span>. Por eso <code>casoMedio</code> es <span class="math inline">\(O(n^2)\)</span> aunque mida un algoritmo lineal, y eso está bien: es un instrumento de medida, no código de producción.</p></li>
+<li><p><strong>Validación.</strong> <code>n</code> menor que 1 no define ninguno de los tres: <code>IllegalArgumentException</code>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">peorCaso</span><span class="op">(</span><span class="dv">5</span><span class="op">));</span>    <span class="co">// 5</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">mejorCaso</span><span class="op">(</span><span class="dv">5</span><span class="op">));</span>   <span class="co">// 1</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">casoMedio</span><span class="op">(</span><span class="dv">5</span><span class="op">));</span>   <span class="co">// 3.0</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">peorCaso</span><span class="op">(</span><span class="dv">1000</span><span class="op">));</span>   <span class="co">// 1000</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">mejorCaso</span><span class="op">(</span><span class="dv">1000</span><span class="op">));</span>  <span class="co">// 1</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CasosEjercicio<span class="op">.</span><span class="fu">casoMedio</span><span class="op">(</span><span class="dv">1000</span><span class="op">));</span>  <span class="co">// 500.5</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban los tres resúmenes para varios tamaños contra sus fórmulas: <span class="math inline">\(n\)</span> para el peor, 1 para el mejor y <span class="math inline">\((n+1)/2\)</span> para el medio. Esa última es la que hay que mirar con atención, porque <strong>no es <span class="math inline">\(n/2\)</span></strong>: si tu <code>casoMedio(5)</code> devuelve 2,5 en lugar de 3,0, el error está en qué entradas estás promediando.</p>
+<p><strong>Para pensar.</strong> El caso medio que acabas de calcular supone que el elemento buscado está siempre. Si una de cada diez búsquedas fuera de un elemento ausente, ¿cuál sería el caso medio? Escribe la fórmula antes de programarla.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.6 Clase `ArrayCreciente`: el coste amortizado, contado">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.6 Clase <code>ArrayCreciente</code>: el coste amortizado, contado
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El <a href="../../es/contenido/tema2.html#tip-amortizado">coste amortizado</a> es el análisis que explica por qué <code>ArrayList.add</code> se usa sin miedo aunque su peor caso sea lineal, y el argumento entero depende de un detalle: que la capacidad <strong>se multiplique</strong> por un factor en lugar de crecer en una cantidad fija. Este ejercicio construye las dos versiones y cuenta las copias, de modo que la diferencia entre <span class="math inline">\(2n\)</span> y <span class="math inline">\(n^2/20\)</span> deja de ser una fórmula y pasa a ser una columna de números.</p>
+<p>Escribe <code>ArrayCreciente</code>, un almacén de <code>int</code> que crece solo:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">public</span> <span class="fu">ArrayCreciente</span><span class="op">(</span><span class="dt">int</span> capacidadInicial<span class="op">,</span> IntUnaryOperator crecimiento<span class="op">)</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">anadir</span><span class="op">(</span><span class="dt">int</span> valor<span class="op">)</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">get</span><span class="op">(</span><span class="dt">int</span> posicion<span class="op">)</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">tamano</span><span class="op">()</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">capacidad</span><span class="op">()</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="kw">public</span> <span class="dt">long</span> <span class="fu">copiasRealizadas</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>El estado.</strong> Un <code>int[]</code> para los elementos, un <code>int</code> con cuántos hay de verdad —que no es la longitud del array— y un contador de copias. La capacidad inicial tiene que ser al menos 1.</p></li>
+<li><p><strong>La estrategia de crecimiento, como parámetro.</strong> <code>crecimiento</code> recibe la capacidad actual y devuelve la nueva: <code>c -&gt; 2 * c</code> duplica y <code>c -&gt; c + 10</code> crece de diez en diez. Es el <a href="../../es/contenido/tema1.html#strategy">patrón Strategy del Tema 1</a> aplicado a una decisión que normalmente está enterrada en la implementación, y es lo que permite comparar las dos políticas sin escribir la clase dos veces. Rechaza con <code>IllegalStateException</code> una estrategia que no haga crecer la capacidad, porque si no el bucle de <code>anadir</code> no terminaría nunca.</p></li>
+<li><p><strong><code>anadir</code>.</strong> Si el array está lleno, crea uno nuevo con la capacidad que diga la estrategia, copia los elementos —te sirve <code>java.util.Arrays.copyOf</code>— y <strong>suma al contador de copias el número de elementos copiados</strong>, que es el tamaño actual, no la capacidad. Después guarda el valor nuevo. Esas copias son todo lo que hay que contar: el análisis del tema cuenta exactamente eso.</p></li>
+<li><p><strong><code>get</code></strong> valida la posición contra el <strong>tamaño</strong>, no contra la capacidad, y lanza <code>IndexOutOfBoundsException</code>. Un array con capacidad 16 y tres elementos tiene tres posiciones legibles.</p></li>
+<li><p><strong>No uses <code>ArrayList</code> por dentro.</strong> Todo el ejercicio consiste en hacer a mano lo que <code>ArrayList</code> hace, así que un <code>ArrayList</code> dentro lo vacía de contenido.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1"></a><span class="dt">var</span> rapido <span class="op">=</span> <span class="kw">new</span> <span class="fu">ArrayCreciente</span><span class="op">(</span><span class="dv">1</span><span class="op">,</span> c <span class="op">-&gt;</span> <span class="dv">2</span> <span class="op">*</span> c<span class="op">);</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="dt">var</span> lento  <span class="op">=</span> <span class="kw">new</span> <span class="fu">ArrayCreciente</span><span class="op">(</span><span class="dv">10</span><span class="op">,</span> c <span class="op">-&gt;</span> c <span class="op">+</span> <span class="dv">10</span><span class="op">);</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">1000</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a>    rapido<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>i<span class="op">);</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>    lento<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>i<span class="op">);</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="op">}</span></span>
+<span id="cb14-7"><a href="#cb14-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>rapido<span class="op">.</span><span class="fu">tamano</span><span class="op">()</span> <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> rapido<span class="op">.</span><span class="fu">capacidad</span><span class="op">());</span>   <span class="co">// 1000 1024</span></span>
+<span id="cb14-8"><a href="#cb14-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>rapido<span class="op">.</span><span class="fu">copiasRealizadas</span><span class="op">());</span>                    <span class="co">// 1023</span></span>
+<span id="cb14-9"><a href="#cb14-9"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>lento<span class="op">.</span><span class="fu">copiasRealizadas</span><span class="op">());</span>                     <span class="co">// 49500</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Con cien mil elementos la distancia deja de ser discutible: 131.071 copias duplicando y 499.950.000 creciendo de diez en diez, frente a las 200.000 que serían dos por elemento. Es casi exactamente el <span class="math inline">\(n^2/20\)</span> que predice el tema, y son casi cuatro mil veces más trabajo.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que los elementos se recuperan en orden después de varios crecimientos, que <code>get</code> rechaza las posiciones no escritas, que una estrategia que no crece se rechaza, y las dos cuentas que son el objeto del ejercicio: con duplicación, <code>copiasRealizadas()</code> <strong>menor que <code>2 * n</code></strong> para varios tamaños; con incremento fijo, por encima de <span class="math inline">\(n^2/25\)</span> para <span class="math inline">\(n\)</span> grande.</p>
+<p><strong>Para pensar.</strong> El tema dice que OpenJDK multiplica la capacidad por 1,5 y no por 2. Con el factor 1,5 el total copiado sigue siendo lineal, así que la elección no cambia el orden. ¿Qué se gana entonces con 1,5, y qué se pierde?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.7 Método `binariaConInsercion` de `BusquedasEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.7 Método <code>binariaConInsercion</code> de <code>BusquedasEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La <code>binaria</code> del tema devuelve <code>-1</code> cuando el elemento no está, y <a href="../../es/contenido/tema2.html#búsqueda-lineal-y-binaria"><code>Arrays.binarySearch</code> devuelve otra cosa</a>: el punto de inserción codificado, que es bastante más útil y la razón de que al cambiar de una a otra convenga leer la documentación. Este ejercicio consiste en escribir la versión de la biblioteca, con su codificación y con el cálculo correcto del punto medio, y la prueba va a ser la biblioteca misma.</p>
+<p>Escribe en <code>BusquedasEjercicio</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">binariaConInsercion</span><span class="op">(</span><span class="dt">int</span><span class="op">[]</span> datos<span class="op">,</span> <span class="dt">int</span> buscado<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>con el mismo contrato que <code>java.util.Arrays.binarySearch(int[], int)</code>: si el elemento está, devuelve su posición; si no está, devuelve <span class="math inline">\(-(\text{punto de inserción}) - 1\)</span>, donde el punto de inserción es el índice en el que habría que insertarlo para mantener el orden.</p>
+<ol type="1">
+<li><p><strong>El esquema es el de la <code>binaria</code> del tema</strong>: dos índices, bucle mientras no se cruzan, y descarte de la mitad que no puede contener el elemento.</p></li>
+<li><p><strong>El punto medio.</strong> Calcúlalo como <code>izquierda + (derecha - izquierda) / 2</code> y no como <code>(izquierda + derecha) / 2</code>. <strong>¿Qué le pasa a la segunda forma con un array muy grande, y por qué el fallo tardó nueve años en aparecer en la propia biblioteca de Java?</strong> La respuesta está en el <a href="../../es/contenido/tema2.html#cau-punto-medio">Error Frecuente sobre el punto medio</a>.</p></li>
+<li><p><strong>El valor de retorno cuando no está.</strong> Cuando el bucle termina sin encontrar nada, el punto de inserción es justo el valor que tiene <code>izquierda</code> en ese momento: piénsalo con un array de dos elementos antes de escribirlo. Devuelve <code>-izquierda - 1</code>.</p></li>
+<li><p><strong>El <code>-1</code> ambiguo.</strong> Con esta codificación, <code>-1</code> significa «no está, y va en la posición 0», y ya no significa «no está» sin más. Escríbelo en el javadoc del método: es la clase de detalle que nadie recuerda seis meses después.</p></li>
+<li><p><strong>La precondición.</strong> El array tiene que estar <strong>ordenado</strong>, el método no lo comprueba, y no debe comprobarlo. Dilo en el javadoc con <code>@param</code>, y mira el <a href="../../es/contenido/tema2.html#cau-binaria-sin-ordenar">Error Frecuente</a> para saber qué pasa si alguien lo ignora.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="dt">int</span><span class="op">[]</span> puertos <span class="op">=</span> <span class="op">{</span><span class="dv">22</span><span class="op">,</span> <span class="dv">53</span><span class="op">,</span> <span class="dv">80</span><span class="op">,</span> <span class="dv">443</span><span class="op">,</span> <span class="dv">8080</span><span class="op">};</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">443</span><span class="op">));</span>   <span class="co">//  3</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">22</span><span class="op">));</span>    <span class="co">//  0</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">8080</span><span class="op">));</span>  <span class="co">//  4</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">1024</span><span class="op">));</span>  <span class="co">// -5, iria en la 4</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">100</span><span class="op">));</span>   <span class="co">// -4, iria en la 3</span></span>
+<span id="cb16-8"><a href="#cb16-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>BusquedasEjercicio<span class="op">.</span><span class="fu">binariaConInsercion</span><span class="op">(</span>puertos<span class="op">,</span> <span class="dv">10</span><span class="op">));</span>    <span class="co">// -1, iria en la 0</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban los seis casos de arriba, el array vacío y el de un solo elemento, y después hacen lo que de verdad decide: generan <strong>veinte mil</strong> arrays ordenados al azar con valores repetidos y comparan tu resultado con el de <code>Arrays.binarySearch</code> en cada uno. Si tu método se desvía en un solo caso, la prueba te dice en cuál.</p>
+<p><strong>Para pensar.</strong> Con elementos repetidos, <code>Arrays.binarySearch</code> no garantiza <em>cuál</em> de las posiciones iguales devuelve, y la prueba de arriba pasa porque tu implementación coincide con la de la biblioteca por casualidad de estructura, no por contrato. ¿Cómo escribirías la prueba para que compruebe el contrato en lugar de la coincidencia?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.8 Clase `OrdenEjercicio`: dos pasadas estables">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.8 Clase <code>OrdenEjercicio</code>: dos pasadas estables
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>La <a href="../../es/contenido/tema2.html#imp-estabilidad">estabilidad</a> es la propiedad que permite ordenar por dos criterios haciendo dos ordenaciones de uno, y es la razón de que Java la garantice al ordenar objetos. Este ejercicio la usa para algo que el monitor necesita de verdad —agrupar los resultados por servicio sin perder el orden cronológico dentro de cada grupo— y comprueba que el truco de las dos pasadas da el mismo resultado que un comparador compuesto.</p>
+<p>Escribe en <code>OrdenEjercicio</code> dos métodos que reciban una <code>List&lt;Resultado&gt;</code> y devuelvan una lista nueva, ordenada por servicio y, dentro de cada servicio, de más antiguo a más reciente:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">conDosPasadas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> resultados<span class="op">)</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">conUnComparador</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> resultados<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>Sin tocar la entrada.</strong> La lista que llega puede ser inmutable y, en cualquier caso, un método que ordena lo que le pasan sorprende a quien lo llama: copia con <code>new ArrayList&lt;&gt;(resultados)</code>, ordena la copia y devuélvela con <code>List.copyOf</code>.</p></li>
+<li><p><strong><code>conDosPasadas</code>.</strong> Ordena <strong>primero por instante</strong> y <strong>después por nombre del servicio</strong>. El orden de las dos pasadas es el que hace que funcione, y es el contrario del que uno escribiría: la última ordenación manda, y la estabilidad conserva lo que hizo la anterior dentro de cada grupo de empates.</p></li>
+<li><p><strong><code>conUnComparador</code>.</strong> El mismo resultado con un único <code>sort</code>, componiendo con <code>Comparator.comparing(...)</code> y <code>thenComparing(...)</code> del Tema 1. El servicio se compara por su <code>nombre()</code>, porque <code>Servicio</code> es una <a href="../../es/contenido/tema1.html#imp-interfaz">interfaz</a> y no tiene orden natural.</p></li>
+<li><p><strong>La comprobación interesante</strong> no es que cada método ordene bien, sino que los dos devuelvan <strong>la misma lista</strong>. Escríbelo en un comentario: qué propiedad de la ordenación de Java hace que eso sea cierto, y qué pasaría si no la tuviera.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Con seis resultados de tres servicios, escritos como <code>servicio@segundo</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb18-1"><a href="#cb18-1"></a>entrada:              web@30 dns@10 web@10 tcp@20 dns@30 web@20</span>
+<span id="cb18-2"><a href="#cb18-2"></a>conDosPasadas:        dns@10 dns@30 tcp@20 web@10 web@20 web@30</span>
+<span id="cb18-3"><a href="#cb18-3"></a>conUnComparador:      dns@10 dns@30 tcp@20 web@10 web@20 web@30</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Y lo que sale si se invierte el orden de las pasadas —primero por servicio, después por instante—, que es el error que hay que entender:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb19-1"><a href="#cb19-1"></a>pasadas al reves:     dns@10 web@10 tcp@20 web@20 dns@30 web@30</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el orden resultante con varios servicios y con instantes repetidos, que la lista de entrada <strong>no</strong> se modifica, que la devuelta es inmutable, y que los dos métodos coinciden elemento a elemento sobre una lista generada al azar.</p>
+<p><strong>Para pensar.</strong> Si en lugar de dos criterios hubiera cinco, ¿seguirías prefiriendo las dos pasadas o el comparador compuesto? Compara el coste de las dos soluciones antes de responder.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.1.9 Clase `RepositorioContador`: el coste del monitor, reproducido">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.1.9 Clase <code>RepositorioContador</code>: el coste del monitor, reproducido
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El <a href="../../es/contenido/tema2.html#el-coste-del-monitor-medido">coste del monitor</a> es el problema que abre el tema: <code>RepositorioEnMemoria.historial</code> responde una pregunta sobre <strong>un</strong> servicio recorriendo los resultados de <strong>todos</strong>, y como se llama una vez por comprobación, el coste total de las consultas resulta cuadrático en el número de resultados. El tema lo mide y publica una tabla. Este ejercicio consiste en reproducir la columna que no depende de la máquina, la de las comparaciones, y comprobar que coincide con la fórmula.</p>
+<p>El código de <code>RepositorioEnMemoria</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1"><code>t2-ejercicios-2-1</code></a>, es el siguiente:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">// RepositorioEnMemoria.java</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a></span>
+<span id="cb20-4"><a href="#cb20-4"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">ArrayList</span><span class="op">;</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">LinkedHashSet</span><span class="op">;</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">List</span><span class="op">;</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">Set</span><span class="op">;</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> RepositorioEnMemoria <span class="kw">implements</span> RepositorioResultados <span class="op">{</span></span>
+<span id="cb20-10"><a href="#cb20-10"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> datos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb20-11"><a href="#cb20-11"></a></span>
+<span id="cb20-12"><a href="#cb20-12"></a>    <span class="at">@Override</span></span>
+<span id="cb20-13"><a href="#cb20-13"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">guardar</span><span class="op">(</span>Resultado resultado<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-14"><a href="#cb20-14"></a>        datos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb20-15"><a href="#cb20-15"></a>    <span class="op">}</span></span>
+<span id="cb20-16"><a href="#cb20-16"></a></span>
+<span id="cb20-17"><a href="#cb20-17"></a>    <span class="at">@Override</span></span>
+<span id="cb20-18"><a href="#cb20-18"></a>    <span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">historial</span><span class="op">(</span>Servicio servicio<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-19"><a href="#cb20-19"></a>        <span class="dt">var</span> suyos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;</span>Resultado<span class="op">&gt;();</span></span>
+<span id="cb20-20"><a href="#cb20-20"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">var</span> resultado <span class="op">:</span> datos<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-21"><a href="#cb20-21"></a>            <span class="cf">if</span> <span class="op">(</span>resultado<span class="op">.</span><span class="fu">servicio</span><span class="op">().</span><span class="fu">equals</span><span class="op">(</span>servicio<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb20-22"><a href="#cb20-22"></a>                suyos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb20-23"><a href="#cb20-23"></a>            <span class="op">}</span></span>
+<span id="cb20-24"><a href="#cb20-24"></a>        <span class="op">}</span></span>
+<span id="cb20-25"><a href="#cb20-25"></a>        <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>suyos<span class="op">);</span></span>
+<span id="cb20-26"><a href="#cb20-26"></a>    <span class="op">}</span></span>
+<span id="cb20-27"><a href="#cb20-27"></a></span>
+<span id="cb20-28"><a href="#cb20-28"></a>    <span class="at">@Override</span></span>
+<span id="cb20-29"><a href="#cb20-29"></a>    <span class="kw">public</span> <span class="bu">Set</span><span class="op">&lt;</span>Servicio<span class="op">&gt;</span> <span class="fu">servicios</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb20-30"><a href="#cb20-30"></a>        <span class="dt">var</span> vistos <span class="op">=</span> <span class="kw">new</span> <span class="bu">LinkedHashSet</span><span class="op">&lt;</span>Servicio<span class="op">&gt;();</span></span>
+<span id="cb20-31"><a href="#cb20-31"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">var</span> resultado <span class="op">:</span> datos<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-32"><a href="#cb20-32"></a>            vistos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">.</span><span class="fu">servicio</span><span class="op">());</span></span>
+<span id="cb20-33"><a href="#cb20-33"></a>        <span class="op">}</span></span>
+<span id="cb20-34"><a href="#cb20-34"></a>        <span class="cf">return</span> <span class="bu">Set</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>vistos<span class="op">);</span></span>
+<span id="cb20-35"><a href="#cb20-35"></a>    <span class="op">}</span></span>
+<span id="cb20-36"><a href="#cb20-36"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>Escribe <code>RepositorioContador</code></strong>, en <code>es.uib.prgava.tema2.monitor</code>, que implemente <code>RepositorioResultados</code> haciendo exactamente lo mismo que <code>RepositorioEnMemoria</code> pero contando las comparaciones de <code>historial</code>: una por cada resultado examinado, es decir una por cada vuelta del bucle, acumuladas entre llamadas. Un método <code>comparaciones()</code> devuelve el total. No cuentes nada en <code>guardar</code> ni en <code>servicios</code>.</p></li>
+<li><p><strong>Reproduce una ejecución del monitor</strong> con un método de clase <code>public static long comparacionesDeUnaEjecucion(int rondas, int servicios)</code> que cree un <code>RepositorioContador</code>, construya los servicios que se le piden, y haga <code>rondas</code> rondas en las que cada servicio se guarda y después se consulta su historial —el orden del <a href="../../es/contenido/tema2.html#el-coste-del-monitor-medido">bucle del Tema 1</a>: primero <code>guardar</code>, después <code>historial</code>—. No necesitas el <code>Monitor</code>, ni la sonda, ni la política: lo que se mide es el repositorio, y meter el resto solo añade ruido.</p></li>
+<li><p><strong>La fórmula.</strong> Llamemos <span class="math inline">\(r\)</span> al número de rondas, <span class="math inline">\(s\)</span> al de servicios y <span class="math inline">\(N = r \cdot s\)</span> al número de resultados guardados al final. En la llamada <span class="math inline">\(k\)</span>-ésima el repositorio tiene <span class="math inline">\(k\)</span> resultados y los recorre todos, de modo que el total es <span class="math inline">\(1 + 2 + \dots + N\)</span>. Escribe la forma cerrada de esa suma en un comentario: es la que las pruebas comprueban, y es también de dónde sale el <span class="math inline">\(O(r^2 s^2)\)</span> del tema.</p></li>
+<li><p><strong>Comprueba la tabla del tema.</strong> Con 20 servicios, 100 rondas dan 2.001.000 comparaciones y 200 rondas dan 8.002.000, exactamente las dos primeras filas de la tabla publicada. Que al duplicar las rondas el número se multiplique <strong>por cuatro</strong> es la confirmación del análisis.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>RepositorioContador<span class="op">.</span><span class="fu">comparacionesDeUnaEjecucion</span><span class="op">(</span><span class="dv">2</span><span class="op">,</span> <span class="dv">3</span><span class="op">));</span>     <span class="co">//       21</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>RepositorioContador<span class="op">.</span><span class="fu">comparacionesDeUnaEjecucion</span><span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="dv">4</span><span class="op">));</span>     <span class="co">//      210</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>RepositorioContador<span class="op">.</span><span class="fu">comparacionesDeUnaEjecucion</span><span class="op">(</span><span class="dv">100</span><span class="op">,</span> <span class="dv">20</span><span class="op">));</span>  <span class="co">//  2001000</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>RepositorioContador<span class="op">.</span><span class="fu">comparacionesDeUnaEjecucion</span><span class="op">(</span><span class="dv">200</span><span class="op">,</span> <span class="dv">20</span><span class="op">));</span>  <span class="co">//  8002000</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que <code>RepositorioContador</code> sigue cumpliendo el contrato de <code>RepositorioResultados</code> —el historial de cada servicio, en orden, y el conjunto de servicios—, que el contador acumula entre llamadas y no se reinicia, y que <code>comparacionesDeUnaEjecucion</code> da <span class="math inline">\(N(N+1)/2\)</span> para varias parejas de rondas y servicios, incluidas las dos filas de la tabla del tema.</p>
+<p><strong>Para pensar.</strong> El contador vive dentro del repositorio, que es código de producción, y cuenta algo que solo le interesa a quien está midiendo. ¿Dónde pondrías ese contador para no mezclar las dos responsabilidades, y qué principio del Tema 1 estás aplicando al moverlo?</p>
+</div>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
@@ -922,6 +1524,7 @@ ul.task-list li input[type="checkbox"] {
 <script src="../../logo-href.js"></script>
 <script src="../../full-view.js"></script>
 <script src="../../glosario.js"></script>
+<script src="../../resaltar.js"></script>
 
 
 
