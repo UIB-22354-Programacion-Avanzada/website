@@ -4,4 +4,678 @@ lang: es
 sidebar: barra-es
 ---
 
-*Contenido pendiente.*
+## Cómo trabajar estos ejercicios
+
+Los ejercicios de esta página acompañan al [contenido del Tema 2](../contenido/tema2.qmd) y se
+numeran `2.X.k`, donde `X` es el subapartado del tema al que corresponden. De momento está
+publicada la sección **2.1**; las de 2.2 y 2.3 se añaden a esta misma página al empezar cada
+sección.
+
+Todo lo que hace falta para resolverlos está en el Tema 2 y en el Tema 1, y solo ahí: ningún
+enunciado usa nada que no se haya explicado antes. En particular, los ejercicios de 2.1 **no usan
+ninguna estructura de datos de 2.2**: con arrays, `List` y los `Comparator` del Tema 1 hay de
+sobra. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio
+enunciado.
+
+No empiezas desde una carpeta vacía. En la organización del curso hay **una plantilla por cada
+sección**, con la misma estructura que
+[`t2-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejemplos):
+
+| Sección | Plantilla |
+|---|---|
+| 2.1 | [`t2-ejercicios-2-1`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1) |
+
+Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:
+
+- un **esqueleto** de cada clase que se pide, con las firmas de sus métodos y las cláusulas
+  `implements` del ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el
+  primer momento; lo que falta, y lo que tienes que escribir, son los **cuerpos**, marcados con
+  `// TODO 2.X.k`;
+- el **código de partida** de los ejercicios que consisten en corregir o instrumentar algo ya
+  escrito; ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la
+  página;
+- una **copia del código del monitor** del Tema 1 (paquete `es.uib.prgava.tema1.monitor`) y de las
+  clases del tema que los ejercicios usan —`Recuento`, `Conteos`, `Busquedas`—, que puedes leer y,
+  cuando el enunciado lo pida, modificar libremente;
+- las **pruebas** que comprueban tu solución, en `src/test/java`.
+
+El esqueleto compila desde el primer momento, pero casi todas las pruebas fallan hasta que
+completas el código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual:
+crea tu copia con **Use this template**, abre un Codespace, ejecuta `mvn test`, y ve resolviendo
+ejercicios hasta que la construcción pase en verde.
+
+Cada ejercicio se comprueba con **una clase de prueba, y solo una**. Para trabajar en uno, abre su
+clase de prueba y pulsa el botón ▶ que aparece junto al nombre de la clase: se ejecutan solo sus
+pruebas. El `README` de la plantilla trae la tabla de correspondencia entre ejercicios y clases de
+prueba.
+
+Sobre los paquetes: las clases que **implementan una interfaz del monitor** —en 2.1 solo
+`RepositorioContador`— viven en `es.uib.prgava.tema2.monitor`, junto a sus compañeras; todas las
+demás, en `es.uib.prgava.tema2.ejercicios`. El esqueleto ya trae cada fichero en su sitio, así que
+basta con que respetes el que te encuentres.
+
+::: {.callout-tip appearance="simple"}
+**El convenio para contar.** Varios ejercicios piden **contar operaciones**, y las pruebas tienen
+que poder leer el número, no solo verlo impreso. El convenio es el mismo en todos: el método
+devuelve lo que tiene que devolver, anuncia su recuento con
+[`Recuento.anunciar`](../contenido/tema2.qmd#qué-se-mide-y-por-qué-no-es-exactamente-el-tiempo) —la
+clase del tema, que la plantilla trae— y además deja el número en un contador que se consulta con
+un método de clase, `ultimasOperaciones()`. Las clases del tema solo imprimen; las de los
+ejercicios imprimen y guardan.
+
+Y lo que se cuenta son **iteraciones del cuerpo** del bucle, no operaciones elementales, igual que
+en el tema: las dos cuentas se diferencian en un factor constante y cualquiera de las dos sirve
+para hablar del orden.
+:::
+
+::: {.callout-tip appearance="simple"}
+**Cómo están escritos.** Cada enunciado empieza explicando para qué sirve lo que se pide, sigue con
+los pasos, y termina con dos cosas que no puntúan pero que son la mitad del ejercicio: qué
+comprueban las pruebas y una pregunta para pensar. Las preguntas que aparecen **dentro** de los
+pasos tienen respuesta en el tema y se enlaza dónde; la de **Para pensar** no la tiene, y se
+responde decidiendo.
+
+Vienes del Tema 1, así que el nivel de detalle arranca donde lo dejó: se te dice qué método de la
+biblioteca usar cuando es poco conocido, y no cuando ya lo has usado. Lo que sí está dicho con
+precisión en todos es **qué se cuenta y con qué fórmula hay que comparar el recuento**, porque ahí
+un malentendido invalida el ejercicio entero.
+:::
+
+::: {.callout-tip appearance="simple"}
+Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución
+de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión, no que el
+código funcione.
+:::
+
+## 2.1. Eficiencia de algoritmos
+
+**Plantilla:** [`t2-ejercicios-2-1`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1)
+
+Ejercicios sobre [2.1 del tema](../contenido/tema2.qmd#eficiencia-de-algoritmos): qué se mide,
+notación asintótica, los tres casos y el coste amortizado, búsqueda, ordenación y el coste del
+monitor.
+
+Los nueve tienen una cosa en común que conviene anunciar: en casi todos, **lo que se entrega no es
+un programa que funcione, sino un número que coincida con una fórmula**. Un `maximoYSegundo` que
+devuelve el máximo correcto pero ejecuta su bucle dos veces no resuelve el ejercicio 2.1.1. Es el
+cambio de mentalidad de la sección, y los ejercicios están hechos para que se note.
+
+:::: {.callout-note title="2.1.1 Método `maximoYSegundo` de `RecorridosEjercicio`" collapse="true"}
+El [coste de un algoritmo](../contenido/tema2.qmd#imp-coste) se cuenta, y el sitio donde se cuenta
+es el bucle: el coste de un bucle es el número de iteraciones multiplicado por el coste de su
+cuerpo. Este ejercicio es el caso más simple y el más instructivo, porque el mismo problema admite
+dos soluciones del mismo orden y con constantes distintas, y hay que elegir la pequeña a
+conciencia. El modelo es [`Conteos`](../contenido/tema2.qmd#qué-se-mide-y-por-qué-no-es-exactamente-el-tiempo),
+que la plantilla trae completa.
+
+Escribe en `RecorridosEjercicio` el método
+
+```java
+public static int[] maximoYSegundo(int[] datos)
+```
+
+que devuelva un array de dos posiciones con el **mayor** y el **segundo mayor** elemento de
+`datos`, en ese orden.
+
+1. **Qué significa «segundo mayor» cuando hay repetidos.** El segundo mayor es el segundo elemento
+   más grande **contando las repeticiones**: en `{3, 17, 9, 17, 2}` el mayor es 17 y el segundo
+   mayor también es 17, porque hay dos. No se pide el mayor de los distintos.
+
+2. **Un solo recorrido.** La solución evidente es buscar el máximo, y después recorrer otra vez
+   buscando el mayor de los restantes: son $2n$ iteraciones. Se puede hacer con $n$ llevando dos
+   variables a la vez, `maximo` y `segundo`, e inicializándolas a `Integer.MIN_VALUE`. En cada
+   elemento hay dos casos, y el orden en que se comprueban importa: si el elemento supera al
+   máximo, el máximo viejo pasa a ser el segundo; si no lo supera pero supera al segundo, sustituye
+   al segundo.
+
+3. **Validación.** Un array `null` o de menos de dos elementos no tiene segundo mayor:
+   `IllegalArgumentException` con el mensaje `"Hacen falta al menos dos elementos"`. Es el criterio
+   de siempre, un objeto o una llamada sin sentido no debe seguir adelante.
+
+4. **El recuento.** Cuenta las iteraciones del cuerpo del bucle, anúncialas con
+   `Recuento.anunciar("maximoYSegundo", datos.length, operaciones, "n")` antes del `return`, y deja
+   el número accesible en `ultimasOperaciones()`, como dice el convenio de la cabecera de esta
+   página.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+System.out.println(Arrays.toString(RecorridosEjercicio.maximoYSegundo(new int[] {3, 17, 9, 17, 2})));
+System.out.println(RecorridosEjercicio.ultimasOperaciones());
+System.out.println(Arrays.toString(RecorridosEjercicio.maximoYSegundo(new int[] {3, 17, 9})));
+
+RecorridosEjercicio.maximoYSegundo(new int[] {7});   // IllegalArgumentException
+```
+
+Lo que imprime, con la línea de `Recuento` intercalada:
+
+```text
+maximoYSegundo n = 5         operaciones = 5          (n)
+[17, 17]
+5
+maximoYSegundo n = 3         operaciones = 3          (n)
+[17, 9]
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el resultado con repetidos, con el máximo al
+principio y al final, y con arrays de dos elementos; el rechazo de `null` y de un array de uno; y
+—esta es la que falla si recorres dos veces— que `ultimasOperaciones()` sea **exactamente**
+`datos.length` para arrays de varios tamaños.
+
+**Para pensar.** La versión de dos recorridos es más fácil de leer y de convencerse de que es
+correcta. ¿En qué situación preferirías entregarla, sabiendo que hace el doble de trabajo?
+::::
+
+:::: {.callout-note title="2.1.2 Método `porEstado` de `EstadosEjercicio`" collapse="true"}
+Dos bucles anidados no significan coste cuadrático. Lo que decide es **de qué depende el número de
+iteraciones del bucle interior**, y confundir «anidado» con «cuadrático» es el error de análisis más
+frecuente al empezar. Este ejercicio construye un contraejemplo a propósito, con el historial del
+monitor del Tema 1.
+
+Escribe en `EstadosEjercicio` el método
+
+```java
+public static long[] porEstado(List<Resultado> historial)
+```
+
+que devuelva cuántos resultados hay de cada [`Estado`](../contenido/tema1.qmd#imp-enum),
+en un array indexado por `Estado.ordinal()`: la posición 0 es `ACTIVO`, la 1 `DEGRADADO` y la 2
+`CAIDO`.
+
+1. **Con dos bucles anidados, a propósito.** El exterior recorre el historial; el interior recorre
+   `Estado.values()` y, cuando el estado del resultado coincide con el valor que toca, incrementa su
+   casilla. No pongas `break` al encontrar la coincidencia: queremos que el recuento sea limpio.
+
+2. **El tamaño del array** no se escribe a mano: es `Estado.values().length`. Si mañana el enum
+   crece, el método sigue siendo correcto.
+
+3. **El recuento.** Cuenta las iteraciones del cuerpo **interior**, que son las que hacen el
+   trabajo, y anúncialas con `Recuento.anunciar("porEstado", historial.size(), operaciones, "3n")`.
+   El 3 no es $n$: es el número de valores del enum, una constante del programa.
+
+4. **La conclusión, en un comentario** de dos líneas sobre el método: a qué clase de crecimiento
+   pertenece `porEstado` y por qué, con la fórmula del recuento como argumento. La regla que lo
+   justifica es la de las constantes multiplicativas del
+   [Fundamento Teórico sobre las tres cotas](../contenido/tema2.qmd#tip-o-grande).
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var historial = List.of(
+        new Resultado(web, i0, Estado.ACTIVO, Duration.ofMillis(40)),
+        new Resultado(web, i0.plusSeconds(60), Estado.CAIDO, Duration.ZERO),
+        new Resultado(web, i0.plusSeconds(120), Estado.CAIDO, Duration.ZERO),
+        new Resultado(web, i0.plusSeconds(180), Estado.DEGRADADO, Duration.ofMillis(900)));
+
+System.out.println(Arrays.toString(EstadosEjercicio.porEstado(historial)));
+System.out.println(EstadosEjercicio.ultimasOperaciones());
+```
+
+```text
+porEstado    n = 4         operaciones = 12         (3n)
+[1, 1, 2]
+12
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban las tres casillas con historiales mezclados, el
+caso del historial vacío —que debe dar ceros y cero operaciones— y que `ultimasOperaciones()` valga
+`3 * historial.size()` para varios tamaños.
+
+**Para pensar.** El mismo recuento se puede hacer sin el bucle interior, con una sola línea por
+resultado, y entonces son $n$ iteraciones en lugar de $3n$. ¿Merece la pena el cambio? ¿Y si el enum
+tuviera cincuenta valores en lugar de tres?
+::::
+
+:::: {.callout-note title="2.1.3 Clase `CotasEjercicio`: los testigos de una cota" collapse="true"}
+Decir «esto es $O(n^2)$» no es una impresión, es una afirmación con una
+[demostración de dos líneas](../contenido/tema2.qmd#tip-o-grande): basta exhibir una constante $c$ y
+un tamaño $n_0$ tales que la desigualdad se cumpla para todo $n \ge n_0$. Este ejercicio consiste en
+exhibirlos, y las pruebas los van a comprobar uno por uno. Es el único ejercicio de la página en el
+que lo que se entrega son dos números.
+
+La función de la que hay que hablar es
+
+$$f(n) = 3n^2 + 50n + 200$$
+
+Escribe en `CotasEjercicio`:
+
+```java
+public static long f(long n)              // la función de arriba, tal cual
+public static long constanteCSuperior()   // la c de la cota superior
+public static long n0Superior()           // el n0 de la cota superior
+public static long constanteCInferior()   // la c de la cota inferior
+public static long n0Inferior()           // el n0 de la cota inferior
+```
+
+1. **La cota superior.** Hay que dar $c$ y $n_0$ con $f(n) \le c \cdot n^2$ para todo $n \ge n_0$.
+   El camino es el de la segunda regla del tema: acotar cada sumando por algo que sea $n^2$ a partir
+   de cierto tamaño. Con $c = 4$ te queda por resolver desde qué $n$ se cumple
+   $50n + 200 \le n^2$, que es una inecuación de segundo grado y sale a mano.
+
+2. **La cota inferior.** Hay que dar $c$ y $n_0$ con $f(n) \ge c \cdot n^2$ para todo
+   $n \ge n_0$. Esta es mucho más fácil que la anterior, y si te está costando es señal de que estás
+   buscando algo más fino de lo que hace falta: los tres sumandos son positivos.
+
+3. **La conclusión.** Escribe en un comentario qué se puede afirmar sobre $f$ a la vista de los dos
+   apartados, usando el nombre de la cota que corresponda, y por qué no hacía falta buscar $c_1$ y
+   $c_2$ a la vez.
+
+4. **Elegir $c$ cambia el $n_0$.** Con $c = 4$ el $n_0$ mínimo es uno; con $c = 53$ es otro mucho
+   menor. Las dos respuestas son correctas, y **¿por qué la definición admite las dos sin que una
+   sea mejor que la otra?** La respuesta está en el papel que juegan las dos cláusulas del
+   [Fundamento Teórico sobre las tres cotas](../contenido/tema2.qmd#tip-o-grande).
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+// Con c = 4, el n0 minimo es 54: en 53 la desigualdad todavia falla y en 54 ya se cumple.
+System.out.println(CotasEjercicio.f(53) + " <= " + 4 * 53 * 53);   // 11277 <= 11236  -> falso
+System.out.println(CotasEjercicio.f(54) + " <= " + 4 * 54 * 54);   // 11648 <= 11664  -> cierto
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas no comprueban que hayas dado *los* números esperados, sino
+que **los tuyos cumplen la definición**: recorren todos los $n$ desde tu `n0` hasta cien mil y
+exigen la desigualdad en los dos sentidos. Además comprueban que `f` es la función del enunciado, y
+que tu `n0Superior()` es el **mínimo** para la `c` que has elegido —es decir, que en `n0 - 1` la
+desigualdad falla—, porque si no, bastaría con dar un $n_0$ enorme.
+
+**Para pensar.** Las pruebas comprueban la desigualdad hasta cien mil, no para todo $n$. ¿Qué
+tendrías que escribir, y en qué lenguaje, para comprobarla de verdad para todo $n$? ¿Es eso una
+prueba unitaria?
+::::
+
+:::: {.callout-note title="2.1.4 Método `primerNDondeGana` de `CruceEjercicio`" collapse="true"}
+«La búsqueda binaria es más rápida que la lineal» es una frase incompleta, y el
+[Error Frecuente](../contenido/tema2.qmd#cau-o-grande-sin-n) explica por qué: la notación asintótica
+habla de cómo crece el coste, de modo que la pregunta con respuesta es **a partir de qué tamaño**
+gana. Este ejercicio calcula ese tamaño, y de paso practica el paso de funciones como argumento del
+Tema 1.
+
+Escribe en `CruceEjercicio` el método
+
+```java
+public static int primerNDondeGana(LongUnaryOperator coste1, LongUnaryOperator coste2, int limite)
+```
+
+que devuelva el **menor** $n \ge 1$ para el que $coste_1(n) < coste_2(n)$, o `-1` si no ocurre en
+ningún $n$ hasta `limite` incluido.
+
+1. **Qué es cada parámetro.** `coste1` y `coste2` son funciones de coste: reciben el tamaño de la
+   entrada y devuelven el número de operaciones. `java.util.function.LongUnaryOperator` es la
+   interfaz funcional de las que [vimos en el Tema 1](../contenido/tema1.qmd#lambdas-e-interfaces-funcionales)
+   para una función de `long` en `long`, y se invoca con `applyAsLong`.
+
+2. **El bucle.** Recorre $n$ de 1 a `limite` y devuelve el primero que cumpla la desigualdad.
+   Fíjate en que es `<` estricto: en el punto donde las dos funciones **empatan** todavía no gana
+   ninguna.
+
+3. **Validación.** `limite` menor que 1, o una función `null`, es un error de quien llama:
+   `IllegalArgumentException`.
+
+4. **No cuentes operaciones aquí.** Este método no es el objeto de estudio, sino la herramienta: es
+   el único de la página que no lleva contador.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+System.out.println(CruceEjercicio.primerNDondeGana(n -> 100 * n, n -> n * n, 100_000));   // 101
+System.out.println(CruceEjercicio.primerNDondeGana(n -> n * n, n -> 100 * n, 100_000));   // 1
+System.out.println(CruceEjercicio.primerNDondeGana(n -> 1000 * n, n -> n * n, 100_000));  // 1001
+System.out.println(CruceEjercicio.primerNDondeGana(n -> n, n -> 2 * n, 100_000));         // 1
+System.out.println(CruceEjercicio.primerNDondeGana(n -> 2 * n, n -> n, 100_000));         // -1
+```
+
+El tema dice que «un algoritmo de $100n$ le gana a uno de $n^2$ desde $n = 100$», y aquí sale 101.
+No es una contradicción: en $n = 100$ los dos cuestan exactamente $10^4$ operaciones, y el primer
+tamaño en el que uno hace **menos** trabajo que el otro es el siguiente. Las dos lecturas son
+razonables; lo que no es razonable es no saber cuál se está usando.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban los cinco casos de arriba, el caso en que la
+primera función gana desde el principio, el caso en que no gana nunca —que debe dar `-1` y no
+quedarse colgado— y el rechazo de un `limite` inválido.
+
+**Para pensar.** Con `coste1 = n -> n * n` y `coste2 = n -> 2 * n` el método devuelve 1, porque en
+$n = 1$ el cuadrático hace una operación y el lineal dos. ¿Qué te dice eso sobre el valor de este
+método como criterio para elegir un algoritmo?
+::::
+
+:::: {.callout-note title="2.1.5 Clase `CasosEjercicio`: peor caso, mejor caso y caso medio, medidos" collapse="true"}
+Los [tres casos](../contenido/tema2.qmd#imp-casos) son tres **resúmenes** del conjunto de costes de
+las entradas de un tamaño dado, y el tema insiste en que
+[no son tres cotas de la misma función](../contenido/tema2.qmd#tip-no-factoriza), sino tres
+funciones distintas. Este ejercicio las calcula para la búsqueda lineal recorriendo de verdad todas
+las entradas, en lugar de citarlas de memoria.
+
+Escribe en `CasosEjercicio`:
+
+```java
+public static long peorCaso(int n)
+public static long mejorCaso(int n)
+public static double casoMedio(int n)
+```
+
+1. **La búsqueda que se mide la escribes tú, y devuelve el recuento.** Un método privado
+   `private static long comparaciones(int[] datos, int buscado)` que recorra el array comparando y
+   devuelva **cuántas comparaciones ha hecho** hasta encontrar el elemento o agotar el array. No
+   necesitas la posición. La `Busquedas.lineal` del tema no sirve aquí, porque imprime su recuento
+   pero no lo devuelve: compárala con la tuya y fíjate en qué cambia.
+
+2. **El array de pruebas.** Para un tamaño $n$, usa el array `{0, 1, 2, …, n-1}`, que es el más
+   cómodo para razonar: el elemento de valor $i$ está en la posición $i$.
+
+3. **Peor caso**: el máximo de los costes. Buscar un valor que **no está** en el array, por ejemplo
+   `-1`. **Mejor caso**: el mínimo. Buscar el elemento que está en la primera posición.
+
+4. **Caso medio**: la media sobre todas las entradas, *bajo la hipótesis de que el elemento buscado
+   está y todas las posiciones son igual de probables*. Esa hipótesis no es un adorno: aquí se
+   traduce en que hay que buscar los $n$ elementos, uno por uno, sumar los recuentos y dividir
+   entre $n$. Por eso `casoMedio` es $O(n^2)$ aunque mida un algoritmo lineal, y eso está bien: es
+   un instrumento de medida, no código de producción.
+
+5. **Validación.** `n` menor que 1 no define ninguno de los tres: `IllegalArgumentException`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+System.out.println(CasosEjercicio.peorCaso(5));    // 5
+System.out.println(CasosEjercicio.mejorCaso(5));   // 1
+System.out.println(CasosEjercicio.casoMedio(5));   // 3.0
+
+System.out.println(CasosEjercicio.peorCaso(1000));   // 1000
+System.out.println(CasosEjercicio.mejorCaso(1000));  // 1
+System.out.println(CasosEjercicio.casoMedio(1000));  // 500.5
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban los tres resúmenes para varios tamaños contra sus
+fórmulas: $n$ para el peor, 1 para el mejor y $(n+1)/2$ para el medio. Esa última es la que hay que
+mirar con atención, porque **no es $n/2$**: si tu `casoMedio(5)` devuelve 2,5 en lugar de 3,0, el
+error está en qué entradas estás promediando.
+
+**Para pensar.** El caso medio que acabas de calcular supone que el elemento buscado está siempre.
+Si una de cada diez búsquedas fuera de un elemento ausente, ¿cuál sería el caso medio? Escribe la
+fórmula antes de programarla.
+::::
+
+:::: {.callout-note title="2.1.6 Clase `ArrayCreciente`: el coste amortizado, contado" collapse="true"}
+El [coste amortizado](../contenido/tema2.qmd#tip-amortizado) es el análisis que explica por qué
+`ArrayList.add` se usa sin miedo aunque su peor caso sea lineal, y el argumento entero depende de un
+detalle: que la capacidad **se multiplique** por un factor en lugar de crecer en una cantidad fija.
+Este ejercicio construye las dos versiones y cuenta las copias, de modo que la diferencia entre
+$2n$ y $n^2/20$ deja de ser una fórmula y pasa a ser una columna de números.
+
+Escribe `ArrayCreciente`, un almacén de `int` que crece solo:
+
+```java
+public ArrayCreciente(int capacidadInicial, IntUnaryOperator crecimiento)
+public void anadir(int valor)
+public int get(int posicion)
+public int tamano()
+public int capacidad()
+public long copiasRealizadas()
+```
+
+1. **El estado.** Un `int[]` para los elementos, un `int` con cuántos hay de verdad —que no es la
+   longitud del array— y un contador de copias. La capacidad inicial tiene que ser al menos 1.
+
+2. **La estrategia de crecimiento, como parámetro.** `crecimiento` recibe la capacidad actual y
+   devuelve la nueva: `c -> 2 * c` duplica y `c -> c + 10` crece de diez en diez. Es el
+   [patrón Strategy del Tema 1](../contenido/tema1.qmd#strategy) aplicado a una decisión que
+   normalmente está enterrada en la implementación, y es lo que permite comparar las dos políticas
+   sin escribir la clase dos veces. Rechaza con `IllegalStateException` una estrategia que no haga
+   crecer la capacidad, porque si no el bucle de `anadir` no terminaría nunca.
+
+3. **`anadir`.** Si el array está lleno, crea uno nuevo con la capacidad que diga la estrategia,
+   copia los elementos —te sirve `java.util.Arrays.copyOf`— y **suma al contador de copias el número
+   de elementos copiados**, que es el tamaño actual, no la capacidad. Después guarda el valor nuevo.
+   Esas copias son todo lo que hay que contar: el análisis del tema cuenta exactamente eso.
+
+4. **`get`** valida la posición contra el **tamaño**, no contra la capacidad, y lanza
+   `IndexOutOfBoundsException`. Un array con capacidad 16 y tres elementos tiene tres posiciones
+   legibles.
+
+5. **No uses `ArrayList` por dentro.** Todo el ejercicio consiste en hacer a mano lo que
+   `ArrayList` hace, así que un `ArrayList` dentro lo vacía de contenido.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var rapido = new ArrayCreciente(1, c -> 2 * c);
+var lento  = new ArrayCreciente(10, c -> c + 10);
+for (int i = 0; i < 1000; i++) {
+    rapido.anadir(i);
+    lento.anadir(i);
+}
+System.out.println(rapido.tamano() + " " + rapido.capacidad());   // 1000 1024
+System.out.println(rapido.copiasRealizadas());                    // 1023
+System.out.println(lento.copiasRealizadas());                     // 49500
+```
+
+Con cien mil elementos la distancia deja de ser discutible: 131.071 copias duplicando y
+499.950.000 creciendo de diez en diez, frente a las 200.000 que serían dos por elemento. Es casi
+exactamente el $n^2/20$ que predice el tema, y son casi cuatro mil veces más trabajo.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que los elementos se recuperan en orden después de
+varios crecimientos, que `get` rechaza las posiciones no escritas, que una estrategia que no crece
+se rechaza, y las dos cuentas que son el objeto del ejercicio: con duplicación,
+`copiasRealizadas()` **menor que `2 * n`** para varios tamaños; con incremento fijo, por encima de
+$n^2/25$ para $n$ grande.
+
+**Para pensar.** El tema dice que OpenJDK multiplica la capacidad por 1,5 y no por 2. Con el factor
+1,5 el total copiado sigue siendo lineal, así que la elección no cambia el orden. ¿Qué se gana
+entonces con 1,5, y qué se pierde?
+::::
+
+:::: {.callout-note title="2.1.7 Método `binariaConInsercion` de `BusquedasEjercicio`" collapse="true"}
+La `binaria` del tema devuelve `-1` cuando el elemento no está, y
+[`Arrays.binarySearch` devuelve otra cosa](../contenido/tema2.qmd#búsqueda-lineal-y-binaria): el
+punto de inserción codificado, que es bastante más útil y la razón de que al cambiar de una a otra
+convenga leer la documentación. Este ejercicio consiste en escribir la versión de la biblioteca,
+con su codificación y con el cálculo correcto del punto medio, y la prueba va a ser la biblioteca
+misma.
+
+Escribe en `BusquedasEjercicio` el método
+
+```java
+public static int binariaConInsercion(int[] datos, int buscado)
+```
+
+con el mismo contrato que `java.util.Arrays.binarySearch(int[], int)`: si el elemento está,
+devuelve su posición; si no está, devuelve $-(\text{punto de inserción}) - 1$, donde el punto de
+inserción es el índice en el que habría que insertarlo para mantener el orden.
+
+1. **El esquema es el de la `binaria` del tema**: dos índices, bucle mientras no se cruzan, y
+   descarte de la mitad que no puede contener el elemento.
+
+2. **El punto medio.** Calcúlalo como `izquierda + (derecha - izquierda) / 2` y no como
+   `(izquierda + derecha) / 2`. **¿Qué le pasa a la segunda forma con un array muy grande, y por qué
+   el fallo tardó nueve años en aparecer en la propia biblioteca de Java?** La respuesta está en el
+   [Error Frecuente sobre el punto medio](../contenido/tema2.qmd#cau-punto-medio).
+
+3. **El valor de retorno cuando no está.** Cuando el bucle termina sin encontrar nada, el punto de
+   inserción es justo el valor que tiene `izquierda` en ese momento: piénsalo con un array de dos
+   elementos antes de escribirlo. Devuelve `-izquierda - 1`.
+
+4. **El `-1` ambiguo.** Con esta codificación, `-1` significa «no está, y va en la posición 0», y
+   ya no significa «no está» sin más. Escríbelo en el javadoc del método: es la clase de detalle que
+   nadie recuerda seis meses después.
+
+5. **La precondición.** El array tiene que estar **ordenado**, el método no lo comprueba, y no debe
+   comprobarlo. Dilo en el javadoc con `@param`, y mira el
+   [Error Frecuente](../contenido/tema2.qmd#cau-binaria-sin-ordenar) para saber qué pasa si alguien
+   lo ignora.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+int[] puertos = {22, 53, 80, 443, 8080};
+
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 443));   //  3
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 22));    //  0
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 8080));  //  4
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 1024));  // -5, iria en la 4
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 100));   // -4, iria en la 3
+System.out.println(BusquedasEjercicio.binariaConInsercion(puertos, 10));    // -1, iria en la 0
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban los seis casos de arriba, el array vacío y el de
+un solo elemento, y después hacen lo que de verdad decide: generan **veinte mil** arrays ordenados
+al azar con valores repetidos y comparan tu resultado con el de `Arrays.binarySearch` en cada uno.
+Si tu método se desvía en un solo caso, la prueba te dice en cuál.
+
+**Para pensar.** Con elementos repetidos, `Arrays.binarySearch` no garantiza *cuál* de las
+posiciones iguales devuelve, y la prueba de arriba pasa porque tu implementación coincide con la de
+la biblioteca por casualidad de estructura, no por contrato. ¿Cómo escribirías la prueba para que
+compruebe el contrato en lugar de la coincidencia?
+::::
+
+:::: {.callout-note title="2.1.8 Clase `OrdenEjercicio`: dos pasadas estables" collapse="true"}
+La [estabilidad](../contenido/tema2.qmd#imp-estabilidad) es la propiedad que permite ordenar por dos
+criterios haciendo dos ordenaciones de uno, y es la razón de que Java la garantice al ordenar
+objetos. Este ejercicio la usa para algo que el monitor necesita de verdad —agrupar los resultados
+por servicio sin perder el orden cronológico dentro de cada grupo— y comprueba que el truco de las
+dos pasadas da el mismo resultado que un comparador compuesto.
+
+Escribe en `OrdenEjercicio` dos métodos que reciban una `List<Resultado>` y devuelvan una lista
+nueva, ordenada por servicio y, dentro de cada servicio, de más antiguo a más reciente:
+
+```java
+public static List<Resultado> conDosPasadas(List<Resultado> resultados)
+public static List<Resultado> conUnComparador(List<Resultado> resultados)
+```
+
+1. **Sin tocar la entrada.** La lista que llega puede ser inmutable y, en cualquier caso, un método
+   que ordena lo que le pasan sorprende a quien lo llama: copia con `new ArrayList<>(resultados)`,
+   ordena la copia y devuélvela con `List.copyOf`.
+
+2. **`conDosPasadas`.** Ordena **primero por instante** y **después por nombre del servicio**. El
+   orden de las dos pasadas es el que hace que funcione, y es el contrario del que uno escribiría:
+   la última ordenación manda, y la estabilidad conserva lo que hizo la anterior dentro de cada
+   grupo de empates.
+
+3. **`conUnComparador`.** El mismo resultado con un único `sort`, componiendo con
+   `Comparator.comparing(...)` y `thenComparing(...)` del Tema 1. El servicio se compara por su
+   `nombre()`, porque `Servicio` es una [interfaz](../contenido/tema1.qmd#imp-interfaz) y no tiene
+   orden natural.
+
+4. **La comprobación interesante** no es que cada método ordene bien, sino que los dos devuelvan
+   **la misma lista**. Escríbelo en un comentario: qué propiedad de la ordenación de Java hace que
+   eso sea cierto, y qué pasaría si no la tuviera.
+
+::: {.callout-tip title="Ejemplo de uso"}
+Con seis resultados de tres servicios, escritos como `servicio@segundo`:
+
+```text
+entrada:              web@30 dns@10 web@10 tcp@20 dns@30 web@20
+conDosPasadas:        dns@10 dns@30 tcp@20 web@10 web@20 web@30
+conUnComparador:      dns@10 dns@30 tcp@20 web@10 web@20 web@30
+```
+
+Y lo que sale si se invierte el orden de las pasadas —primero por servicio, después por instante—,
+que es el error que hay que entender:
+
+```text
+pasadas al reves:     dns@10 web@10 tcp@20 web@20 dns@30 web@30
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el orden resultante con varios servicios y con
+instantes repetidos, que la lista de entrada **no** se modifica, que la devuelta es inmutable, y que
+los dos métodos coinciden elemento a elemento sobre una lista generada al azar.
+
+**Para pensar.** Si en lugar de dos criterios hubiera cinco, ¿seguirías prefiriendo las dos pasadas
+o el comparador compuesto? Compara el coste de las dos soluciones antes de responder.
+::::
+
+:::: {.callout-note title="2.1.9 Clase `RepositorioContador`: el coste del monitor, reproducido" collapse="true"}
+El [coste del monitor](../contenido/tema2.qmd#el-coste-del-monitor-medido) es el problema que abre
+el tema: `RepositorioEnMemoria.historial` responde una pregunta sobre **un** servicio recorriendo
+los resultados de **todos**, y como se llama una vez por comprobación, el coste total de las
+consultas resulta cuadrático en el número de resultados. El tema lo mide y publica una tabla. Este
+ejercicio consiste en reproducir la columna que no depende de la máquina, la de las comparaciones, y
+comprobar que coincide con la fórmula.
+
+El código de `RepositorioEnMemoria`, que viene en
+[`t2-ejercicios-2-1`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1), es el
+siguiente:
+
+```java
+// RepositorioEnMemoria.java
+package es.uib.prgava.tema1.monitor;
+
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+public final class RepositorioEnMemoria implements RepositorioResultados {
+    private final List<Resultado> datos = new ArrayList<>();
+
+    @Override
+    public void guardar(Resultado resultado) {
+        datos.add(resultado);
+    }
+
+    @Override
+    public List<Resultado> historial(Servicio servicio) {
+        var suyos = new ArrayList<Resultado>();
+        for (var resultado : datos) {
+            if (resultado.servicio().equals(servicio)) {
+                suyos.add(resultado);
+            }
+        }
+        return List.copyOf(suyos);
+    }
+
+    @Override
+    public Set<Servicio> servicios() {
+        var vistos = new LinkedHashSet<Servicio>();
+        for (var resultado : datos) {
+            vistos.add(resultado.servicio());
+        }
+        return Set.copyOf(vistos);
+    }
+}
+```
+
+1. **Escribe `RepositorioContador`**, en `es.uib.prgava.tema2.monitor`, que implemente
+   `RepositorioResultados` haciendo exactamente lo mismo que `RepositorioEnMemoria` pero contando
+   las comparaciones de `historial`: una por cada resultado examinado, es decir una por cada vuelta
+   del bucle, acumuladas entre llamadas. Un método `comparaciones()` devuelve el total. No cuentes
+   nada en `guardar` ni en `servicios`.
+
+2. **Reproduce una ejecución del monitor** con un método de clase
+   `public static long comparacionesDeUnaEjecucion(int rondas, int servicios)` que cree un
+   `RepositorioContador`, construya los servicios que se le piden, y haga `rondas` rondas en las que
+   cada servicio se guarda y después se consulta su historial —el orden del
+   [bucle del Tema 1](../contenido/tema2.qmd#el-coste-del-monitor-medido): primero `guardar`,
+   después `historial`—. No necesitas el `Monitor`, ni la sonda, ni la política: lo que se mide es
+   el repositorio, y meter el resto solo añade ruido.
+
+3. **La fórmula.** Llamemos $r$ al número de rondas, $s$ al de servicios y $N = r \cdot s$ al
+   número de resultados guardados al final. En la llamada $k$-ésima el repositorio tiene $k$ resultados y los recorre todos, de modo
+   que el total es $1 + 2 + \dots + N$. Escribe la forma cerrada de esa suma en un comentario: es la
+   que las pruebas comprueban, y es también de dónde sale el $O(r^2 s^2)$ del tema.
+
+4. **Comprueba la tabla del tema.** Con 20 servicios, 100 rondas dan 2.001.000 comparaciones y 200
+   rondas dan 8.002.000, exactamente las dos primeras filas de la tabla publicada. Que al duplicar
+   las rondas el número se multiplique **por cuatro** es la confirmación del análisis.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+System.out.println(RepositorioContador.comparacionesDeUnaEjecucion(2, 3));     //       21
+System.out.println(RepositorioContador.comparacionesDeUnaEjecucion(5, 4));     //      210
+System.out.println(RepositorioContador.comparacionesDeUnaEjecucion(100, 20));  //  2001000
+System.out.println(RepositorioContador.comparacionesDeUnaEjecucion(200, 20));  //  8002000
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que `RepositorioContador` sigue cumpliendo el
+contrato de `RepositorioResultados` —el historial de cada servicio, en orden, y el conjunto de
+servicios—, que el contador acumula entre llamadas y no se reinicia, y que
+`comparacionesDeUnaEjecucion` da $N(N+1)/2$ para varias parejas de rondas y servicios, incluidas
+las dos filas de la tabla del tema.
+
+**Para pensar.** El contador vive dentro del repositorio, que es código de producción, y cuenta algo
+que solo le interesa a quien está midiendo. ¿Dónde pondrías ese contador para no mezclar las dos
+responsabilidades, y qué principio del Tema 1 estás aplicando al moverlo?
+::::
