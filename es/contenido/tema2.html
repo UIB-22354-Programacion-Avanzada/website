@@ -568,7 +568,7 @@ window.Quarto = {
   </ul></li>
   <li><a href="#estructuras-de-datos-fundamentales-y-la-java-collections-framework" id="toc-estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="nav-link" data-scroll-target="#estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</a>
   <ul class="collapse">
-  <li><a href="#el-mapa-de-la-biblioteca" id="toc-el-mapa-de-la-biblioteca" class="nav-link" data-scroll-target="#el-mapa-de-la-biblioteca">2.2.1 El mapa de la biblioteca</a></li>
+  <li><a href="#tipo-abstracto-de-datos-y-estructura-de-datos" id="toc-tipo-abstracto-de-datos-y-estructura-de-datos" class="nav-link" data-scroll-target="#tipo-abstracto-de-datos-y-estructura-de-datos">2.2.1 Tipo abstracto de datos y estructura de datos</a></li>
   <li><a href="#secuencias-array-arraylist-y-linkedlist" id="toc-secuencias-array-arraylist-y-linkedlist" class="nav-link" data-scroll-target="#secuencias-array-arraylist-y-linkedlist">2.2.2 Secuencias: array, <code>ArrayList</code> y <code>LinkedList</code></a></li>
   <li><a href="#pilas-y-colas-deque-y-arraydeque" id="toc-pilas-y-colas-deque-y-arraydeque" class="nav-link" data-scroll-target="#pilas-y-colas-deque-y-arraydeque">2.2.3 Pilas y colas: <code>Deque</code> y <code>ArrayDeque</code></a></li>
   <li><a href="#tablas-hash-hashmap-y-hashset" id="toc-tablas-hash-hashmap-y-hashset" class="nav-link" data-scroll-target="#tablas-hash-hashmap-y-hashset">2.2.4 Tablas <em>hash</em>: <code>HashMap</code> y <code>HashSet</code></a></li>
@@ -799,7 +799,7 @@ Concepto Clave&nbsp;1: Coste de un algoritmo
 </ul>
 <p>Hay dos razones para descartar las constantes multiplicativas, y ninguna es la pereza. La primera es que <strong>la constante no está determinada</strong>: el recuento de arriba da <span class="math inline">\(5n + 3\)</span> con un modelo en el que <code>i++</code> vale una operación y el acceso al array otra, y con un modelo que cuente el incremento como dos, o el acceso como dos, sale <span class="math inline">\(7n\)</span> o más. Ninguno de los dos modelos es el correcto, son convenios, de modo que un número que depende de cómo se escribió el bucle y de qué se considera operación elemental no describe el algoritmo.</p>
 <p>La segunda es que <strong>en la respuesta a la pregunta que nos hacemos la constante no aparece</strong>. Lo que se le pide a la notación es contestar «si la entrada se multiplica por diez, ¿por cuánto se multiplica el trabajo?», y con coste <span class="math inline">\(cn\)</span> la respuesta es <span class="math inline">\(T(10n)/T(n) = 10cn/cn = 10\)</span>: el factor se cancela. Con coste <span class="math inline">\(cn^2\)</span> sale 100, y se cancela igual. El cociente depende solo del orden de <span class="math inline">\(n\)</span>, así que la constante no interviene en la predicción. Y cuando hay que <strong>comparar</strong> dos algoritmos de distinto orden, la constante tampoco decide quién gana, solo a partir de dónde: un algoritmo de <span class="math inline">\(100n\)</span> le gana a uno de <span class="math inline">\(n^2\)</span> desde <span class="math inline">\(n = 100\)</span>, y si su constante fuera mil le ganaría desde <span class="math inline">\(n = 1000\)</span>; gana el lineal en los dos casos (<a href="#cau-o-grande-sin-n" class="quarto-xref">error frecuente&nbsp;1</a>).</p>
-<p>Lo que queda al quitar la constante, el orden, sí es propio del algoritmo, y se ve comparando los dos primeros métodos: escribir <code>sumaYMaximo</code> con dos bucles en lugar de uno cambia la constante de 1 a 2, pero no puede cambiarle el orden, porque sigue siendo un recorrido. Para cambiar el orden hay que cambiar el procedimiento: <code>hayRepetido</code> compara todos los pares y es cuadrático, y el mismo problema resuelto metiendo cada elemento en un conjunto y preguntando si ya estaba es lineal, como veremos en 2.2 (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;6</a>). Reescribir el bucle mueve la constante; cambiar la idea mueve el orden.</p>
+<p>Lo que queda al quitar la constante, el orden, sí es propio del algoritmo, y se ve comparando los dos primeros métodos: escribir <code>sumaYMaximo</code> con dos bucles en lugar de uno cambia la constante de 1 a 2, pero no puede cambiarle el orden, porque sigue siendo un recorrido. Para cambiar el orden hay que cambiar el procedimiento: <code>hayRepetido</code> compara todos los pares y es cuadrático, y el mismo problema resuelto metiendo cada elemento en un conjunto y preguntando si ya estaba es lineal, como veremos en 2.2 (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;7</a>). Reescribir el bucle mueve la constante; cambiar la idea mueve el orden.</p>
 <p>Los tres métodos llevan un contador y lo imprimen antes de devolver el resultado, de modo que los números del análisis se pueden comprobar en lugar de creer. Lo que cuentan son <strong>iteraciones del cuerpo</strong> del bucle, no operaciones elementales: cada iteración de <code>suma</code> son en realidad unas cuantas —el acceso al array, la suma, la comparación de la condición y el incremento del índice— y contarlas todas daría un número varias veces mayor. Las dos cuentas se diferencian en un factor constante, que es exactamente lo que acabamos de plantear que se descarta, así que cualquiera de las dos sirve para hablar del orden.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="co">// DemoConteos.java</span></span>
 <span id="cb3-2"><a href="#cb3-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema2</span><span class="op">.</span><span class="im">eficiencia</span><span class="op">;</span></span>
@@ -1216,7 +1216,7 @@ Error Frecuente&nbsp;3: Buscar con búsqueda binaria en datos sin ordenar
 <div class="callout-body-container callout-body">
 <p>La búsqueda binaria <strong>no comprueba</strong> que los datos estén ordenados, y no puede: comprobarlo costaría <span class="math inline">\(O(n)\)</span> y se perdería toda la ventaja. Si se le pasa un array desordenado no falla ni avisa: devuelve <code>-1</code> o una posición cualquiera, según le caiga.</p>
 <p>Lo que se obtiene es un programa que da resultados correctos en las pruebas pequeñas —con pocos elementos es fácil que el array esté ordenado por casualidad o que el elemento caiga en el centro— y resultados silenciosamente falsos en producción. De los errores que veremos en el tema, es el más difícil de localizar, porque no deja rastro.</p>
-<p>La precondición «ordenado» es parte de la firma aunque el compilador no la pueda expresar: por eso va escrita en el javadoc del listado. Y si los datos vienen de fuera y no hay garantía, la decisión correcta no es ordenar antes de cada búsqueda —eso cuesta <span class="math inline">\(O(n \log n)\)</span> y haría la búsqueda más cara que la lineal— sino mantener la estructura ordenada desde el principio, que es lo que hacen <code>TreeMap</code> y <code>TreeSet</code> (2.2.5, <a href="#imp-arbol-busqueda" class="quarto-xref">concepto clave&nbsp;7</a>).</p>
+<p>La precondición «ordenado» es parte de la firma aunque el compilador no la pueda expresar: por eso va escrita en el javadoc del listado. Y si los datos vienen de fuera y no hay garantía, la decisión correcta no es ordenar antes de cada búsqueda —eso cuesta <span class="math inline">\(O(n \log n)\)</span> y haría la búsqueda más cara que la lineal— sino mantener la estructura ordenada desde el principio, que es lo que hacen <code>TreeMap</code> y <code>TreeSet</code> (2.2.5, <a href="#imp-arbol-busqueda" class="quarto-xref">concepto clave&nbsp;8</a>).</p>
 </div>
 </div>
 <section id="lo-que-da-la-biblioteca" class="level4">
@@ -1496,9 +1496,9 @@ Error Frecuente&nbsp;4: Ordenar con un <code>Comparator</code> que se contradice
 </section>
 <section id="estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="level2">
 <h2 class="anchored" data-anchor-id="estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</h2>
-<p><strong>En el monitor de servicios</strong> (<a href="#fig-monitor2" class="quarto-xref">Figura&nbsp;1</a>) la pieza que hay que cambiar es el repositorio, y para elegir con qué cambiarla hace falta conocer el catálogo. Esta sección lo recorre, pero no como una lista de clases: cada estructura se presenta por <strong>el mecanismo que la hace funcionar</strong>, porque el mecanismo es lo que explica el coste, y el coste es lo que decide.</p>
-<section id="el-mapa-de-la-biblioteca" class="level3">
-<h3 class="anchored" data-anchor-id="el-mapa-de-la-biblioteca">2.2.1 El mapa de la biblioteca</h3>
+<p>El Java Collections Framework (JCF) es una arquitectura unificada dentro de la biblioteca estándar de Java (paquete <code>java.util</code>) diseñada para almacenar, manipular y procesar grupos de objetos. Constituye la materialización práctica del concepto de Tipo Abstracto de Datos (TAD) en el ecosistema Java, aplicando rigurosamente la separación mediante el uso de interfaces genéricas y clases concretas.</p>
+<section id="tipo-abstracto-de-datos-y-estructura-de-datos" class="level3">
+<h3 class="anchored" data-anchor-id="tipo-abstracto-de-datos-y-estructura-de-datos">2.2.1 Tipo abstracto de datos y estructura de datos</h3>
 <p>Antes del catálogo, una distinción que organiza todo lo demás.</p>
 <div id="imp-tad" class="callout callout-style-default callout-important no-icon callout-titled" title="Tipo abstracto de datos">
 <div class="callout-header d-flex align-content-center">
@@ -1510,16 +1510,48 @@ Concepto Clave&nbsp;4: Tipo abstracto de datos
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Un <strong>tipo abstracto de datos</strong> (TAD) es la descripción de un conjunto de valores y de las operaciones que se pueden hacer con ellos, <strong>sin decir cómo se representan ni cómo se implementan las operaciones</strong>. «Una secuencia de elementos a la que se puede añadir al final, consultar por posición y recorrer» es un TAD.</p>
-<p>Una <strong>estructura de datos</strong> es una forma concreta de representar un TAD en memoria: un array, una cadena de nodos enlazados, un árbol. Un mismo TAD admite muchas estructuras, con costes distintos.</p>
-<p>En Java la distinción está en el lenguaje: el TAD es una <strong>interfaz</strong> (<code>List</code>, <code>Set</code>, <code>Map</code>, <code>Deque</code>) y la estructura es una <strong>clase</strong> que la implementa (<code>ArrayList</code>, <code>HashSet</code>, <code>TreeMap</code>, <code>ArrayDeque</code>). Esto no es un detalle de estilo, es la aplicación directa del principio de inversión de dependencias del Tema 1 (<a href="../../es/contenido/tema1.html#imp-javainterfaces">Concepto Clave sobre interfaces</a>):</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">// Fragmento</span></span>
-<span id="cb10-2"><a href="#cb10-2"></a><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> historial <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;();</span>   <span class="co">// bien: el tipo es el TAD</span></span>
-<span id="cb10-3"><a href="#cb10-3"></a><span class="bu">ArrayList</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> otro <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;();</span>   <span class="co">// peor: el tipo es la estructura</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
-<p>La primera forma permite cambiar <code>ArrayList</code> por <code>LinkedList</code> tocando una línea, y obliga al resto del código a usar solo lo que <code>List</code> promete. La segunda ata todo el código que ve esa variable a una implementación concreta. La regla práctica: <strong>declara con la interfaz, construye con la clase</strong>, y lo mismo en los parámetros y los tipos de retorno de tus métodos.</p>
+<p>Un Tipo Abstracto de Datos (TAD) es un modelo matemático para tipos de datos que se define exclusivamente por su comportamiento lógico (semántica) desde la perspectiva del usuario, independientemente de su implementación concreta en memoria o en código.</p>
+<p>Un TAD se especifica rigurosamente mediante dos componentes:</p>
+<ul>
+<li><strong>Dominio de valores:</strong> El conjunto de estados o datos válidos que la estructura puede representar.</li>
+<li><strong>Conjunto de operaciones:</strong> Las funciones que permiten interactuar con los datos. Estas se definen por sus firmas (entradas y salidas) y su comportamiento exacto (precondiciones, postcondiciones y axiomas).</li>
+</ul>
+<p>La característica central de un TAD es la <strong>separación entre especificación e implementación</strong> (ocultación de información). El usuario interactúa únicamente con la interfaz pública, asumiendo que las operaciones cumplirán sus contratos lógicos.</p>
+<p>Por ejemplo, el TAD <strong>Pila (Stack)</strong> se define lógicamente por el principio LIFO (Last-In, First-Out) y operaciones como <code>push(elemento)</code>, <code>pop()</code> y <code>es_vacia()</code>. Quien utiliza la Pila no necesita (ni debe) saber si internamente los datos están almacenados en un array estático, una lista enlazada o un array dinámico. Si el programador decide cambiar la estructura interna subyacente por razones de eficiencia espacial o temporal, el código que utiliza el TAD no sufrirá ningún impacto, ya que la interfaz permanece idéntica.</p>
+<p>Ejemplos clásicos de TADs en ciencias de la computación incluyen:</p>
+<ul>
+<li><strong>Lineales:</strong> Listas, Pilas, Colas.</li>
+<li><strong>Jerárquicos y de red:</strong> Árboles, Grafos.</li>
+<li><strong>Asociativos:</strong> Diccionarios (Mapas), Conjuntos (Sets).</li>
+</ul>
 </div>
 </div>
-<p>La jerarquía de interfaces de la biblioteca es pequeña y conviene tenerla en la cabeza (<a href="#fig-jcf" class="quarto-xref">Figura&nbsp;2</a>):</p>
+<div id="imp-eda" class="callout callout-style-default callout-important no-icon callout-titled" title="Estructura de datos">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Concepto Clave&nbsp;5: Estructura de datos
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Una estructura de datos es la organización y representación física de los datos en la memoria de una computadora para que puedan ser almacenados, accedidos y manipulados de manera eficiente. Define los detalles concretos a nivel de máquina o lenguaje, tales como la asignación de memoria (contigua o dinámica), el manejo de referencias o punteros, y los algoritmos físicos que alteran esos bloques de memoria.</p>
+<p>La diferencia fundamental entre un Tipo Abstracto de Datos (TAD) y una estructura de datos radica en la separación entre la especificación y la implementación: el TAD define <strong>qué</strong> se hace, mientras que la estructura de datos define <strong>cómo</strong> se hace.</p>
+<ul>
+<li><strong>TAD (El concepto lógico):</strong> Es la interfaz o contrato matemático. Establece el comportamiento visible, las operaciones permitidas y sus reglas (semántica), independientemente del lenguaje de programación.</li>
+<li><strong>Estructura de datos (La implementación física):</strong> Es el código fuente y la arquitectura en la memoria RAM que da soporte al TAD.</li>
+</ul>
+<p>La relación entre ambos es de “uno a muchos”: un único TAD puede construirse utilizando diversas estructuras de datos. La elección de una u otra depende de los requisitos de complejidad algorítmica espacial y temporal.</p>
+<p>Por ejemplo, para el TAD <strong>Secuencia (Lista)</strong>, que exige operaciones como <code>insertar_en_posicion(i, elemento)</code> o <code>obtener_elemento(i)</code>:</p>
+<ul>
+<li>Se puede usar una estructura de datos basada en un <strong>Array dinámico</strong> (memoria contigua), lo que permite acceso aleatorio en tiempo <span class="math inline">\(O(1)\)</span>, pero requiere mover elementos en tiempo <span class="math inline">\(O(n)\)</span> al insertar en medio.</li>
+<li>Se puede usar una estructura de datos de <strong>Lista doblemente enlazada</strong> (nodos dispersos conectados por punteros), lo que permite inserciones locales en <span class="math inline">\(O(1)\)</span> si ya se tiene el nodo, pero degrada el acceso por índice a <span class="math inline">\(O(n)\)</span>.</li>
+</ul>
+</div>
+</div>
+<p>En Java, la dicotomía formal entre Tipo Abstracto de Datos (TAD) y estructura de datos física se materializa arquitectónicamente a través del sistema de tipos y el polimorfismo: los <strong>TADs se definen mediante Interfaces</strong>, mientras que las <strong>estructuras de datos se proveen mediante Clases Concretas</strong>.</p>
+<p>La jerarquía de interfaces de la Java Collections Framework es pequeña y conviene recordarla, porque es la que guía la elección de la estructura de datos. El esquema siguiente resume las interfaces y las implementaciones que usaremos en el curso (<a href="#fig-jcf" class="quarto-xref">Figura&nbsp;2</a>):</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-jcf" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1552,20 +1584,33 @@ Figura&nbsp;2: Las interfaces de la Java Collections Framework y las implementac
 </div>
 </div>
 </div>
-<p>Hay que fijarse en dos cosas del esquema (<a href="#fig-jcf" class="quarto-xref">Figura&nbsp;2</a>). La primera es que <code>Map</code> cuelga aparte: no es una <code>Collection</code>, porque sus elementos son pares y no valores sueltos. La segunda es que de cada interfaz salen <strong>varias</strong> implementaciones, y todo el resto de la sección consiste en saber cuál.</p>
+<p>Hay que fijarse en dos cosas del esquema (<a href="#fig-jcf" class="quarto-xref">Figura&nbsp;2</a>). La primera es que <code>Map</code> está aparte: no es una <code>Collection</code>, porque sus elementos son pares y no valores sueltos. La segunda es que para cada interfaz hay <strong>varias</strong> implementaciones.</p>
 <section id="recorrer-iterable-e-iteradores" class="level4">
 <h4 class="anchored" data-anchor-id="recorrer-iterable-e-iteradores"><strong>Recorrer: <code>Iterable</code> e iteradores</strong></h4>
-<p>Toda colección es <code>Iterable</code>, y eso es exactamente lo que permite escribir el bucle <code>for</code> mejorado:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">// Fragmento: las dos formas son la misma</span></span>
-<span id="cb11-2"><a href="#cb11-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado resultado <span class="op">:</span> historial<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb11-3"><a href="#cb11-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>resultado<span class="op">);</span></span>
-<span id="cb11-4"><a href="#cb11-4"></a><span class="op">}</span></span>
-<span id="cb11-5"><a href="#cb11-5"></a></span>
-<span id="cb11-6"><a href="#cb11-6"></a><span class="dt">var</span> it <span class="op">=</span> historial<span class="op">.</span><span class="fu">iterator</span><span class="op">();</span>          <span class="co">// lo que el compilador genera</span></span>
-<span id="cb11-7"><a href="#cb11-7"></a><span class="cf">while</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">hasNext</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb11-8"><a href="#cb11-8"></a>    <span class="dt">var</span> resultado <span class="op">=</span> it<span class="op">.</span><span class="fu">next</span><span class="op">();</span></span>
-<span id="cb11-9"><a href="#cb11-9"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>resultado<span class="op">);</span></span>
-<span id="cb11-10"><a href="#cb11-10"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>java.lang.Iterable&lt;T&gt;</code> es la interfaz raíz en la jerarquía de colecciones de Java (de la cual hereda <code>Collection&lt;E&gt;</code>) que establece un contrato formal: cualquier clase que la implemente garantiza que sus elementos pueden ser recorridos secuencialmente, independientemente de cómo estén organizados físicamente en la memoria.</p>
+<p>El diseño de esta interfaz materializa el patrón de diseño <em>Iterator</em>, cuyo propósito es desacoplar la estructura de datos física de la lógica de navegación.</p>
+<p>El contrato de <code>Iterable</code> exige primariamente la implementación de un método:</p>
+<ul>
+<li><strong><code>Iterator&lt;T&gt; iterator()</code>:</strong> Devuelve un objeto iterador que encapsula el estado interno del recorrido. Este iterador expone los métodos <code>hasNext()</code> (para verificar si quedan elementos) y <code>next()</code> (para obtener el elemento actual y avanzar el cursor), ocultando completamente la complejidad de la estructura subyacente.</li>
+</ul>
+<p>Desde la perspectiva del diseño del lenguaje, implementar <code>Iterable</code> tiene un impacto sintáctico directo: es el requisito estricto a nivel de compilador para que una clase pueda ser utilizada en un <strong>bucle for extendido (for-each)</strong>. Cuando un programador escribe <code>for (Tipo elemento : coleccion)</code>, el compilador de Java traduce automáticamente esa sintaxis a un bucle <code>while</code> clásico que gestiona el <code>Iterator</code> subyacente.</p>
+<p>La interfaz <code>java.util.Collection&lt;E&gt;</code> extiende (<code>extends</code>) a <code>java.lang.Iterable&lt;E&gt;</code>. En términos de diseño de tipos, toda colección en Java es obligatoriamente iterable, pero no todo objeto iterable es una colección.</p>
+<p>Esta jerarquía obedece al Principio de Segregación de Interfaces (ISP) de SOLID, separando dos responsabilidades o contratos lógicos distintos:</p>
+<ul>
+<li><strong><code>Iterable&lt;T&gt;</code> (El contrato de recorrido):</strong> Garantiza únicamente la capacidad de producir elementos secuencialmente. No asume que los elementos estén cacheados en memoria, ni que puedan modificarse, ni siquiera que sean finitos. Una secuencia matemática generada al vuelo (como la serie de Fibonacci) o un flujo de lectura de red pueden ser iterables sin requerir almacenamiento.</li>
+<li><strong><code>Collection&lt;E&gt;</code> (El contrato de contenedor):</strong> Expande el contrato base para definir un contenedor materializado en memoria. Añade la semántica de grupo, asumiendo un tamaño calculable y operaciones para administrar sus elementos.</li>
+</ul>
+<p>Entonces toda colección es <code>Iterable</code>, y eso es exactamente lo que permite escribir el bucle <code>for</code> mejorado:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="co">// Fragmento: las dos formas son la misma</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado resultado <span class="op">:</span> historial<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a><span class="op">}</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="dt">var</span> it <span class="op">=</span> historial<span class="op">.</span><span class="fu">iterator</span><span class="op">();</span>          <span class="co">// lo que el compilador genera</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="cf">while</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">hasNext</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb10-8"><a href="#cb10-8"></a>    <span class="dt">var</span> resultado <span class="op">=</span> it<span class="op">.</span><span class="fu">next</span><span class="op">();</span></span>
+<span id="cb10-9"><a href="#cb10-9"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb10-10"><a href="#cb10-10"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El <strong>iterador</strong> es un objeto que recuerda por dónde va el recorrido. Su interés para este tema es que cada estructura implementa el suyo de la forma que le conviene —el de <code>ArrayList</code> lleva un índice, el de <code>LinkedList</code> lleva un puntero al nodo actual, el de <code>HashMap</code> recorre las cubetas—, y que por eso recorrer una colección completa cuesta <span class="math inline">\(O(n)\)</span> en todas, aunque el acceso a un elemento concreto cueste cosas muy distintas.</p>
 <div id="cau-modificar-mientras-recorres" class="callout callout-style-default callout-caution no-icon callout-titled" title="Añadir o quitar elementos mientras se recorre la colección">
 <div class="callout-header d-flex align-content-center">
@@ -1578,47 +1623,59 @@ Error Frecuente&nbsp;5: Añadir o quitar elementos mientras se recorre la colecc
 </div>
 <div class="callout-body-container callout-body">
 <p>Esto parece razonable y no funciona:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">// Fragmento: no funciona</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado resultado <span class="op">:</span> historial<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb12-3"><a href="#cb12-3"></a>    <span class="cf">if</span> <span class="op">(</span>resultado<span class="op">.</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb12-4"><a href="#cb12-4"></a>        historial<span class="op">.</span><span class="fu">remove</span><span class="op">(</span>resultado<span class="op">);</span>       <span class="co">// ConcurrentModificationException</span></span>
-<span id="cb12-5"><a href="#cb12-5"></a>    <span class="op">}</span></span>
-<span id="cb12-6"><a href="#cb12-6"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="co">// Fragmento: no funciona</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado resultado <span class="op">:</span> historial<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a>    <span class="cf">if</span> <span class="op">(</span>resultado<span class="op">.</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a>        historial<span class="op">.</span><span class="fu">remove</span><span class="op">(</span>resultado<span class="op">);</span>       <span class="co">// ConcurrentModificationException</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>    <span class="op">}</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El iterador lleva la cuenta de las modificaciones estructurales que ha sufrido la colección; si detecta una que no ha hecho él, lanza <code>ConcurrentModificationException</code>. El nombre es engañoso, porque no hace falta concurrencia ninguna: basta un solo hilo haciendo lo de arriba. La comprobación existe porque un iterador cuyo respaldo cambia por debajo puede saltarse elementos o devolver basura, y es mejor fallar que mentir.</p>
 <p>Hay tres salidas correctas, en orden de preferencia:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">// Fragmento</span></span>
-<span id="cb13-2"><a href="#cb13-2"></a>historial<span class="op">.</span><span class="fu">removeIf</span><span class="op">(</span>Resultado<span class="op">::</span>esFallo<span class="op">);</span>                 <span class="co">// 1: lo más claro</span></span>
-<span id="cb13-3"><a href="#cb13-3"></a></span>
-<span id="cb13-4"><a href="#cb13-4"></a><span class="dt">var</span> it <span class="op">=</span> historial<span class="op">.</span><span class="fu">iterator</span><span class="op">();</span>                          <span class="co">// 2: si hace falta más control</span></span>
-<span id="cb13-5"><a href="#cb13-5"></a><span class="cf">while</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">hasNext</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb13-6"><a href="#cb13-6"></a>    <span class="cf">if</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">next</span><span class="op">().</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb13-7"><a href="#cb13-7"></a>        it<span class="op">.</span><span class="fu">remove</span><span class="op">();</span>                                    <span class="co">// el iterador sí puede</span></span>
-<span id="cb13-8"><a href="#cb13-8"></a>    <span class="op">}</span></span>
-<span id="cb13-9"><a href="#cb13-9"></a><span class="op">}</span></span>
-<span id="cb13-10"><a href="#cb13-10"></a></span>
-<span id="cb13-11"><a href="#cb13-11"></a><span class="dt">var</span> limpio <span class="op">=</span> historial<span class="op">.</span><span class="fu">stream</span><span class="op">()</span>                         <span class="co">// 3: si prefieres no mutar</span></span>
-<span id="cb13-12"><a href="#cb13-12"></a>        <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>r <span class="op">-&gt;</span> <span class="op">!</span>r<span class="op">.</span><span class="fu">esFallo</span><span class="op">())</span></span>
-<span id="cb13-13"><a href="#cb13-13"></a>        <span class="op">.</span><span class="fu">toList</span><span class="op">();</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="co">// Fragmento</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>historial<span class="op">.</span><span class="fu">removeIf</span><span class="op">(</span>Resultado<span class="op">::</span>esFallo<span class="op">);</span>                 <span class="co">// 1: lo más claro</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="dt">var</span> it <span class="op">=</span> historial<span class="op">.</span><span class="fu">iterator</span><span class="op">();</span>                          <span class="co">// 2: si hace falta más control</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="cf">while</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">hasNext</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a>    <span class="cf">if</span> <span class="op">(</span>it<span class="op">.</span><span class="fu">next</span><span class="op">().</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb12-7"><a href="#cb12-7"></a>        it<span class="op">.</span><span class="fu">remove</span><span class="op">();</span>                                    <span class="co">// el iterador sí puede</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a>    <span class="op">}</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a><span class="op">}</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a></span>
+<span id="cb12-11"><a href="#cb12-11"></a><span class="dt">var</span> limpio <span class="op">=</span> historial<span class="op">.</span><span class="fu">stream</span><span class="op">()</span>                         <span class="co">// 3: si prefieres no mutar</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a>        <span class="op">.</span><span class="fu">filter</span><span class="op">(</span>r <span class="op">-&gt;</span> <span class="op">!</span>r<span class="op">.</span><span class="fu">esFallo</span><span class="op">())</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a>        <span class="op">.</span><span class="fu">toList</span><span class="op">();</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>La detección es <strong>de mejor esfuerzo</strong>: no está garantizada. Un programa que modifica mientras recorre puede no lanzar la excepción y producir resultados incorrectos, lo que lo convierte en un error de la misma familia que buscar sin ordenar (<a href="#cau-binaria-sin-ordenar" class="quarto-xref">error frecuente&nbsp;3</a>).</p>
 </div>
 </div>
 </section>
 <section id="colecciones-inmutables-y-vistas" class="level4">
 <h4 class="anchored" data-anchor-id="colecciones-inmutables-y-vistas"><strong>Colecciones inmutables y vistas</strong></h4>
-<p>En el Tema 1 apareció <code>List.copyOf</code> para devolver un historial que quien lo recibe no pueda modificar. Conviene distinguir tres cosas que se parecen y no son lo mismo:</p>
+<p>En Java, una colección inmutable es aquella cuya estructura (tamaño y referencias a los elementos) no puede ser alterada tras su instanciación. Cualquier intento de ejecutar métodos mutadores, como <code>add()</code>, <code>remove()</code> o <code>clear()</code>, lanzará un error en tiempo de ejecución (<code>UnsupportedOperationException</code>).</p>
+<p>Para comprender el diseño del lenguaje, es necesario distinguir entre las implementaciones estrictamente inmutables y los patrones de diseño de solo lectura:</p>
+<p><strong>Colecciones estrictamente inmutables (Factorías de Java 9+)</strong> A partir de Java 9, se introdujeron métodos de factoría estáticos directamente en las interfaces base. Estas factorías devuelven implementaciones internas del framework (no expuestas como clases públicas) que son estructuralmente inmutables, están optimizadas para un consumo mínimo de memoria y prohíben estrictamente almacenar valores <code>null</code>.</p>
 <ul>
-<li><strong>Colección inmutable</strong>: <code>List.of(...)</code>, <code>Set.of(...)</code>, <code>Map.of(...)</code>, <code>List.copyOf(otra)</code>. No tiene métodos de modificación operativos —lanzan <code>UnsupportedOperationException</code>— y su contenido no puede cambiar nunca. <code>copyOf</code> hace una <strong>copia</strong>, así que cambiar el original no la afecta.</li>
-<li><strong>Vista no modificable</strong>: <code>Collections.unmodifiableList(otra)</code>. No copia: envuelve. Quien tiene la vista no puede modificarla, pero <strong>si alguien modifica la lista original, la vista cambia</strong>. Es más barata y bastante más peligrosa.</li>
-<li><strong>Elementos inmutables</strong>: ninguna de las dos cosas anteriores hace inmutables los elementos. Una lista inmutable de objetos mutables deja que cualquiera cambie los objetos. Es el mismo problema que vimos al no exponer un array: proteger el contenedor no protege el contenido.</li>
+<li><strong>Secuencias:</strong> <code>List.of(e1, e2, ...)</code></li>
+<li><strong>Conjuntos:</strong> <code>Set.of(e1, e2, ...)</code></li>
+<li><strong>Diccionarios:</strong> <code>Map.of(k1, v1, ...)</code> y <code>Map.ofEntries(...)</code></li>
 </ul>
+<p><strong>Copias inmutables defensivas (Java 10+)</strong> Para transformar una estructura dinámica existente en un TAD inmutable, Java 10 introdujo las funciones de copiado. Si la colección de origen ya es inmutable, el motor devuelve la misma referencia (aprovechando la inmutabilidad para ahorrar memoria); de lo contrario, construye una nueva estructura de datos estática.</p>
+<ul>
+<li><code>List.copyOf(coleccion)</code></li>
+<li><code>Set.copyOf(coleccion)</code></li>
+<li><code>Map.copyOf(mapa)</code></li>
+</ul>
+<p>En el Tema 1 apareció <code>List.copyOf</code> para devolver un historial que quien lo recibe no pueda modificar. Recordemos que <code>copyOf</code> hace una <strong>copia</strong>, así que cambiar el original no la afecta. Una lista inmutable de objetos mutables deja que cualquiera cambie los objetos. Es el mismo problema que vimos al no exponer un array: proteger el contenedor no protege el contenido.</p>
 <p>La regla del curso: los métodos que devuelven una colección interna devuelven <code>List.copyOf</code> del contenido, y los elementos son <code>record</code> inmutables. Las dos cosas juntas son lo que hace que el historial sea seguro de publicar.</p>
 </section>
 </section>
 <section id="secuencias-array-arraylist-y-linkedlist" class="level3">
 <h3 class="anchored" data-anchor-id="secuencias-array-arraylist-y-linkedlist">2.2.2 Secuencias: array, <code>ArrayList</code> y <code>LinkedList</code></h3>
-<p>Una secuencia guarda elementos en un orden que el programa controla y permite llegar a ellos por su posición. Hay dos formas de representarla, y son el ejemplo canónico de que la estructura decide el coste.</p>
+<p>Una secuencia (lista) guarda elementos en un orden que el programa controla y permite llegar a ellos por su posición. Hay dos formas de representarla, y son el ejemplo canónico de que la estructura decide el coste.</p>
 <p>Un <strong>array</strong> reserva un bloque contiguo de memoria con hueco para <span class="math inline">\(n\)</span> elementos. La dirección del elemento <span class="math inline">\(i\)</span> se calcula con una multiplicación y una suma, así que el acceso por índice cuesta <span class="math inline">\(O(1)\)</span>. El precio es que el tamaño se fija al crearlo.</p>
 <p>Una <strong>lista enlazada</strong> guarda cada elemento en un nodo que, además del valor, contiene la dirección del nodo siguiente (y en la variante doblemente enlazada, también del anterior). Crece sin límite y sin copiar nada, pero para llegar al elemento <span class="math inline">\(i\)</span> hay que seguir <span class="math inline">\(i\)</span> enlaces: <span class="math inline">\(O(n)\)</span>.</p>
+<p>La diferencia estructural fundamental entre <code>ArrayList</code> y <code>LinkedList</code> radica en su arquitectura de almacenamiento físico, lo que determina asimétricamente el rendimiento de sus operaciones algorítmicas bajo notación asintótica.</p>
+<p><code>ArrayList</code> implementa el Tipo Abstracto de Datos Secuencia utilizando un <strong>arreglo dinámico de memoria contigua</strong>. Al alcanzar su capacidad máxima, el motor de ejecución instancia un arreglo subyacente más grande (usualmente incrementando un 50% su tamaño original) y transfiere los elementos mediante operaciones de copia en bloque a nivel de sistema. Esta adyacencia espacial garantiza un tiempo de acceso aleatorio constante, pero penaliza las mutaciones estructurales internas debido al desplazamiento secuencial de índices.</p>
+<p><code>LinkedList</code> materializa la misma secuencia empleando una <strong>lista doblemente enlazada</strong>. Cada elemento se encapsula en un objeto nodo independiente asignado dinámicamente en el montículo (heap), manteniendo referencias explícitas al nodo predecesor y sucesor. Esto desvincula los nodos físicamente, permitiendo mutaciones locales algorítmicamente instantáneas si ya se posee la referencia del nodo, pero elimina matemáticamente la capacidad de acceder de forma directa a una posición concreta.</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-array-vs-enlazada" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1787,7 +1844,7 @@ Error Frecuente&nbsp;6: Elegir <code>LinkedList</code> porque «inserta en tiemp
 <p>De la tabla parece seguirse que una <code>LinkedList</code> es la elección correcta cuando el programa inserta y borra mucho. En la práctica casi nunca lo es, y la razón no está en la tabla.</p>
 <p>La tabla cuenta operaciones elementales suponiendo que todas cuestan lo mismo (<a href="#imp-coste" class="quarto-xref">concepto clave&nbsp;1</a>), y en un procesador real eso es falso por un factor de cien: los datos se traen de memoria principal a la memoria caché en bloques de 64 bytes, así que recorrer un array trae varios elementos de golpe, mientras que recorrer una lista enlazada salta a una dirección distinta —y probablemente lejana— en cada paso. Un recorrido de <code>ArrayList</code> y uno de <code>LinkedList</code> son los dos <span class="math inline">\(O(n)\)</span>, y el primero es varias veces más rápido.</p>
 <p>A eso se añade la memoria: cada nodo de <code>LinkedList</code> es un objeto con dos referencias además del valor, de modo que una lista de un millón de enteros ocupa varias veces más que el <code>ArrayList</code> equivalente, y cada objeto extra es trabajo para el recolector de basura.</p>
-<p>El criterio honesto: usa <code>ArrayList</code> salvo que midas que no sirve. La <code>LinkedList</code> gana en un caso concreto —inserciones y borrados <strong>por los extremos</strong>, muchos y en listas grandes— y para ese caso hay una estructura mejor, <code>ArrayDeque</code> (2.2.3, <a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;5</a>). Su propio javadoc, de hecho, no la recomienda para ningún uso concreto, y la documentación de <code>ArrayDeque</code> sí dice que es «probablemente más rápida que <code>Stack</code> cuando se usa como pila y más rápida que <code>LinkedList</code> cuando se usa como cola» <span class="citation" data-cites="jdk25collections">(<a href="#ref-jdk25collections" role="doc-biblioref">Oracle 2025</a>)</span>.</p>
+<p>El criterio honesto: usa <code>ArrayList</code> salvo que midas que no sirve. La <code>LinkedList</code> gana en un caso concreto —inserciones y borrados <strong>por los extremos</strong>, muchos y en listas grandes— y para ese caso hay una estructura mejor, <code>ArrayDeque</code> (2.2.3, <a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;6</a>). Su propio javadoc, de hecho, no la recomienda para ningún uso concreto, y la documentación de <code>ArrayDeque</code> sí dice que es «probablemente más rápida que <code>Stack</code> cuando se usa como pila y más rápida que <code>LinkedList</code> cuando se usa como cola» <span class="citation" data-cites="jdk25collections">(<a href="#ref-jdk25collections" role="doc-biblioref">Oracle 2025</a>)</span>.</p>
 </div>
 </div>
 <div id="cau-borrar-en-bucle" class="callout callout-style-default callout-caution no-icon callout-titled" title="Borrar elementos de un `ArrayList` uno a uno dentro de un bucle">
@@ -1801,12 +1858,12 @@ Error Frecuente&nbsp;7: Borrar elementos de un <code>ArrayList</code> uno a uno 
 </div>
 <div class="callout-body-container callout-body">
 <p>Este bucle es <span class="math inline">\(O(n^2)\)</span> y se lee como si fuera <span class="math inline">\(O(n)\)</span>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">// Fragmento: cuadrático sin que se note</span></span>
-<span id="cb14-2"><a href="#cb14-2"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> lista<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">-</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">;</span> i<span class="op">--)</span> <span class="op">{</span></span>
-<span id="cb14-3"><a href="#cb14-3"></a>    <span class="cf">if</span> <span class="op">(</span>lista<span class="op">.</span><span class="fu">get</span><span class="op">(</span>i<span class="op">).</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
-<span id="cb14-4"><a href="#cb14-4"></a>        lista<span class="op">.</span><span class="fu">remove</span><span class="op">(</span>i<span class="op">);</span>              <span class="co">// desplaza todo lo que va detrás</span></span>
-<span id="cb14-5"><a href="#cb14-5"></a>    <span class="op">}</span></span>
-<span id="cb14-6"><a href="#cb14-6"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="co">// Fragmento: cuadrático sin que se note</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> lista<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">-</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&gt;=</span> <span class="dv">0</span><span class="op">;</span> i<span class="op">--)</span> <span class="op">{</span></span>
+<span id="cb13-3"><a href="#cb13-3"></a>    <span class="cf">if</span> <span class="op">(</span>lista<span class="op">.</span><span class="fu">get</span><span class="op">(</span>i<span class="op">).</span><span class="fu">esFallo</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>        lista<span class="op">.</span><span class="fu">remove</span><span class="op">(</span>i<span class="op">);</span>              <span class="co">// desplaza todo lo que va detrás</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="op">}</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Cada <code>remove(i)</code> desplaza los elementos posteriores una posición, es decir <span class="math inline">\(O(n)\)</span>, y el bucle lo hace hasta <span class="math inline">\(n\)</span> veces. Con diez mil elementos y la mitad a borrar son veinticinco millones de desplazamientos.</p>
 <p>El método <code>removeIf</code> resuelve el caso en una sola pasada: recorre, compacta y ajusta el tamaño, todo en <span class="math inline">\(O(n)\)</span>. Que además se lea mejor es casi una casualidad afortunada.</p>
 <p>El error aparece también en forma de <code>lista.remove(0)</code> repetido para «consumir» una lista por el principio. Para eso está <code>ArrayDeque</code>.</p>
@@ -1815,12 +1872,12 @@ Error Frecuente&nbsp;7: Borrar elementos de un <code>ArrayList</code> uno a uno 
 <section id="las-interfaces-secuenciadas-de-java-21" class="level4">
 <h4 class="anchored" data-anchor-id="las-interfaces-secuenciadas-de-java-21"><strong>Las interfaces secuenciadas de Java 21</strong></h4>
 <p>Hasta Java 21 no había forma uniforme de pedir el primer o el último elemento de una colección ordenada: en <code>List</code> era <code>get(0)</code> y <code>get(size() - 1)</code>, en <code>Deque</code> era <code>getFirst</code> y <code>getLast</code>, en <code>SortedSet</code> era <code>first</code> y <code>last</code>, y una <code>LinkedHashSet</code> simplemente no lo ofrecía. La interfaz <code>SequencedCollection</code> unificó eso:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">// Fragmento</span></span>
-<span id="cb15-2"><a href="#cb15-2"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> puertos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">22</span><span class="op">,</span> <span class="dv">25</span><span class="op">,</span> <span class="dv">80</span><span class="op">,</span> <span class="dv">443</span><span class="op">));</span></span>
-<span id="cb15-3"><a href="#cb15-3"></a></span>
-<span id="cb15-4"><a href="#cb15-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">getFirst</span><span class="op">());</span>     <span class="co">// 22</span></span>
-<span id="cb15-5"><a href="#cb15-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">getLast</span><span class="op">());</span>      <span class="co">// 443</span></span>
-<span id="cb15-6"><a href="#cb15-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">reversed</span><span class="op">());</span>     <span class="co">// [443, 80, 25, 22]  (una vista, no una copia)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1"></a><span class="co">// Fragmento</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> puertos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">22</span><span class="op">,</span> <span class="dv">25</span><span class="op">,</span> <span class="dv">80</span><span class="op">,</span> <span class="dv">443</span><span class="op">));</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">getFirst</span><span class="op">());</span>     <span class="co">// 22</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">getLast</span><span class="op">());</span>      <span class="co">// 443</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>puertos<span class="op">.</span><span class="fu">reversed</span><span class="op">());</span>     <span class="co">// [443, 80, 25, 22]  (una vista, no una copia)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Lo heredan <code>List</code>, <code>Deque</code>, <code>SortedSet</code> y <code>LinkedHashSet</code>, y hay <code>SequencedMap</code> para <code>LinkedHashMap</code> y <code>TreeMap</code>. Conviene usarlo: <code>getFirst()</code> dice lo que quiere decir y <code>get(size() - 1)</code> hay que descifrarlo.</p>
 </section>
 </section>
@@ -1833,7 +1890,7 @@ Error Frecuente&nbsp;7: Borrar elementos de un <code>ArrayList</code> uno a uno 
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;5: Pila y cola
+Concepto Clave&nbsp;6: Pila y cola
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -1843,16 +1900,16 @@ Concepto Clave&nbsp;5: Pila y cola
 </div>
 </div>
 <p>La implementación recomendada es <code>ArrayDeque</code> <span class="citation" data-cites="jdk25collections">(<a href="#ref-jdk25collections" role="doc-biblioref">Oracle 2025</a>)</span>, un <strong>array circular</strong>: un array con dos índices, uno para la cabeza y otro para la cola, que avanzan y dan la vuelta al llegar al final. Así añadir y quitar por cualquiera de los dos extremos cuesta <span class="math inline">\(O(1)\)</span> sin desplazar nada, y el array se duplica cuando se llena, con el mismo argumento amortizado de <a href="#tip-amortizado" class="quarto-xref">fundamento teórico&nbsp;3</a>.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// Fragmento: la misma clase, usada como pila y como cola</span></span>
-<span id="cb16-2"><a href="#cb16-2"></a><span class="dt">var</span> pila <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;();</span></span>
-<span id="cb16-3"><a href="#cb16-3"></a>pila<span class="op">.</span><span class="fu">push</span><span class="op">(</span><span class="st">"primero"</span><span class="op">);</span>                 <span class="co">// addFirst</span></span>
-<span id="cb16-4"><a href="#cb16-4"></a>pila<span class="op">.</span><span class="fu">push</span><span class="op">(</span><span class="st">"segundo"</span><span class="op">);</span></span>
-<span id="cb16-5"><a href="#cb16-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>pila<span class="op">.</span><span class="fu">pop</span><span class="op">());</span>       <span class="co">// segundo     (LIFO)</span></span>
-<span id="cb16-6"><a href="#cb16-6"></a></span>
-<span id="cb16-7"><a href="#cb16-7"></a><span class="dt">var</span> cola <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;();</span></span>
-<span id="cb16-8"><a href="#cb16-8"></a>cola<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span><span class="st">"primero"</span><span class="op">);</span></span>
-<span id="cb16-9"><a href="#cb16-9"></a>cola<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span><span class="st">"segundo"</span><span class="op">);</span></span>
-<span id="cb16-10"><a href="#cb16-10"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>cola<span class="op">.</span><span class="fu">pollFirst</span><span class="op">());</span> <span class="co">// primero     (FIFO)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="co">// Fragmento: la misma clase, usada como pila y como cola</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="dt">var</span> pila <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;();</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>pila<span class="op">.</span><span class="fu">push</span><span class="op">(</span><span class="st">"primero"</span><span class="op">);</span>                 <span class="co">// addFirst</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>pila<span class="op">.</span><span class="fu">push</span><span class="op">(</span><span class="st">"segundo"</span><span class="op">);</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>pila<span class="op">.</span><span class="fu">pop</span><span class="op">());</span>       <span class="co">// segundo     (LIFO)</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a></span>
+<span id="cb15-7"><a href="#cb15-7"></a><span class="dt">var</span> cola <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;();</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a>cola<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span><span class="st">"primero"</span><span class="op">);</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a>cola<span class="op">.</span><span class="fu">addLast</span><span class="op">(</span><span class="st">"segundo"</span><span class="op">);</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>cola<span class="op">.</span><span class="fu">pollFirst</span><span class="op">());</span> <span class="co">// primero     (FIFO)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>De los métodos de <code>Deque</code> hay que conocer una cosa: <strong>vienen por parejas</strong>, una versión que lanza excepción si la operación no se puede hacer y otra que devuelve un valor especial.</p>
 <table class="caption-top table">
 <colgroup>
@@ -1972,7 +2029,7 @@ Error Frecuente&nbsp;8: Usar <code>java.util.Stack</code> o <code>LinkedList</co
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;6: Tabla hash
+Concepto Clave&nbsp;7: Tabla hash
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -1994,13 +2051,13 @@ Error Frecuente&nbsp;9: Usar como clave un objeto que cambia después de inserta
 </div>
 <div class="callout-body-container callout-body">
 <p>Si un objeto se usa como clave de un <code>HashMap</code> y después se modifica un atributo que participa en su <code>hashCode</code>, el par <strong>sigue en la cubeta antigua</strong> y el objeto ahora dice pertenecer a otra. El resultado es una entrada inaccesible: <code>containsKey</code> con la propia clave devuelve <code>false</code>, pero recorrer el mapa la encuentra, y el par no se puede borrar ni sustituir.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">// Fragmento: la entrada se pierde dentro del mapa</span></span>
-<span id="cb17-2"><a href="#cb17-2"></a><span class="dt">var</span> etiqueta <span class="op">=</span> <span class="kw">new</span> <span class="fu">EtiquetaMutable</span><span class="op">(</span><span class="st">"rack-3"</span><span class="op">);</span></span>
-<span id="cb17-3"><a href="#cb17-3"></a><span class="dt">var</span> mapa <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;</span>EtiquetaMutable<span class="op">,</span> <span class="bu">Integer</span><span class="op">&gt;();</span></span>
-<span id="cb17-4"><a href="#cb17-4"></a>mapa<span class="op">.</span><span class="fu">put</span><span class="op">(</span>etiqueta<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
-<span id="cb17-5"><a href="#cb17-5"></a>etiqueta<span class="op">.</span><span class="fu">renombrar</span><span class="op">(</span><span class="st">"rack-4"</span><span class="op">);</span>                  <span class="co">// cambia su hashCode</span></span>
-<span id="cb17-6"><a href="#cb17-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>mapa<span class="op">.</span><span class="fu">containsKey</span><span class="op">(</span>etiqueta<span class="op">));</span> <span class="co">// false</span></span>
-<span id="cb17-7"><a href="#cb17-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>mapa<span class="op">.</span><span class="fu">size</span><span class="op">());</span>                <span class="co">// 1</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="co">// Fragmento: la entrada se pierde dentro del mapa</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a><span class="dt">var</span> etiqueta <span class="op">=</span> <span class="kw">new</span> <span class="fu">EtiquetaMutable</span><span class="op">(</span><span class="st">"rack-3"</span><span class="op">);</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a><span class="dt">var</span> mapa <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;</span>EtiquetaMutable<span class="op">,</span> <span class="bu">Integer</span><span class="op">&gt;();</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a>mapa<span class="op">.</span><span class="fu">put</span><span class="op">(</span>etiqueta<span class="op">,</span> <span class="dv">1</span><span class="op">);</span></span>
+<span id="cb16-5"><a href="#cb16-5"></a>etiqueta<span class="op">.</span><span class="fu">renombrar</span><span class="op">(</span><span class="st">"rack-4"</span><span class="op">);</span>                  <span class="co">// cambia su hashCode</span></span>
+<span id="cb16-6"><a href="#cb16-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>mapa<span class="op">.</span><span class="fu">containsKey</span><span class="op">(</span>etiqueta<span class="op">));</span> <span class="co">// false</span></span>
+<span id="cb16-7"><a href="#cb16-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>mapa<span class="op">.</span><span class="fu">size</span><span class="op">());</span>                <span class="co">// 1</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>No hay ninguna excepción ni ningún aviso. Por eso las claves de un mapa deben ser <strong>inmutables</strong>, y por eso los <code>record</code> del monitor —<code>ServicioHttp</code>, <code>ServicioTcp</code>, <code>ServicioDns</code>— son claves perfectas: no tienen métodos de modificación, y su <code>equals</code> y su <code>hashCode</code> los genera el compilador a partir de los mismos componentes, de modo que la coherencia está garantizada.</p>
 <p>El caso venenoso es un objeto mutable que <strong>no</strong> redefine <code>equals</code>: entonces la igualdad es por identidad, el <code>hashCode</code> no cambia nunca y todo funciona. Mezclar las dos cosas —redefinir <code>equals</code> por estado y dejar el estado mutable— es lo que rompe.</p>
 </div>
@@ -2041,21 +2098,21 @@ Error Frecuente&nbsp;9: Usar como clave un objeto que cambia después de inserta
 </table>
 <p>El <code>HashMap</code> no promete orden alguno, y conviene insistir en que tampoco promete que el orden sea <strong>estable entre ejecuciones</strong>: no se puede escribir una prueba que dependa de él. El <code>LinkedHashMap</code> mantiene además una lista doblemente enlazada de las entradas, lo que le permite recorrer en el orden de inserción por un coste de memoria pequeño; es la elección cuando hay que imprimir algo en un orden reproducible.</p>
 <p>De los métodos de <code>Map</code> hay cuatro que evitan casi todo el código repetitivo:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">// Fragmento</span></span>
-<span id="cb18-2"><a href="#cb18-2"></a><span class="bu">Map</span><span class="op">&lt;</span>Servicio<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;&gt;</span> indice <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;&gt;();</span></span>
-<span id="cb18-3"><a href="#cb18-3"></a></span>
-<span id="cb18-4"><a href="#cb18-4"></a><span class="co">// 1. getOrDefault: consultar sin tener que comprobar null</span></span>
-<span id="cb18-5"><a href="#cb18-5"></a><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> suyos <span class="op">=</span> indice<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">());</span></span>
-<span id="cb18-6"><a href="#cb18-6"></a></span>
-<span id="cb18-7"><a href="#cb18-7"></a><span class="co">// 2. computeIfAbsent: el patrón «crea la lista si no está y devuélvela»</span></span>
-<span id="cb18-8"><a href="#cb18-8"></a>indice<span class="op">.</span><span class="fu">computeIfAbsent</span><span class="op">(</span>servicio<span class="op">,</span> s <span class="op">-&gt;</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;()).</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">);</span></span>
-<span id="cb18-9"><a href="#cb18-9"></a></span>
-<span id="cb18-10"><a href="#cb18-10"></a><span class="co">// 3. merge: acumular</span></span>
-<span id="cb18-11"><a href="#cb18-11"></a><span class="bu">Map</span><span class="op">&lt;</span>Estado<span class="op">,</span> <span class="bu">Integer</span><span class="op">&gt;</span> recuento <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;&gt;();</span></span>
-<span id="cb18-12"><a href="#cb18-12"></a>recuento<span class="op">.</span><span class="fu">merge</span><span class="op">(</span>resultado<span class="op">.</span><span class="fu">estado</span><span class="op">(),</span> <span class="dv">1</span><span class="op">,</span> <span class="bu">Integer</span><span class="op">::</span>sum<span class="op">);</span></span>
-<span id="cb18-13"><a href="#cb18-13"></a></span>
-<span id="cb18-14"><a href="#cb18-14"></a><span class="co">// 4. putIfAbsent: no sobrescribir lo que ya hay</span></span>
-<span id="cb18-15"><a href="#cb18-15"></a>indice<span class="op">.</span><span class="fu">putIfAbsent</span><span class="op">(</span>servicio<span class="op">,</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;());</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="co">// Fragmento</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="bu">Map</span><span class="op">&lt;</span>Servicio<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;&gt;</span> indice <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="co">// 1. getOrDefault: consultar sin tener que comprobar null</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> suyos <span class="op">=</span> indice<span class="op">.</span><span class="fu">getOrDefault</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">());</span></span>
+<span id="cb17-6"><a href="#cb17-6"></a></span>
+<span id="cb17-7"><a href="#cb17-7"></a><span class="co">// 2. computeIfAbsent: el patrón «crea la lista si no está y devuélvela»</span></span>
+<span id="cb17-8"><a href="#cb17-8"></a>indice<span class="op">.</span><span class="fu">computeIfAbsent</span><span class="op">(</span>servicio<span class="op">,</span> s <span class="op">-&gt;</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;()).</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb17-9"><a href="#cb17-9"></a></span>
+<span id="cb17-10"><a href="#cb17-10"></a><span class="co">// 3. merge: acumular</span></span>
+<span id="cb17-11"><a href="#cb17-11"></a><span class="bu">Map</span><span class="op">&lt;</span>Estado<span class="op">,</span> <span class="bu">Integer</span><span class="op">&gt;</span> recuento <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashMap</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb17-12"><a href="#cb17-12"></a>recuento<span class="op">.</span><span class="fu">merge</span><span class="op">(</span>resultado<span class="op">.</span><span class="fu">estado</span><span class="op">(),</span> <span class="dv">1</span><span class="op">,</span> <span class="bu">Integer</span><span class="op">::</span>sum<span class="op">);</span></span>
+<span id="cb17-13"><a href="#cb17-13"></a></span>
+<span id="cb17-14"><a href="#cb17-14"></a><span class="co">// 4. putIfAbsent: no sobrescribir lo que ya hay</span></span>
+<span id="cb17-15"><a href="#cb17-15"></a>indice<span class="op">.</span><span class="fu">putIfAbsent</span><span class="op">(</span>servicio<span class="op">,</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;());</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El segundo es el que más se usa y el que más líneas ahorra. Sin él hay que escribir la consulta, la comprobación de <code>null</code>, la creación y el <code>put</code>, y es fácil olvidarse de alguna.</p>
 </section>
 <section id="el-índice-por-servicio" class="level4">
@@ -2103,7 +2160,7 @@ Error Frecuente&nbsp;9: Usar como clave un objeto que cambia después de inserta
 <span id="repositorio-indexado-40"><a href="#repositorio-indexado-40"></a>    <span class="op">}</span></span>
 <span id="repositorio-indexado-41"><a href="#repositorio-indexado-41"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Hay que fijarse en que <code>servicios()</code> ha dejado de recorrer nada: en la versión del Tema 1 construía un conjunto recorriendo todos los resultados, y aquí las claves del mapa <strong>son</strong> la respuesta. Es un efecto lateral frecuente de elegir bien la estructura: operaciones que no se estaban optimizando se vuelven baratas solas.</p>
-<p>Pero el arreglo está a medias, y la medición de 2.3.3 lo demostrará. El método <code>historial</code> ya no mira los resultados de los demás servicios, pero sigue <strong>copiando todos los del suyo</strong>, que crecen con cada ronda. Para que el coste de consultar deje de crecer hace falta la ventana de 2.2.3 (<a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;5</a>) sobre este índice, y de eso se encarga 2.3.3.</p>
+<p>Pero el arreglo está a medias, y la medición de 2.3.3 lo demostrará. El método <code>historial</code> ya no mira los resultados de los demás servicios, pero sigue <strong>copiando todos los del suyo</strong>, que crecen con cada ronda. Para que el coste de consultar deje de crecer hace falta la ventana de 2.2.3 (<a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;6</a>) sobre este índice, y de eso se encarga 2.3.3.</p>
 </section>
 </section>
 <section id="árboles-de-búsqueda-treemap-y-treeset" class="level3">
@@ -2115,7 +2172,7 @@ Error Frecuente&nbsp;9: Usar como clave un objeto que cambia después de inserta
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;7: Árbol binario de búsqueda
+Concepto Clave&nbsp;8: Árbol binario de búsqueda
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2309,12 +2366,12 @@ Figura&nbsp;4: Un árbol binario de búsqueda con los mismos puertos. Buscar el 
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;8: Montículo y cola de prioridad
+Concepto Clave&nbsp;9: Montículo y cola de prioridad
 </div>
 </div>
 <div class="callout-body-container callout-body">
 <p>Una <strong>cola de prioridad</strong> es un TAD en el que se añaden elementos en cualquier orden y se saca siempre el <strong>mínimo</strong> según un criterio. No es una cola: el orden de salida no tiene nada que ver con el de entrada.</p>
-<p>La estructura que la implementa es el <strong>montículo binario</strong> (<em>binary heap</em>): un árbol binario <strong>completo</strong> —todos los niveles llenos salvo el último, que se llena de izquierda a derecha— que cumple en todo nodo que <strong>su valor es menor o igual que el de sus dos hijos</strong>. Es una propiedad más débil que la del árbol de búsqueda (<a href="#imp-arbol-busqueda" class="quarto-xref">concepto clave&nbsp;7</a>): el mínimo está en la raíz, pero los elementos no están ordenados entre sí.</p>
+<p>La estructura que la implementa es el <strong>montículo binario</strong> (<em>binary heap</em>): un árbol binario <strong>completo</strong> —todos los niveles llenos salvo el último, que se llena de izquierda a derecha— que cumple en todo nodo que <strong>su valor es menor o igual que el de sus dos hijos</strong>. Es una propiedad más débil que la del árbol de búsqueda (<a href="#imp-arbol-busqueda" class="quarto-xref">concepto clave&nbsp;8</a>): el mínimo está en la raíz, pero los elementos no están ordenados entre sí.</p>
 <p>Esa debilidad es justo lo que la hace eficiente. Como el árbol es completo, <strong>no hace falta representarlo con nodos y enlaces</strong>: cabe en un array, donde el nodo <span class="math inline">\(i\)</span> tiene sus hijos en <span class="math inline">\(2i+1\)</span> y <span class="math inline">\(2i+2\)</span>. No hay objetos de más, no hay enlaces, y la localidad de memoria es la de un array. Insertar coloca el elemento al final y lo hace <strong>subir</strong> intercambiándolo con su padre mientras sea menor; extraer el mínimo coge la raíz, pone el último elemento en su lugar y lo hace <strong>bajar</strong>. Las dos operaciones recorren la altura del árbol, que al ser completo es <span class="math inline">\(\log n\)</span>.</p>
 <table class="caption-top table">
 <thead>
@@ -2360,11 +2417,11 @@ Error Frecuente&nbsp;10: Recorrer una <code>PriorityQueue</code> esperando ver l
 </div>
 <div class="callout-body-container callout-body">
 <p>Este código no imprime las alertas por orden de gravedad:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">// Fragmento: el orden de salida no es el esperado</span></span>
-<span id="cb19-2"><a href="#cb19-2"></a><span class="cf">for</span> <span class="op">(</span>Alerta alerta <span class="op">:</span> colaDeAlertas<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb19-3"><a href="#cb19-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>alerta<span class="op">);</span></span>
-<span id="cb19-4"><a href="#cb19-4"></a><span class="op">}</span></span>
-<span id="cb19-5"><a href="#cb19-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>colaDeAlertas<span class="op">.</span><span class="fu">toString</span><span class="op">());</span>   <span class="co">// tampoco</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="co">// Fragmento: el orden de salida no es el esperado</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a><span class="cf">for</span> <span class="op">(</span>Alerta alerta <span class="op">:</span> colaDeAlertas<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>alerta<span class="op">);</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a><span class="op">}</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>colaDeAlertas<span class="op">.</span><span class="fu">toString</span><span class="op">());</span>   <span class="co">// tampoco</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El iterador de <code>PriorityQueue</code> recorre el <strong>array interno</strong>, que cumple la propiedad del montículo pero no está ordenado: solo el primer elemento está garantizado en su sitio. El <code>toString</code> usa ese iterador, de modo que imprimir la cola para depurar induce al error directamente, y lo peor es que con tres o cuatro elementos el array <strong>sí</strong> suele salir ordenado por casualidad.</p>
 <p>La única forma de obtener los elementos en orden es <strong>sacarlos</strong>, con <code>poll</code> repetido, lo que vacía la cola y cuesta <span class="math inline">\(O(n \log n)\)</span> en total. Si hace falta conservarlos, se copian a una lista y se ordena, o se usa un <code>TreeSet</code> si los elementos no se repiten.</p>
 <p>La documentación lo dice —«el iterador no garantiza recorrer los elementos en ningún orden particular»—, y es una de esas frases del javadoc que conviene leer antes y no después.</p>
@@ -2436,14 +2493,14 @@ Ejemplo&nbsp;1: Los <span class="math inline">\(k\)</span> peores servicios con 
 <div class="callout-body-container callout-body">
 <p>Para sacar los cinco servicios con peor <span class="glos">disponibilidad</span> entre diez mil, lo inmediato es ordenar los diez mil y quedarse con los cinco primeros: <span class="math inline">\(O(n \log n)\)</span>, y hay que tener los diez mil en memoria a la vez.</p>
 <p>Se puede hacer mejor. Se mantiene un montículo <strong>de tamaño <span class="math inline">\(k\)</span></strong> con los mejores candidatos vistos hasta el momento, ordenado de forma que la raíz sea <strong>el peor de los que están dentro</strong>. Para cada servicio nuevo: si el montículo no está lleno, se mete; si está lleno y el nuevo es mejor que la raíz, se saca la raíz y se mete el nuevo; si no, se descarta.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">// Fragmento: los k de menor disponibilidad</span></span>
-<span id="cb20-2"><a href="#cb20-2"></a><span class="bu">Queue</span><span class="op">&lt;</span>Medida<span class="op">&gt;</span> peores <span class="op">=</span> <span class="kw">new</span> <span class="bu">PriorityQueue</span><span class="op">&lt;&gt;(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparingDouble</span><span class="op">(</span>Medida<span class="op">::</span>valor<span class="op">).</span><span class="fu">reversed</span><span class="op">());</span></span>
-<span id="cb20-3"><a href="#cb20-3"></a><span class="cf">for</span> <span class="op">(</span>Medida medida <span class="op">:</span> medidas<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb20-4"><a href="#cb20-4"></a>    peores<span class="op">.</span><span class="fu">offer</span><span class="op">(</span>medida<span class="op">);</span></span>
-<span id="cb20-5"><a href="#cb20-5"></a>    <span class="cf">if</span> <span class="op">(</span>peores<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">&gt;</span> k<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb20-6"><a href="#cb20-6"></a>        peores<span class="op">.</span><span class="fu">poll</span><span class="op">();</span>          <span class="co">// fuera el de mayor disponibilidad de los k+1</span></span>
-<span id="cb20-7"><a href="#cb20-7"></a>    <span class="op">}</span></span>
-<span id="cb20-8"><a href="#cb20-8"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1"></a><span class="co">// Fragmento: los k de menor disponibilidad</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a><span class="bu">Queue</span><span class="op">&lt;</span>Medida<span class="op">&gt;</span> peores <span class="op">=</span> <span class="kw">new</span> <span class="bu">PriorityQueue</span><span class="op">&lt;&gt;(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparingDouble</span><span class="op">(</span>Medida<span class="op">::</span>valor<span class="op">).</span><span class="fu">reversed</span><span class="op">());</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="cf">for</span> <span class="op">(</span>Medida medida <span class="op">:</span> medidas<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a>    peores<span class="op">.</span><span class="fu">offer</span><span class="op">(</span>medida<span class="op">);</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a>    <span class="cf">if</span> <span class="op">(</span>peores<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">&gt;</span> k<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb19-6"><a href="#cb19-6"></a>        peores<span class="op">.</span><span class="fu">poll</span><span class="op">();</span>          <span class="co">// fuera el de mayor disponibilidad de los k+1</span></span>
+<span id="cb19-7"><a href="#cb19-7"></a>    <span class="op">}</span></span>
+<span id="cb19-8"><a href="#cb19-8"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El coste es <span class="math inline">\(O(n \log k)\)</span> y la memoria <span class="math inline">\(O(k)\)</span>. Con <span class="math inline">\(n = 10\,000\)</span> y <span class="math inline">\(k = 5\)</span>, <span class="math inline">\(\log k\)</span> es 2,3 frente a los 13,3 de <span class="math inline">\(\log n\)</span>: casi seis veces menos comparaciones. Y lo que más importa en la práctica: la memoria no depende de <span class="math inline">\(n\)</span>, así que el algoritmo funciona sobre un flujo de datos que no cabe en memoria, lo que un <code>sort</code> no puede hacer.</p>
 <p>El comparador va <strong>invertido</strong> (<code>reversed</code>) respecto a lo que se busca, y es el detalle que todo el mundo se equivoca la primera vez: para quedarse con los <span class="math inline">\(k\)</span> menores hay que poder descartar el mayor de los candidatos, luego el mayor tiene que estar en la raíz.</p>
 </div>
@@ -2476,7 +2533,7 @@ Ejemplo&nbsp;1: Los <span class="math inline">\(k\)</span> peores servicios con 
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;9: Operación dominante
+Concepto Clave&nbsp;10: Operación dominante
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2603,7 +2660,7 @@ Concepto Clave&nbsp;9: Operación dominante
 </tr>
 </tbody>
 </table>
-<p>† amortizado (<a href="#tip-amortizado" class="quarto-xref">fundamento teórico&nbsp;3</a>) · ‡ esperado, no garantizado (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;6</a>)</p>
+<p>† amortizado (<a href="#tip-amortizado" class="quarto-xref">fundamento teórico&nbsp;3</a>) · ‡ esperado, no garantizado (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;7</a>)</p>
 <p>Puesta en forma de árbol de decisión (<a href="#fig-decision" class="quarto-xref">Figura&nbsp;5</a>), la misma información se recorre más rápido:</p>
 <div class="cell" data-layout-align="default">
 <div class="cell-output-display">
@@ -2640,10 +2697,10 @@ Figura&nbsp;5: Árbol de decisión para elegir estructura. Se entra por la opera
 </section>
 <section id="tres-decisiones-del-monitor-justificadas-y-medidas" class="level3">
 <h3 class="anchored" data-anchor-id="tres-decisiones-del-monitor-justificadas-y-medidas">2.3.3 Tres decisiones del monitor, justificadas y medidas</h3>
-<p><strong>En el monitor.</strong> Las tres estructuras nuevas del esquema (<a href="#fig-monitor2" class="quarto-xref">Figura&nbsp;1</a>) salen de aplicar el método de <a href="#imp-operacion-dominante" class="quarto-xref">concepto clave&nbsp;9</a> a las tres preguntas que el repositorio recibe.</p>
-<p><strong>Primera decisión: índice por servicio.</strong> La operación dominante es consultar-para-decidir, que pregunta por <strong>un</strong> servicio. Un <code>HashMap&lt;Servicio, …&gt;</code> responde en <span class="math inline">\(O(1)\)</span> esperado, y las claves son <code>record</code> inmutables, que es el requisito de <a href="#cau-clave-mutable" class="quarto-xref">error frecuente&nbsp;9</a>. Un <code>TreeMap</code> también serviría, en <span class="math inline">\(O(\log n)\)</span>, y no aporta nada: nadie pregunta por «los servicios entre dos nombres». Gana el <code>HashMap</code> (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;6</a>).</p>
-<p><strong>Segunda decisión: ventana de las últimas <span class="math inline">\(n\)</span>.</strong> El índice no basta, y conviene ver por qué: con él <code>historial</code> deja de mirar los resultados de los demás servicios, pero sigue copiando <strong>todos los del suyo</strong>, que crecen una por ronda. El coste pasa de <span class="math inline">\(O(r^2 s^2)\)</span> a <span class="math inline">\(O(r^2 s)\)</span> —una mejora de un factor <span class="math inline">\(s\)</span>, nada despreciable— pero sigue siendo cuadrático en <span class="math inline">\(r\)</span>. La observación que lo resuelve es que <strong>la política no necesita el historial</strong>: la de tres fallos consecutivos mira tres resultados, la de latencia media mira <code>muestras</code>. Guardar una ventana de las últimas <span class="math inline">\(n\)</span> con <span class="math inline">\(n\)</span> mayor o igual que lo que pida la política más exigente da el <strong>mismo resultado</strong> con coste constante (<a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;5</a>).</p>
-<p><strong>Tercera decisión: cola de prioridad para las alertas.</strong> La operación dominante aquí es «dame la más grave de las pendientes», que es extraer el mínimo de un conjunto que cambia. Es la definición de cola de prioridad (<a href="#imp-monticulo" class="quarto-xref">concepto clave&nbsp;8</a>). Ordenar la lista de pendientes en cada envío sería <span class="math inline">\(O(n \log n)\)</span> cada vez; el montículo da <span class="math inline">\(O(\log n)\)</span> por operación.</p>
+<p><strong>En el monitor.</strong> Las tres estructuras nuevas del esquema (<a href="#fig-monitor2" class="quarto-xref">Figura&nbsp;1</a>) salen de aplicar el método de <a href="#imp-operacion-dominante" class="quarto-xref">concepto clave&nbsp;10</a> a las tres preguntas que el repositorio recibe.</p>
+<p><strong>Primera decisión: índice por servicio.</strong> La operación dominante es consultar-para-decidir, que pregunta por <strong>un</strong> servicio. Un <code>HashMap&lt;Servicio, …&gt;</code> responde en <span class="math inline">\(O(1)\)</span> esperado, y las claves son <code>record</code> inmutables, que es el requisito de <a href="#cau-clave-mutable" class="quarto-xref">error frecuente&nbsp;9</a>. Un <code>TreeMap</code> también serviría, en <span class="math inline">\(O(\log n)\)</span>, y no aporta nada: nadie pregunta por «los servicios entre dos nombres». Gana el <code>HashMap</code> (<a href="#imp-tabla-hash" class="quarto-xref">concepto clave&nbsp;7</a>).</p>
+<p><strong>Segunda decisión: ventana de las últimas <span class="math inline">\(n\)</span>.</strong> El índice no basta, y conviene ver por qué: con él <code>historial</code> deja de mirar los resultados de los demás servicios, pero sigue copiando <strong>todos los del suyo</strong>, que crecen una por ronda. El coste pasa de <span class="math inline">\(O(r^2 s^2)\)</span> a <span class="math inline">\(O(r^2 s)\)</span> —una mejora de un factor <span class="math inline">\(s\)</span>, nada despreciable— pero sigue siendo cuadrático en <span class="math inline">\(r\)</span>. La observación que lo resuelve es que <strong>la política no necesita el historial</strong>: la de tres fallos consecutivos mira tres resultados, la de latencia media mira <code>muestras</code>. Guardar una ventana de las últimas <span class="math inline">\(n\)</span> con <span class="math inline">\(n\)</span> mayor o igual que lo que pida la política más exigente da el <strong>mismo resultado</strong> con coste constante (<a href="#imp-pila-cola" class="quarto-xref">concepto clave&nbsp;6</a>).</p>
+<p><strong>Tercera decisión: cola de prioridad para las alertas.</strong> La operación dominante aquí es «dame la más grave de las pendientes», que es extraer el mínimo de un conjunto que cambia. Es la definición de cola de prioridad (<a href="#imp-monticulo" class="quarto-xref">concepto clave&nbsp;9</a>). Ordenar la lista de pendientes en cada envío sería <span class="math inline">\(O(n \log n)\)</span> cada vez; el montículo da <span class="math inline">\(O(\log n)\)</span> por operación.</p>
 <p>El repositorio que sale de las dos primeras mantiene <strong>dos</strong> estructuras, y eso es deliberado:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="repositorio-con-ventana"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="repositorio-con-ventana-1"><a href="#repositorio-con-ventana-1"></a><span class="co">// RepositorioConVentana.java</span></span>
 <span id="repositorio-con-ventana-2"><a href="#repositorio-con-ventana-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema2</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
@@ -2710,15 +2767,15 @@ Figura&nbsp;5: Árbol de decisión para elegir estructura. Se entra por la opera
 <span id="repositorio-con-ventana-63"><a href="#repositorio-con-ventana-63"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>El método <code>ultimos</code> es nuevo y no está en la interfaz <code>RepositorioResultados</code> del Tema 1, lo cual es una decisión de diseño que conviene hacer explícita: añadirlo a la interfaz obligaría a todas las implementaciones a tener ventana, incluida una que guarde en fichero y a la que la idea no le convenga. Dejarlo en la clase es aplicar la segregación de interfaces del Tema 1 (<a href="../../es/contenido/tema1.html#imp-interfaz">principio I</a>): quien quiera la ventana depende de la clase que la ofrece; quien solo quiera guardar y leer sigue dependiendo de la interfaz.</p>
 <p>En el monitor, el cambio consiste en pasarle a la política lo que necesita:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">// Fragmento: el núcleo de Monitor.comprobar, con ventana</span></span>
-<span id="cb21-2"><a href="#cb21-2"></a><span class="kw">public</span> Resultado <span class="fu">comprobar</span><span class="op">(</span>Servicio servicio<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb21-3"><a href="#cb21-3"></a>    <span class="dt">var</span> resultado <span class="op">=</span> sonda<span class="op">.</span><span class="fu">sondear</span><span class="op">(</span>servicio<span class="op">);</span></span>
-<span id="cb21-4"><a href="#cb21-4"></a>    repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>resultado<span class="op">);</span></span>
-<span id="cb21-5"><a href="#cb21-5"></a>    <span class="cf">if</span> <span class="op">(</span>politica<span class="op">.</span><span class="fu">debeAlertar</span><span class="op">(</span>repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>servicio<span class="op">)))</span> <span class="op">{</span></span>
-<span id="cb21-6"><a href="#cb21-6"></a>        <span class="fu">avisar</span><span class="op">(</span>servicio<span class="op">);</span></span>
-<span id="cb21-7"><a href="#cb21-7"></a>    <span class="op">}</span></span>
-<span id="cb21-8"><a href="#cb21-8"></a>    <span class="cf">return</span> resultado<span class="op">;</span></span>
-<span id="cb21-9"><a href="#cb21-9"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1"></a><span class="co">// Fragmento: el núcleo de Monitor.comprobar, con ventana</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a><span class="kw">public</span> Resultado <span class="fu">comprobar</span><span class="op">(</span>Servicio servicio<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb20-3"><a href="#cb20-3"></a>    <span class="dt">var</span> resultado <span class="op">=</span> sonda<span class="op">.</span><span class="fu">sondear</span><span class="op">(</span>servicio<span class="op">);</span></span>
+<span id="cb20-4"><a href="#cb20-4"></a>    repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb20-5"><a href="#cb20-5"></a>    <span class="cf">if</span> <span class="op">(</span>politica<span class="op">.</span><span class="fu">debeAlertar</span><span class="op">(</span>repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>servicio<span class="op">)))</span> <span class="op">{</span></span>
+<span id="cb20-6"><a href="#cb20-6"></a>        <span class="fu">avisar</span><span class="op">(</span>servicio<span class="op">);</span></span>
+<span id="cb20-7"><a href="#cb20-7"></a>    <span class="op">}</span></span>
+<span id="cb20-8"><a href="#cb20-8"></a>    <span class="cf">return</span> resultado<span class="op">;</span></span>
+<span id="cb20-9"><a href="#cb20-9"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Una línea. El resto del monitor, las tres políticas, el notificador y los informes no se tocan, y esa es la mitad del Tema 1 que paga aquí: las dependencias estaban invertidas, así que la estructura de datos se pudo cambiar por dentro.</p>
 <section id="la-medición" class="level4">
 <h4 class="anchored" data-anchor-id="la-medición"><strong>La medición</strong></h4>
@@ -2785,7 +2842,7 @@ Error Frecuente&nbsp;11: Cambiar de estructura sin haber medido cuál es el cuel
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>El cambio de estructura del monitor funcionó porque antes de hacerlo había un análisis (<a href="#imp-operacion-dominante" class="quarto-xref">concepto clave&nbsp;9</a>) y una medición (2.1.6) que decían <strong>dónde</strong> estaba el coste. Sin esas dos cosas, elegir estructuras «eficientes» es decorar.</p>
+<p>El cambio de estructura del monitor funcionó porque antes de hacerlo había un análisis (<a href="#imp-operacion-dominante" class="quarto-xref">concepto clave&nbsp;10</a>) y una medición (2.1.6) que decían <strong>dónde</strong> estaba el coste. Sin esas dos cosas, elegir estructuras «eficientes» es decorar.</p>
 <p>Tres razones por las que el instinto falla:</p>
 <ul>
 <li><strong>Las constantes mandan con <span class="math inline">\(n\)</span> pequeño.</strong> Un <code>HashMap</code> de cinco entradas es más lento que cinco comparaciones en un array: hay que calcular el código de dispersión, indexar la cubeta y comparar con <code>equals</code>. Y el <code>HashMap</code> ocupa bastante más memoria. Para <span class="math inline">\(n\)</span> pequeño y conocido, lo simple gana, y la frontera suele estar en unas decenas de elementos (<a href="#cau-o-grande-sin-n" class="quarto-xref">error frecuente&nbsp;1</a>).</li>
@@ -2802,78 +2859,78 @@ Error Frecuente&nbsp;11: Cambiar de estructura sin haber medido cuál es el cuel
 <p>Si la elección de una estructura es una decisión de diseño, hay que poder comprobar que sigue cumpliéndose cuando alguien toque el código. Las pruebas unitarias del Tema 1 (<a href="../../es/contenido/tema1.html#imp-prueba-unitaria">Concepto Clave sobre pruebas</a>) sirven, con un cambio de enfoque.</p>
 <p>Lo primero es que la mayoría de las pruebas <strong>no deben cambiar</strong>. Si el repositorio nuevo hace lo mismo que el viejo, las pruebas de comportamiento del viejo tienen que pasar sobre el nuevo tal cual están, y eso es la mejor comprobación de que el cambio no rompió nada. Que las dos clases implementen la misma interfaz permite escribir la prueba contra la interfaz y ejecutarla dos veces.</p>
 <p>Lo segundo es que el coste <strong>no se prueba cronometrando</strong>. Una prueba que afirma «esto tarda menos de 50 ms» falla en la máquina de integración continua un martes cualquiera y hay que acabar desactivándola. Lo que sí se puede probar es el <strong>número de operaciones</strong>, contándolas con un doble de prueba, que es la técnica del Tema 1 aplicada a otra cosa:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1"></a><span class="co">// CosteHistorialTest.java</span></span>
-<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema2</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
-<span id="cb22-3"><a href="#cb22-3"></a></span>
-<span id="cb22-4"><a href="#cb22-4"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">time</span><span class="op">.</span><span class="im">Duration</span><span class="op">;</span></span>
-<span id="cb22-5"><a href="#cb22-5"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">concurrent</span><span class="op">.</span><span class="im">atomic</span><span class="op">.</span><span class="im">AtomicInteger</span><span class="op">;</span></span>
-<span id="cb22-6"><a href="#cb22-6"></a></span>
-<span id="cb22-7"><a href="#cb22-7"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Test</span><span class="op">;</span></span>
-<span id="cb22-8"><a href="#cb22-8"></a></span>
-<span id="cb22-9"><a href="#cb22-9"></a><span class="kw">import</span> <span class="im">es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">.</span><span class="im">Resultado</span><span class="op">;</span></span>
-<span id="cb22-10"><a href="#cb22-10"></a><span class="kw">import</span> <span class="im">es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">.</span><span class="im">Servicio</span><span class="op">;</span></span>
-<span id="cb22-11"><a href="#cb22-11"></a></span>
-<span id="cb22-12"><a href="#cb22-12"></a><span class="kw">import</span> <span class="kw">static</span><span class="im"> org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Assertions</span><span class="op">.</span><span class="im">assertEquals</span><span class="op">;</span></span>
-<span id="cb22-13"><a href="#cb22-13"></a><span class="kw">import</span> <span class="kw">static</span><span class="im"> org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Assertions</span><span class="op">.</span><span class="im">assertTrue</span><span class="op">;</span></span>
-<span id="cb22-14"><a href="#cb22-14"></a></span>
-<span id="cb22-15"><a href="#cb22-15"></a><span class="kw">class</span> CosteHistorialTest <span class="op">{</span></span>
-<span id="cb22-16"><a href="#cb22-16"></a></span>
-<span id="cb22-17"><a href="#cb22-17"></a>    <span class="co">/**</span> Un servicio que cuenta cu<span class="co">á</span>ntas veces se le pregunta la identidad<span class="co">. */</span></span>
-<span id="cb22-18"><a href="#cb22-18"></a>    <span class="kw">private</span> <span class="kw">record</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="bu">String</span> nombreReal<span class="op">,</span> <span class="bu">AtomicInteger</span> comparaciones<span class="op">)</span></span>
-<span id="cb22-19"><a href="#cb22-19"></a>            <span class="kw">implements</span> Servicio <span class="op">{</span></span>
-<span id="cb22-20"><a href="#cb22-20"></a></span>
-<span id="cb22-21"><a href="#cb22-21"></a>        <span class="at">@Override</span></span>
-<span id="cb22-22"><a href="#cb22-22"></a>        <span class="kw">public</span> <span class="bu">String</span> <span class="fu">nombre</span><span class="op">()</span> <span class="op">{</span></span>
-<span id="cb22-23"><a href="#cb22-23"></a>            <span class="cf">return</span> nombreReal<span class="op">;</span></span>
-<span id="cb22-24"><a href="#cb22-24"></a>        <span class="op">}</span></span>
-<span id="cb22-25"><a href="#cb22-25"></a></span>
-<span id="cb22-26"><a href="#cb22-26"></a>        <span class="at">@Override</span></span>
-<span id="cb22-27"><a href="#cb22-27"></a>        <span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">equals</span><span class="op">(</span><span class="bu">Object</span> otro<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb22-28"><a href="#cb22-28"></a>            comparaciones<span class="op">.</span><span class="fu">incrementAndGet</span><span class="op">();</span></span>
-<span id="cb22-29"><a href="#cb22-29"></a>            <span class="cf">return</span> otro <span class="kw">instanceof</span> ServicioEspia ese <span class="op">&amp;&amp;</span> nombreReal<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>ese<span class="op">.</span><span class="fu">nombreReal</span><span class="op">);</span></span>
-<span id="cb22-30"><a href="#cb22-30"></a>        <span class="op">}</span></span>
-<span id="cb22-31"><a href="#cb22-31"></a></span>
-<span id="cb22-32"><a href="#cb22-32"></a>        <span class="at">@Override</span></span>
-<span id="cb22-33"><a href="#cb22-33"></a>        <span class="kw">public</span> <span class="dt">int</span> <span class="fu">hashCode</span><span class="op">()</span> <span class="op">{</span></span>
-<span id="cb22-34"><a href="#cb22-34"></a>            <span class="cf">return</span> nombreReal<span class="op">.</span><span class="fu">hashCode</span><span class="op">();</span></span>
-<span id="cb22-35"><a href="#cb22-35"></a>        <span class="op">}</span></span>
-<span id="cb22-36"><a href="#cb22-36"></a>    <span class="op">}</span></span>
-<span id="cb22-37"><a href="#cb22-37"></a></span>
-<span id="cb22-38"><a href="#cb22-38"></a>    <span class="at">@Test</span></span>
-<span id="cb22-39"><a href="#cb22-39"></a>    <span class="dt">void</span> <span class="fu">laVentanaNoCreceConElNumeroDeRondas</span><span class="op">()</span> <span class="op">{</span></span>
-<span id="cb22-40"><a href="#cb22-40"></a>        <span class="dt">var</span> repositorio <span class="op">=</span> <span class="kw">new</span> <span class="fu">RepositorioConVentana</span><span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
-<span id="cb22-41"><a href="#cb22-41"></a>        <span class="dt">var</span> servicio <span class="op">=</span> Servicio<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"tcp:web01:80"</span><span class="op">);</span></span>
-<span id="cb22-42"><a href="#cb22-42"></a></span>
-<span id="cb22-43"><a href="#cb22-43"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">1_000</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb22-44"><a href="#cb22-44"></a>            repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">10</span><span class="op">)));</span></span>
-<span id="cb22-45"><a href="#cb22-45"></a>        <span class="op">}</span></span>
-<span id="cb22-46"><a href="#cb22-46"></a></span>
-<span id="cb22-47"><a href="#cb22-47"></a>        <span class="fu">assertEquals</span><span class="op">(</span><span class="dv">10</span><span class="op">,</span> repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>servicio<span class="op">).</span><span class="fu">size</span><span class="op">(),</span></span>
-<span id="cb22-48"><a href="#cb22-48"></a>                <span class="st">"la ventana debe quedarse en su capacidad, no crecer con las rondas"</span><span class="op">);</span></span>
-<span id="cb22-49"><a href="#cb22-49"></a>        <span class="fu">assertEquals</span><span class="op">(</span><span class="dv">1_000</span><span class="op">,</span> repositorio<span class="op">.</span><span class="fu">historial</span><span class="op">(</span>servicio<span class="op">).</span><span class="fu">size</span><span class="op">(),</span></span>
-<span id="cb22-50"><a href="#cb22-50"></a>                <span class="st">"el historial completo sí conserva todo"</span><span class="op">);</span></span>
-<span id="cb22-51"><a href="#cb22-51"></a>    <span class="op">}</span></span>
-<span id="cb22-52"><a href="#cb22-52"></a></span>
-<span id="cb22-53"><a href="#cb22-53"></a>    <span class="at">@Test</span></span>
-<span id="cb22-54"><a href="#cb22-54"></a>    <span class="dt">void</span> <span class="fu">consultarLaVentanaNoDependeDeLosDemasServicios</span><span class="op">()</span> <span class="op">{</span></span>
-<span id="cb22-55"><a href="#cb22-55"></a>        <span class="dt">var</span> contador <span class="op">=</span> <span class="kw">new</span> <span class="bu">AtomicInteger</span><span class="op">();</span></span>
-<span id="cb22-56"><a href="#cb22-56"></a>        <span class="dt">var</span> vigilado <span class="op">=</span> <span class="kw">new</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="st">"web01"</span><span class="op">,</span> contador<span class="op">);</span></span>
-<span id="cb22-57"><a href="#cb22-57"></a>        <span class="dt">var</span> repositorio <span class="op">=</span> <span class="kw">new</span> <span class="fu">RepositorioConVentana</span><span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
-<span id="cb22-58"><a href="#cb22-58"></a></span>
-<span id="cb22-59"><a href="#cb22-59"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">200</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
-<span id="cb22-60"><a href="#cb22-60"></a>            repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span><span class="kw">new</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="st">"otro"</span> <span class="op">+</span> i<span class="op">,</span> contador<span class="op">),</span></span>
-<span id="cb22-61"><a href="#cb22-61"></a>                    <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">5</span><span class="op">)));</span></span>
-<span id="cb22-62"><a href="#cb22-62"></a>        <span class="op">}</span></span>
-<span id="cb22-63"><a href="#cb22-63"></a>        repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>vigilado<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">5</span><span class="op">)));</span></span>
-<span id="cb22-64"><a href="#cb22-64"></a></span>
-<span id="cb22-65"><a href="#cb22-65"></a>        contador<span class="op">.</span><span class="fu">set</span><span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
-<span id="cb22-66"><a href="#cb22-66"></a>        repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>vigilado<span class="op">);</span></span>
-<span id="cb22-67"><a href="#cb22-67"></a></span>
-<span id="cb22-68"><a href="#cb22-68"></a>        <span class="fu">assertTrue</span><span class="op">(</span>contador<span class="op">.</span><span class="fu">get</span><span class="op">()</span> <span class="op">&lt;</span> <span class="dv">10</span><span class="op">,</span></span>
-<span id="cb22-69"><a href="#cb22-69"></a>                <span class="st">"consultar un servicio no debe comparar con los 200 demás; fueron "</span></span>
-<span id="cb22-70"><a href="#cb22-70"></a>                        <span class="op">+</span> contador<span class="op">.</span><span class="fu">get</span><span class="op">());</span></span>
-<span id="cb22-71"><a href="#cb22-71"></a>    <span class="op">}</span></span>
-<span id="cb22-72"><a href="#cb22-72"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="co">// CosteHistorialTest.java</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema2</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a></span>
+<span id="cb21-4"><a href="#cb21-4"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">time</span><span class="op">.</span><span class="im">Duration</span><span class="op">;</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">concurrent</span><span class="op">.</span><span class="im">atomic</span><span class="op">.</span><span class="im">AtomicInteger</span><span class="op">;</span></span>
+<span id="cb21-6"><a href="#cb21-6"></a></span>
+<span id="cb21-7"><a href="#cb21-7"></a><span class="kw">import</span> <span class="im">org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Test</span><span class="op">;</span></span>
+<span id="cb21-8"><a href="#cb21-8"></a></span>
+<span id="cb21-9"><a href="#cb21-9"></a><span class="kw">import</span> <span class="im">es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">.</span><span class="im">Resultado</span><span class="op">;</span></span>
+<span id="cb21-10"><a href="#cb21-10"></a><span class="kw">import</span> <span class="im">es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema1</span><span class="op">.</span><span class="im">monitor</span><span class="op">.</span><span class="im">Servicio</span><span class="op">;</span></span>
+<span id="cb21-11"><a href="#cb21-11"></a></span>
+<span id="cb21-12"><a href="#cb21-12"></a><span class="kw">import</span> <span class="kw">static</span><span class="im"> org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Assertions</span><span class="op">.</span><span class="im">assertEquals</span><span class="op">;</span></span>
+<span id="cb21-13"><a href="#cb21-13"></a><span class="kw">import</span> <span class="kw">static</span><span class="im"> org</span><span class="op">.</span><span class="im">junit</span><span class="op">.</span><span class="im">jupiter</span><span class="op">.</span><span class="im">api</span><span class="op">.</span><span class="im">Assertions</span><span class="op">.</span><span class="im">assertTrue</span><span class="op">;</span></span>
+<span id="cb21-14"><a href="#cb21-14"></a></span>
+<span id="cb21-15"><a href="#cb21-15"></a><span class="kw">class</span> CosteHistorialTest <span class="op">{</span></span>
+<span id="cb21-16"><a href="#cb21-16"></a></span>
+<span id="cb21-17"><a href="#cb21-17"></a>    <span class="co">/**</span> Un servicio que cuenta cu<span class="co">á</span>ntas veces se le pregunta la identidad<span class="co">. */</span></span>
+<span id="cb21-18"><a href="#cb21-18"></a>    <span class="kw">private</span> <span class="kw">record</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="bu">String</span> nombreReal<span class="op">,</span> <span class="bu">AtomicInteger</span> comparaciones<span class="op">)</span></span>
+<span id="cb21-19"><a href="#cb21-19"></a>            <span class="kw">implements</span> Servicio <span class="op">{</span></span>
+<span id="cb21-20"><a href="#cb21-20"></a></span>
+<span id="cb21-21"><a href="#cb21-21"></a>        <span class="at">@Override</span></span>
+<span id="cb21-22"><a href="#cb21-22"></a>        <span class="kw">public</span> <span class="bu">String</span> <span class="fu">nombre</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb21-23"><a href="#cb21-23"></a>            <span class="cf">return</span> nombreReal<span class="op">;</span></span>
+<span id="cb21-24"><a href="#cb21-24"></a>        <span class="op">}</span></span>
+<span id="cb21-25"><a href="#cb21-25"></a></span>
+<span id="cb21-26"><a href="#cb21-26"></a>        <span class="at">@Override</span></span>
+<span id="cb21-27"><a href="#cb21-27"></a>        <span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">equals</span><span class="op">(</span><span class="bu">Object</span> otro<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb21-28"><a href="#cb21-28"></a>            comparaciones<span class="op">.</span><span class="fu">incrementAndGet</span><span class="op">();</span></span>
+<span id="cb21-29"><a href="#cb21-29"></a>            <span class="cf">return</span> otro <span class="kw">instanceof</span> ServicioEspia ese <span class="op">&amp;&amp;</span> nombreReal<span class="op">.</span><span class="fu">equals</span><span class="op">(</span>ese<span class="op">.</span><span class="fu">nombreReal</span><span class="op">);</span></span>
+<span id="cb21-30"><a href="#cb21-30"></a>        <span class="op">}</span></span>
+<span id="cb21-31"><a href="#cb21-31"></a></span>
+<span id="cb21-32"><a href="#cb21-32"></a>        <span class="at">@Override</span></span>
+<span id="cb21-33"><a href="#cb21-33"></a>        <span class="kw">public</span> <span class="dt">int</span> <span class="fu">hashCode</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb21-34"><a href="#cb21-34"></a>            <span class="cf">return</span> nombreReal<span class="op">.</span><span class="fu">hashCode</span><span class="op">();</span></span>
+<span id="cb21-35"><a href="#cb21-35"></a>        <span class="op">}</span></span>
+<span id="cb21-36"><a href="#cb21-36"></a>    <span class="op">}</span></span>
+<span id="cb21-37"><a href="#cb21-37"></a></span>
+<span id="cb21-38"><a href="#cb21-38"></a>    <span class="at">@Test</span></span>
+<span id="cb21-39"><a href="#cb21-39"></a>    <span class="dt">void</span> <span class="fu">laVentanaNoCreceConElNumeroDeRondas</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb21-40"><a href="#cb21-40"></a>        <span class="dt">var</span> repositorio <span class="op">=</span> <span class="kw">new</span> <span class="fu">RepositorioConVentana</span><span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
+<span id="cb21-41"><a href="#cb21-41"></a>        <span class="dt">var</span> servicio <span class="op">=</span> Servicio<span class="op">.</span><span class="fu">desde</span><span class="op">(</span><span class="st">"tcp:web01:80"</span><span class="op">);</span></span>
+<span id="cb21-42"><a href="#cb21-42"></a></span>
+<span id="cb21-43"><a href="#cb21-43"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">1_000</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb21-44"><a href="#cb21-44"></a>            repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">10</span><span class="op">)));</span></span>
+<span id="cb21-45"><a href="#cb21-45"></a>        <span class="op">}</span></span>
+<span id="cb21-46"><a href="#cb21-46"></a></span>
+<span id="cb21-47"><a href="#cb21-47"></a>        <span class="fu">assertEquals</span><span class="op">(</span><span class="dv">10</span><span class="op">,</span> repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>servicio<span class="op">).</span><span class="fu">size</span><span class="op">(),</span></span>
+<span id="cb21-48"><a href="#cb21-48"></a>                <span class="st">"la ventana debe quedarse en su capacidad, no crecer con las rondas"</span><span class="op">);</span></span>
+<span id="cb21-49"><a href="#cb21-49"></a>        <span class="fu">assertEquals</span><span class="op">(</span><span class="dv">1_000</span><span class="op">,</span> repositorio<span class="op">.</span><span class="fu">historial</span><span class="op">(</span>servicio<span class="op">).</span><span class="fu">size</span><span class="op">(),</span></span>
+<span id="cb21-50"><a href="#cb21-50"></a>                <span class="st">"el historial completo sí conserva todo"</span><span class="op">);</span></span>
+<span id="cb21-51"><a href="#cb21-51"></a>    <span class="op">}</span></span>
+<span id="cb21-52"><a href="#cb21-52"></a></span>
+<span id="cb21-53"><a href="#cb21-53"></a>    <span class="at">@Test</span></span>
+<span id="cb21-54"><a href="#cb21-54"></a>    <span class="dt">void</span> <span class="fu">consultarLaVentanaNoDependeDeLosDemasServicios</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb21-55"><a href="#cb21-55"></a>        <span class="dt">var</span> contador <span class="op">=</span> <span class="kw">new</span> <span class="bu">AtomicInteger</span><span class="op">();</span></span>
+<span id="cb21-56"><a href="#cb21-56"></a>        <span class="dt">var</span> vigilado <span class="op">=</span> <span class="kw">new</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="st">"web01"</span><span class="op">,</span> contador<span class="op">);</span></span>
+<span id="cb21-57"><a href="#cb21-57"></a>        <span class="dt">var</span> repositorio <span class="op">=</span> <span class="kw">new</span> <span class="fu">RepositorioConVentana</span><span class="op">(</span><span class="dv">10</span><span class="op">);</span></span>
+<span id="cb21-58"><a href="#cb21-58"></a></span>
+<span id="cb21-59"><a href="#cb21-59"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> <span class="dv">200</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb21-60"><a href="#cb21-60"></a>            repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span><span class="kw">new</span> <span class="fu">ServicioEspia</span><span class="op">(</span><span class="st">"otro"</span> <span class="op">+</span> i<span class="op">,</span> contador<span class="op">),</span></span>
+<span id="cb21-61"><a href="#cb21-61"></a>                    <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">5</span><span class="op">)));</span></span>
+<span id="cb21-62"><a href="#cb21-62"></a>        <span class="op">}</span></span>
+<span id="cb21-63"><a href="#cb21-63"></a>        repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>vigilado<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">5</span><span class="op">)));</span></span>
+<span id="cb21-64"><a href="#cb21-64"></a></span>
+<span id="cb21-65"><a href="#cb21-65"></a>        contador<span class="op">.</span><span class="fu">set</span><span class="op">(</span><span class="dv">0</span><span class="op">);</span></span>
+<span id="cb21-66"><a href="#cb21-66"></a>        repositorio<span class="op">.</span><span class="fu">ultimos</span><span class="op">(</span>vigilado<span class="op">);</span></span>
+<span id="cb21-67"><a href="#cb21-67"></a></span>
+<span id="cb21-68"><a href="#cb21-68"></a>        <span class="fu">assertTrue</span><span class="op">(</span>contador<span class="op">.</span><span class="fu">get</span><span class="op">()</span> <span class="op">&lt;</span> <span class="dv">10</span><span class="op">,</span></span>
+<span id="cb21-69"><a href="#cb21-69"></a>                <span class="st">"consultar un servicio no debe comparar con los 200 demás; fueron "</span></span>
+<span id="cb21-70"><a href="#cb21-70"></a>                        <span class="op">+</span> contador<span class="op">.</span><span class="fu">get</span><span class="op">());</span></span>
+<span id="cb21-71"><a href="#cb21-71"></a>    <span class="op">}</span></span>
+<span id="cb21-72"><a href="#cb21-72"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 <p>La segunda prueba es la interesante y conviene leerla con atención. No mide tiempo: cuenta <strong>llamadas a <code>equals</code></strong>, que es la operación que el repositorio del Tema 1 hacía <span class="math inline">\(N\)</span> veces y el nuevo hace un puñado. El umbral es generoso a propósito —menos de diez, no exactamente una—, porque el número exacto depende de cómo el <code>HashMap</code> resuelva las colisiones y una prueba que lo fijara sería frágil sin ser más informativa. Lo que la prueba defiende es la <strong>clase de crecimiento</strong>: si alguien sustituye el índice por un recorrido, el contador se va a doscientos y la prueba falla con un mensaje que explica qué se ha perdido.</p>
 <p>Es la misma idea de los contadores de 2.1.1, con otro destino. Allí el recuento se imprimía con <code>Recuento</code> porque el lector estaba aprendiendo a contar y necesitaba verlo; aquí no se imprime, se afirma, porque lo que hace falta es que alguien se entere si el número cambia. Contar en lugar de cronometrar sirve para las dos cosas.</p>
 <p>Esa es la forma de que una decisión de este tema sobreviva al paso del tiempo: escrita en el código, con un número que la delata si desaparece.</p>
