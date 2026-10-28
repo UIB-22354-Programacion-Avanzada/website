@@ -938,42 +938,50 @@ respuesta medida está en 2.3.3.
 
 ## 2.2. Estructuras de datos fundamentales y la Java Collections Framework
 
-**En el monitor de servicios** (@fig-monitor2) la pieza que hay que cambiar es el repositorio, y
-para elegir con qué cambiarla hace falta conocer el catálogo. Esta sección lo recorre, pero no como
-una lista de clases: cada estructura se presenta por **el mecanismo que la hace funcionar**, porque
-el mecanismo es lo que explica el coste, y el coste es lo que decide.
+El Java Collections Framework (JCF) es una arquitectura unificada dentro de la biblioteca estándar de Java (paquete `java.util`) diseñada para almacenar, manipular y procesar grupos de objetos. Constituye la materialización práctica del concepto de Tipo Abstracto de Datos (TAD) en el ecosistema Java, aplicando rigurosamente la separación mediante el uso de interfaces genéricas y clases concretas.
 
-### 2.2.1 El mapa de la biblioteca
+### 2.2.1 Tipo abstracto de datos y estructura de datos
 
 Antes del catálogo, una distinción que organiza todo lo demás.
 
 ::: {#imp-tad .callout-important title="Tipo abstracto de datos"}
-Un **tipo abstracto de datos** (TAD) es la descripción de un conjunto de valores y de las
-operaciones que se pueden hacer con ellos, **sin decir cómo se representan ni cómo se implementan
-las operaciones**. «Una secuencia de elementos a la que se puede añadir al final, consultar por
-posición y recorrer» es un TAD.
+Un Tipo Abstracto de Datos (TAD) es un modelo matemático para tipos de datos que se define exclusivamente por su comportamiento lógico (semántica) desde la perspectiva del usuario, independientemente de su implementación concreta en memoria o en código.
 
-Una **estructura de datos** es una forma concreta de representar un TAD en memoria: un array, una
-cadena de nodos enlazados, un árbol. Un mismo TAD admite muchas estructuras, con costes distintos.
+Un TAD se especifica rigurosamente mediante dos componentes:
 
-En Java la distinción está en el lenguaje: el TAD es una **interfaz** (`List`, `Set`, `Map`,
-`Deque`) y la estructura es una **clase** que la implementa (`ArrayList`, `HashSet`, `TreeMap`,
-`ArrayDeque`). Esto no es un detalle de estilo, es la aplicación directa del principio de inversión
-de dependencias del Tema 1 ([Concepto Clave sobre interfaces](tema1.qmd#imp-javainterfaces)):
+* **Dominio de valores:** El conjunto de estados o datos válidos que la estructura puede representar.
+* **Conjunto de operaciones:** Las funciones que permiten interactuar con los datos. Estas se definen por sus firmas (entradas y salidas) y su comportamiento exacto (precondiciones, postcondiciones y axiomas).
 
-```java
-// Fragmento
-List<Resultado> historial = new ArrayList<>();   // bien: el tipo es el TAD
-ArrayList<Resultado> otro = new ArrayList<>();   // peor: el tipo es la estructura
-```
+La característica central de un TAD es la **separación entre especificación e implementación** (ocultación de información). El usuario interactúa únicamente con la interfaz pública, asumiendo que las operaciones cumplirán sus contratos lógicos.
 
-La primera forma permite cambiar `ArrayList` por `LinkedList` tocando una línea, y obliga al resto
-del código a usar solo lo que `List` promete. La segunda ata todo el código que ve esa variable a
-una implementación concreta. La regla práctica: **declara con la interfaz, construye con la clase**,
-y lo mismo en los parámetros y los tipos de retorno de tus métodos.
+Por ejemplo, el TAD **Pila (Stack)** se define lógicamente por el principio LIFO (Last-In, First-Out) y operaciones como `push(elemento)`, `pop()` y `es_vacia()`. Quien utiliza la Pila no necesita (ni debe) saber si internamente los datos están almacenados en un array estático, una lista enlazada o un array dinámico. Si el programador decide cambiar la estructura interna subyacente por razones de eficiencia espacial o temporal, el código que utiliza el TAD no sufrirá ningún impacto, ya que la interfaz permanece idéntica.
+
+Ejemplos clásicos de TADs en ciencias de la computación incluyen:
+
+* **Lineales:** Listas, Pilas, Colas.
+* **Jerárquicos y de red:** Árboles, Grafos.
+* **Asociativos:** Diccionarios (Mapas), Conjuntos (Sets).
 :::
 
-La jerarquía de interfaces de la biblioteca es pequeña y conviene tenerla en la cabeza
+::: {#imp-eda .callout-important title="Estructura de datos"}
+Una estructura de datos es la organización y representación física de los datos en la memoria de una computadora para que puedan ser almacenados, accedidos y manipulados de manera eficiente. Define los detalles concretos a nivel de máquina o lenguaje, tales como la asignación de memoria (contigua o dinámica), el manejo de referencias o punteros, y los algoritmos físicos que alteran esos bloques de memoria.
+
+La diferencia fundamental entre un Tipo Abstracto de Datos (TAD) y una estructura de datos radica en la separación entre la especificación y la implementación: el TAD define **qué** se hace, mientras que la estructura de datos define **cómo** se hace.
+
+* **TAD (El concepto lógico):** Es la interfaz o contrato matemático. Establece el comportamiento visible, las operaciones permitidas y sus reglas (semántica), independientemente del lenguaje de programación.
+* **Estructura de datos (La implementación física):** Es el código fuente y la arquitectura en la memoria RAM que da soporte al TAD.
+
+La relación entre ambos es de "uno a muchos": un único TAD puede construirse utilizando diversas estructuras de datos. La elección de una u otra depende de los requisitos de complejidad algorítmica espacial y temporal.
+
+Por ejemplo, para el TAD **Secuencia (Lista)**, que exige operaciones como `insertar_en_posicion(i, elemento)` o `obtener_elemento(i)`:
+
+* Se puede usar una estructura de datos basada en un **Array dinámico** (memoria contigua), lo que permite acceso aleatorio en tiempo $O(1)$, pero requiere mover elementos en tiempo $O(n)$ al insertar en medio.
+* Se puede usar una estructura de datos de **Lista doblemente enlazada** (nodos dispersos conectados por punteros), lo que permite inserciones locales en $O(1)$ si ya se tiene el nodo, pero degrada el acceso por índice a $O(n)$.
+:::
+
+En Java, la dicotomía formal entre Tipo Abstracto de Datos (TAD) y estructura de datos física se materializa arquitectónicamente a través del sistema de tipos y el polimorfismo: los **TADs se definen mediante Interfaces**, mientras que las **estructuras de datos se proveen mediante Clases Concretas**.
+
+La jerarquía de interfaces de la Java Collections Framework es pequeña y conviene recordarla, porque es la que guía la elección de la estructura de datos. El esquema siguiente resume las interfaces y las implementaciones que usaremos en el curso
 (@fig-jcf):
 
 ```{mermaid}
@@ -997,13 +1005,30 @@ flowchart TB
     MA -.-> HM["HashMap<br/>LinkedHashMap<br/>TreeMap"]
 ```
 
-Hay que fijarse en dos cosas del esquema (@fig-jcf). La primera es que `Map` cuelga aparte: no es una
-`Collection`, porque sus elementos son pares y no valores sueltos. La segunda es que de cada
-interfaz salen **varias** implementaciones, y todo el resto de la sección consiste en saber cuál.
+Hay que fijarse en dos cosas del esquema (@fig-jcf). La primera es que `Map` está aparte: no es una
+`Collection`, porque sus elementos son pares y no valores sueltos. La segunda es que para cada
+interfaz hay **varias** implementaciones.
 
 #### **Recorrer: `Iterable` e iteradores**
 
-Toda colección es `Iterable`, y eso es exactamente lo que permite escribir el bucle `for` mejorado:
+`java.lang.Iterable<T>` es la interfaz raíz en la jerarquía de colecciones de Java (de la cual hereda `Collection<E>`) que establece un contrato formal: cualquier clase que la implemente garantiza que sus elementos pueden ser recorridos secuencialmente, independientemente de cómo estén organizados físicamente en la memoria.
+
+El diseño de esta interfaz materializa el patrón de diseño *Iterator*, cuyo propósito es desacoplar la estructura de datos física de la lógica de navegación.
+
+El contrato de `Iterable` exige primariamente la implementación de un método:
+
+* **`Iterator<T> iterator()`:** Devuelve un objeto iterador que encapsula el estado interno del recorrido. Este iterador expone los métodos `hasNext()` (para verificar si quedan elementos) y `next()` (para obtener el elemento actual y avanzar el cursor), ocultando completamente la complejidad de la estructura subyacente.
+
+Desde la perspectiva del diseño del lenguaje, implementar `Iterable` tiene un impacto sintáctico directo: es el requisito estricto a nivel de compilador para que una clase pueda ser utilizada en un **bucle for extendido (for-each)**. Cuando un programador escribe `for (Tipo elemento : coleccion)`, el compilador de Java traduce automáticamente esa sintaxis a un bucle `while` clásico que gestiona el `Iterator` subyacente.
+
+La interfaz `java.util.Collection<E>` extiende (`extends`) a `java.lang.Iterable<E>`. En términos de diseño de tipos, toda colección en Java es obligatoriamente iterable, pero no todo objeto iterable es una colección.
+
+Esta jerarquía obedece al Principio de Segregación de Interfaces (ISP) de SOLID, separando dos responsabilidades o contratos lógicos distintos:
+
+* **`Iterable<T>` (El contrato de recorrido):** Garantiza únicamente la capacidad de producir elementos secuencialmente. No asume que los elementos estén cacheados en memoria, ni que puedan modificarse, ni siquiera que sean finitos. Una secuencia matemática generada al vuelo (como la serie de Fibonacci) o un flujo de lectura de red pueden ser iterables sin requerir almacenamiento.
+* **`Collection<E>` (El contrato de contenedor):** Expande el contrato base para definir un contenedor materializado en memoria. Añade la semántica de grupo, asumiendo un tamaño calculable y operaciones para administrar sus elementos.
+
+Entonces toda colección es `Iterable`, y eso es exactamente lo que permite escribir el bucle `for` mejorado:
 
 ```java
 // Fragmento: las dos formas son la misma
@@ -1067,18 +1092,28 @@ error de la misma familia que buscar sin ordenar (@cau-binaria-sin-ordenar).
 
 #### **Colecciones inmutables y vistas**
 
-En el Tema 1 apareció `List.copyOf` para devolver un historial que quien lo recibe no pueda
-modificar. Conviene distinguir tres cosas que se parecen y no son lo mismo:
+En Java, una colección inmutable es aquella cuya estructura (tamaño y referencias a los elementos) no puede ser alterada tras su instanciación. Cualquier intento de ejecutar métodos mutadores, como `add()`, `remove()` o `clear()`, lanzará un error en tiempo de ejecución (`UnsupportedOperationException`).
 
-- **Colección inmutable**: `List.of(...)`, `Set.of(...)`, `Map.of(...)`, `List.copyOf(otra)`. No
-  tiene métodos de modificación operativos —lanzan `UnsupportedOperationException`— y su contenido
-  no puede cambiar nunca. `copyOf` hace una **copia**, así que cambiar el original no la afecta.
-- **Vista no modificable**: `Collections.unmodifiableList(otra)`. No copia: envuelve. Quien tiene la
-  vista no puede modificarla, pero **si alguien modifica la lista original, la vista cambia**. Es
-  más barata y bastante más peligrosa.
-- **Elementos inmutables**: ninguna de las dos cosas anteriores hace inmutables los elementos. Una
-  lista inmutable de objetos mutables deja que cualquiera cambie los objetos. Es el mismo problema
-  que vimos al no exponer un array: proteger el contenedor no protege el contenido.
+Para comprender el diseño del lenguaje, es necesario distinguir entre las implementaciones estrictamente inmutables y los patrones de diseño de solo lectura:
+
+**Colecciones estrictamente inmutables (Factorías de Java 9+)**
+A partir de Java 9, se introdujeron métodos de factoría estáticos directamente en las interfaces base. Estas factorías devuelven implementaciones internas del framework (no expuestas como clases públicas) que son estructuralmente inmutables, están optimizadas para un consumo mínimo de memoria y prohíben estrictamente almacenar valores `null`.
+
+* **Secuencias:** `List.of(e1, e2, ...)`
+* **Conjuntos:** `Set.of(e1, e2, ...)`
+* **Diccionarios:** `Map.of(k1, v1, ...)` y `Map.ofEntries(...)`
+
+**Copias inmutables defensivas (Java 10+)**
+Para transformar una estructura dinámica existente en un TAD inmutable, Java 10 introdujo las funciones de copiado. Si la colección de origen ya es inmutable, el motor devuelve la misma referencia (aprovechando la inmutabilidad para ahorrar memoria); de lo contrario, construye una nueva estructura de datos estática.
+
+* `List.copyOf(coleccion)`
+* `Set.copyOf(coleccion)`
+* `Map.copyOf(mapa)`
+
+En el Tema 1 apareció `List.copyOf` para devolver un historial que quien lo recibe no pueda
+modificar. Recordemos que `copyOf` hace una **copia**, así que cambiar el original no la afecta. Una
+lista inmutable de objetos mutables deja que cualquiera cambie los objetos. Es el mismo problema
+que vimos al no exponer un array: proteger el contenedor no protege el contenido.
 
 La regla del curso: los métodos que devuelven una colección interna devuelven `List.copyOf` del
 contenido, y los elementos son `record` inmutables. Las dos cosas juntas son lo que hace que el
@@ -1086,7 +1121,7 @@ historial sea seguro de publicar.
 
 ### 2.2.2 Secuencias: array, `ArrayList` y `LinkedList`
 
-Una secuencia guarda elementos en un orden que el programa controla y permite llegar a ellos por su
+Una secuencia (lista) guarda elementos en un orden que el programa controla y permite llegar a ellos por su
 posición. Hay dos formas de representarla, y son el ejemplo canónico de que la estructura decide el
 coste.
 
@@ -1097,6 +1132,13 @@ $O(1)$. El precio es que el tamaño se fija al crearlo.
 Una **lista enlazada** guarda cada elemento en un nodo que, además del valor, contiene la dirección
 del nodo siguiente (y en la variante doblemente enlazada, también del anterior). Crece sin límite y
 sin copiar nada, pero para llegar al elemento $i$ hay que seguir $i$ enlaces: $O(n)$.
+
+La diferencia estructural fundamental entre `ArrayList` y `LinkedList` radica en su arquitectura de almacenamiento físico, lo que determina asimétricamente el rendimiento de sus operaciones algorítmicas bajo notación asintótica.
+
+`ArrayList` implementa el Tipo Abstracto de Datos Secuencia utilizando un **arreglo dinámico de memoria contigua**. Al alcanzar su capacidad máxima, el motor de ejecución instancia un arreglo subyacente más grande (usualmente incrementando un 50% su tamaño original) y transfiere los elementos mediante operaciones de copia en bloque a nivel de sistema. Esta adyacencia espacial garantiza un tiempo de acceso aleatorio constante, pero penaliza las mutaciones estructurales internas debido al desplazamiento secuencial de índices.
+
+`LinkedList` materializa la misma secuencia empleando una **lista doblemente enlazada**. Cada elemento se encapsula en un objeto nodo independiente asignado dinámicamente en el montículo (heap), manteniendo referencias explícitas al nodo predecesor y sucesor. Esto desvincula los nodos físicamente, permitiendo mutaciones locales algorítmicamente instantáneas si ya se posee la referencia del nodo, pero elimina matemáticamente la capacidad de acceder de forma directa a una posición concreta.
+
 
 ```{dot}
 //| label: fig-array-vs-enlazada
