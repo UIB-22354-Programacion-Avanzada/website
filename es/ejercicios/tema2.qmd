@@ -7,9 +7,8 @@ sidebar: barra-es
 ## Cómo trabajar estos ejercicios
 
 Los ejercicios de esta página acompañan al [contenido del Tema 2](../contenido/tema2.qmd) y se
-numeran `2.X.k`, donde `X` es el subapartado del tema al que corresponden. De momento está
-publicada la sección **2.1**; las de 2.2 y 2.3 se añaden a esta misma página al empezar cada
-sección.
+numeran `2.X.k`, donde `X` es el subapartado del tema al que corresponden. Están publicadas las
+tres secciones del tema.
 
 Todo lo que hace falta para resolverlos está en el Tema 2 y en el Tema 1, y solo ahí: ningún
 enunciado usa nada que no se haya explicado antes. En particular, los ejercicios de 2.1 **no usan
@@ -17,13 +16,18 @@ ninguna estructura de datos de 2.2**: con arrays, `List` y los `Comparator` del 
 sobra. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio
 enunciado.
 
-No empiezas desde una carpeta vacía. En la organización del curso hay **una plantilla por cada
-sección**, con la misma estructura que
+No empiezas desde una carpeta vacía. En la organización del curso hay **dos plantillas**, con la
+misma estructura que
 [`t2-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejemplos):
 
 | Sección | Plantilla |
 |---|---|
 | 2.1 | [`t2-ejercicios-2-1`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1) |
+| 2.2 y 2.3 | [`t2-ejercicios-2-2-3`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3) |
+
+Que 2.2 y 2.3 compartan plantilla es una excepción deliberada a la regla de una por sección: los
+ocho ejercicios de las dos usan el mismo catálogo de estructuras y varios de 2.3 comparan con lo
+que se construye en 2.2, de modo que separarlos obligaría a duplicar código entre repositorios.
 
 Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:
 
@@ -683,4 +687,501 @@ las dos filas de la tabla del tema.
 **Para pensar.** El contador vive dentro del repositorio, que es código de producción, y cuenta algo
 que solo le interesa a quien está midiendo. ¿Dónde pondrías ese contador para no mezclar las dos
 responsabilidades, y qué principio del Tema 1 estás aplicando al moverlo?
+::::
+
+## 2.2. Estructuras de datos fundamentales y la Java Collections Framework
+
+**Plantilla:** [`t2-ejercicios-2-2-3`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3)
+
+Ejercicios sobre [2.2 del tema](../contenido/tema2.qmd#estructuras-de-datos-fundamentales-y-la-java-collections-framework):
+el catálogo de estructuras, presentado por el mecanismo que hace funcionar a cada una.
+
+Los cuatro son problemas pequeños y de dominios distintos —palabras, un navegador, una agenda— y
+solo el último vuelve al monitor. Es deliberado: lo que hay que ver en cada uno es **por qué esa
+estructura y no una lista**, y eso se aprecia mejor en un problema que se entiende en una frase. Los
+cuatro van en el paquete `es.uib.prgava.tema2.ejercicios` y se pueden resolver en cualquier orden.
+
+:::: {.callout-note title="2.2.1 Clase `PalabrasUnicas`: el conjunto" collapse="true"}
+«¿Lo he visto ya?» es la pregunta que contesta un conjunto, y la razón de que exista la
+[tabla *hash*](../contenido/tema2.qmd#imp-tabla-hash): responde en tiempo constante esperado, mientras
+que preguntárselo a una lista cuesta un recorrido. Este ejercicio es el caso más simple y el que
+hace visible la diferencia de orden.
+
+Escribe en `PalabrasUnicas` tres métodos de clase:
+
+```java
+public static int cuantasDistintas(List<String> palabras)
+public static List<String> distintasEnOrdenDeAparicion(List<String> palabras)
+public static List<String> sinLasCortas(List<String> palabras, int minimo)
+```
+
+1. **`cuantasDistintas`** devuelve cuántas palabras distintas hay. La comparación es **exacta**, sin
+   normalizar: `"Sol"` y `"sol"` son dos palabras. Con un `HashSet` es una línea.
+
+2. **`distintasEnOrdenDeAparicion`** devuelve las distintas, **en el orden en que aparecen por
+   primera vez**. Un `HashSet` no sirve, porque no promete orden alguno; el que sí lo promete es
+   `LinkedHashSet`, que mantiene además una lista enlazada de sus elementos. Devuelve el resultado
+   con `List.copyOf`, como siempre.
+
+3. **`sinLasCortas`** devuelve una lista **nueva** sin las palabras de menos de `minimo` letras,
+   conservando el orden y **sin quitar repetidas**: es un filtro, no una deduplicación. El código de
+   abajo es el que la gente escribe primero, y viene en la plantilla; ejecútalo antes de arreglarlo y
+   explica en un comentario qué pasa y por qué. La respuesta está en el
+   [Error Frecuente sobre modificar mientras se recorre](../contenido/tema2.qmd#cau-modificar-mientras-recorres),
+   y de paso ahí está también el método de una línea que resuelve el ejercicio.
+
+```java
+// Lo que NO hay que hacer: viene en la plantilla, en sinLasCortasRoto.
+var copia = new ArrayList<>(palabras);
+for (String palabra : copia) {
+    if (palabra.length() < minimo) {
+        copia.remove(palabra);
+    }
+}
+return copia;
+```
+
+4. **Validación.** Una lista `null` es `NullPointerException` —te sirve `Objects.requireNonNull`— y
+   un `minimo` menor que 1, `IllegalArgumentException`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var palabras = List.of("sol", "luna", "sol", "mar", "luna", "sol");
+
+System.out.println(PalabrasUnicas.cuantasDistintas(palabras));              // 3
+System.out.println(PalabrasUnicas.distintasEnOrdenDeAparicion(palabras));   // [sol, luna, mar]
+System.out.println(PalabrasUnicas.sinLasCortas(palabras, 4));               // [luna, luna]
+System.out.println(PalabrasUnicas.cuantasDistintas(List.of("Sol", "sol"))); // 2
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban los tres métodos con repetidos, con la lista vacía
+y con mayúsculas; que la lista de entrada no se modifica y que las devueltas son inmutables; que
+`sinLasCortas` conserva las repeticiones; y hay una con **diez mil palabras** que pasa en
+milisegundos con un conjunto y que no terminaría en un tiempo razonable preguntándole a una lista.
+
+**Para pensar.** `LinkedHashSet` hace todo lo que hace `HashSet` y además recuerda el orden de
+inserción. ¿Por qué no es entonces la elección por omisión?
+::::
+
+:::: {.callout-note title="2.2.2 Clase `HistorialDeNavegacion`: la pila" collapse="true"}
+El botón «atrás» de un navegador es una [pila](../contenido/tema2.qmd#imp-pila-cola): la última
+página que visitaste es la primera que recuperas. La estructura correcta en Java es un `ArrayDeque`
+—no `java.util.Stack`, por las razones del
+[Error Frecuente](../contenido/tema2.qmd#cau-usar-stack)—, y lo que de verdad se decide en este
+ejercicio es **qué pareja de métodos usar**.
+
+Escribe `HistorialDeNavegacion` con un `Deque<String>` por dentro:
+
+```java
+public void visitar(String url)
+public Optional<String> actual()
+public Optional<String> atras()
+public int tamano()
+```
+
+1. **`visitar`** apila una página. Una `url` `null` o en blanco es `IllegalArgumentException`.
+
+2. **`actual`** devuelve la página en la que estás, sin quitarla, o `Optional.empty()` si no has
+   visitado ninguna.
+
+3. **`atras`** retrocede: descarta la página actual y devuelve **la anterior**, que pasa a ser la
+   actual. Si solo hay una página, o ninguna, no hay a dónde retroceder: no cambia nada y devuelve
+   `Optional.empty()`.
+
+4. **La decisión.** De la tabla de parejas de 2.2.3, `removeLast` lanza excepción con la pila vacía y
+   `pollLast` devuelve `null`. Aquí la pila vacía es un caso **esperado** —un navegador recién abierto
+   no es un error—, así que la pareja correcta es la que no lanza, y de ahí el `Optional` en el tipo
+   de retorno. Escríbelo en un comentario de dos líneas.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var historial = new HistorialDeNavegacion();
+System.out.println(historial.actual());     // Optional.empty
+System.out.println(historial.atras());      // Optional.empty
+
+historial.visitar("uib.es");
+historial.visitar("uib.es/eps");
+historial.visitar("uib.es/eps/22354");
+System.out.println(historial.actual().get());   // uib.es/eps/22354
+System.out.println(historial.tamano());         // 3
+
+System.out.println(historial.atras().get());    // uib.es/eps
+System.out.println(historial.atras().get());    // uib.es
+System.out.println(historial.atras());          // Optional.empty  <- ya es la primera
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban la secuencia de arriba completa, el historial
+vacío, que `atras` sobre una sola página no la borra, el rechazo de una `url` en blanco, y que
+`tamano` baja al retroceder.
+
+**Para pensar.** Si en lugar del botón «atrás» esto fuera la pila de llamadas de la máquina virtual,
+donde sacar de una pila vacía significa que el programa está roto, ¿seguirías devolviendo `Optional`?
+::::
+
+:::: {.callout-note title="2.2.3 Clase `Agenda`: el árbol de búsqueda" collapse="true"}
+Una tabla *hash* contesta «¿está esta clave?» y es incapaz de contestar «¿qué claves hay entre estas
+dos?», porque calcular la cubeta destruye el orden a propósito. Cuando el orden hace falta, la
+estructura es un [árbol de búsqueda](../contenido/tema2.qmd#imp-arbol-busqueda). Este ejercicio es
+una agenda de un día, donde las tres preguntas que se hacen son justamente las que el árbol responde
+y la tabla no.
+
+Escribe `Agenda` con un `TreeMap<LocalTime, String>` por dentro:
+
+```java
+public record Cita(LocalTime hora, String texto) { }
+
+public void anadir(LocalTime hora, String texto)
+public List<Cita> entre(LocalTime desde, LocalTime hasta)
+public Optional<Cita> siguienteDespuesDe(LocalTime hora)
+public List<Cita> todas()
+```
+
+1. **`anadir`.** Una hora, un texto. Si ya había una cita a esa hora, la **sustituye**, que es lo que
+   hace `put`. Hora `null` o texto en blanco, excepción.
+
+2. **`entre`** devuelve las citas desde `desde` **incluido** hasta `hasta` **excluido**, en orden de
+   hora. Es `subMap(desde, true, hasta, false)`. Si `hasta` es anterior a `desde`,
+   `IllegalArgumentException`.
+
+3. **`siguienteDespuesDe`** devuelve la primera cita **estrictamente posterior** a la hora dada, o
+   `Optional.empty()` si no hay ninguna. Es `higherEntry`, y conviene no confundirlo con
+   `ceilingEntry`, que incluiría una cita a esa misma hora.
+
+4. **`todas`** devuelve todas en orden de hora, que es el orden natural del recorrido del árbol: no
+   hay que ordenar nada.
+
+5. **El comentario que se pide.** Escribe qué método tendrías que escribir para contestar `entre` si
+   la agenda fuera un `HashMap<LocalTime, String>`, y cuánto costaría.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var agenda = new Agenda();
+agenda.anadir(LocalTime.of(9, 0), "claustro");
+agenda.anadir(LocalTime.of(10, 30), "clase de 22354");
+agenda.anadir(LocalTime.of(12, 0), "tutoria");
+agenda.anadir(LocalTime.of(16, 0), "reunion de departamento");
+
+System.out.println(agenda.entre(LocalTime.of(9, 0), LocalTime.of(12, 0)));
+// [Cita[hora=09:00, texto=claustro], Cita[hora=10:30, texto=clase de 22354]]
+
+System.out.println(agenda.siguienteDespuesDe(LocalTime.of(10, 30)));
+// Optional[Cita[hora=12:00, texto=tutoria]]
+
+System.out.println(agenda.siguienteDespuesDe(LocalTime.of(16, 0)));   // Optional.empty
+System.out.println(agenda.todas().size());                            // 4
+```
+
+Fíjate en que la cita de las 12:00 **no** sale en el intervalo `[9:00, 12:00)`, y en que
+`siguienteDespuesDe(10:30)` no devuelve la de las 10:30.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el intervalo con los dos extremos, el intervalo
+vacío, la cita siguiente cuando existe y cuando no, que `anadir` dos veces a la misma hora
+sustituye, que `todas` sale en orden de hora aunque las citas se añadan desordenadas, y el rechazo de
+los argumentos inválidos.
+
+**Para pensar.** `subMap` no copia: devuelve una **vista** del propio árbol. Si pidieras el intervalo
+y después añadieras una cita dentro de él, ¿qué le pasaría a la vista? ¿Y qué le pasa a la lista que
+devuelve tu `entre`?
+::::
+
+:::: {.callout-note title="2.2.4 Clase `ResultadosMasLentos`: el montículo" collapse="true"}
+«Dame el mínimo de un conjunto que cambia» es lo que responde una
+[cola de prioridad](../contenido/tema2.qmd#imp-monticulo), y «dame los $k$ peores de muchos» es la
+misma estructura usada de otra manera. Este ejercicio es el segundo caso, sobre los datos del
+monitor, y trae dentro la trampa que todo el mundo pisa la primera vez.
+
+Escribe en `ResultadosMasLentos` un método de clase:
+
+```java
+public static List<Resultado> masLentos(List<Resultado> resultados, int k)
+```
+
+que devuelva los `k` resultados de **mayor latencia**, de mayor a menor. Si hay menos de `k`,
+devuelve todos los que haya.
+
+1. **El comparador.** Una `PriorityQueue` saca siempre el **mínimo**, y aquí lo que interesa es el
+   máximo, así que el comparador va invertido: `Comparator.comparing(Resultado::latencia).reversed()`.
+   `Duration` es `Comparable`, de modo que no hay que convertir a milisegundos para compararlo.
+
+2. **Llenar y vaciar.** Metes todos los resultados con `addAll` y sacas `k` veces con `poll`.
+
+3. **La trampa.** Recorrer la cola —con un `for` mejorado, o imprimiéndola— **no da los elementos
+   ordenados**: el iterador recorre el array interno del montículo, donde solo la raíz está
+   garantizada en su sitio. La única forma de obtenerlos en orden es sacarlos, y con tres o cuatro
+   elementos el recorrido suele salir ordenado por casualidad, lo que hace el error más difícil de
+   ver. Está en el
+   [Error Frecuente sobre recorrer una `PriorityQueue`](../contenido/tema2.qmd#cau-iterar-priorityqueue).
+
+4. **Validación.** `k` menor que 1, `IllegalArgumentException`; lista `null`,
+   `NullPointerException`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+// Cinco resultados con latencias de 40, 900, 120, 650 y 30 ms.
+for (Resultado r : ResultadosMasLentos.masLentos(resultados, 3)) {
+    System.out.println(r.servicio().nombre() + " " + r.latencia().toMillis() + " ms");
+}
+```
+
+```text
+dns:53 900 ms
+web:80 650 ms
+api:8080 120 ms
+```
+
+Y con `k = 99` sobre esos cinco resultados, devuelve los cinco.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el ranking con `k` menor, igual y mayor que el
+número de resultados, la lista vacía, el rechazo de `k = 0`, y que la lista devuelta es inmutable.
+Una de ellas usa quince resultados **colocados a propósito** para que el array interno del montículo
+no quede ordenado: es la que falla si recorres la cola en lugar de vaciarla.
+
+**Para pensar.** Esta versión mete los $n$ resultados en el montículo, así que cuesta $O(n \log n)$ y
+ocupa $O(n)$. Con un montículo de **tamaño $k$** se puede hacer en $O(n \log k)$ y con memoria
+$O(k)$, como explica el [Ejemplo de los $k$ peores](../contenido/tema2.qmd#nte-k-peores). ¿Cuándo
+compensa la complicación, y qué permite la versión de tamaño $k$ que esta no permite?
+::::
+
+## 2.3. Criterios de selección de estructura según operación dominante
+
+**Plantilla:** la misma de 2.2,
+[`t2-ejercicios-2-2-3`](https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3)
+
+Ejercicios sobre [2.3 del tema](../contenido/tema2.qmd#criterios-de-selección-de-estructura-según-operación-dominante):
+elegir la estructura según lo que el programa pide, y comprobar con números que la elección fue la
+correcta.
+
+En los cuatro, el entregable es **un recuento que coincida con una fórmula**, igual que en 2.1: la
+diferencia entre dos estructuras no se argumenta, se cuenta. Los dos primeros usan el convenio del
+contador de la cabecera de esta página.
+
+:::: {.callout-note title="2.3.1 Método `hayRepetido` de `RepetidosEjercicio`" collapse="true"}
+El tema deja una promesa pendiente en 2.1.1: `Conteos.hayRepetido` compara todos los pares y es
+cuadrático, y el mismo problema **metiendo cada elemento en un conjunto y preguntando si ya estaba es
+lineal**. Este ejercicio cumple la promesa y la comprueba con los mismos arrays que `DemoConteos`.
+Es el ejercicio que demuestra que cambiar la estructura cambia el **orden**, no la constante.
+
+Escribe en `RepetidosEjercicio`:
+
+```java
+public static boolean hayRepetido(int[] datos)
+public static long ultimasOperaciones()
+```
+
+1. **El algoritmo.** Un `HashSet<Integer>`, un recorrido, y para cada elemento intentar añadirlo: si
+   `add` devuelve `false` es que ya estaba, y hay repetido. No hace falta `contains` **y** `add`: el
+   valor de retorno de `add` dice las dos cosas, y así se recorre la tabla una vez en lugar de dos.
+
+2. **El recuento.** Cuenta las iteraciones del cuerpo del bucle, anúncialas con
+   `Recuento.anunciar("conConjunto", datos.length, operaciones, "n")` y guárdalas en
+   `ultimasOperaciones()`, como dice el convenio de la cabecera. Cuando encuentres el repetido y
+   salgas antes, la fórmula que se anuncia es `"n como maximo"`.
+
+3. **La comparación.** Ejecútalo sobre los tres arrays de 2.000 elementos de `DemoConteos` —sin
+   repetido, con el repetido en medio, con el repetido al principio— y pon los seis números en una
+   tabla en un comentario, junto con la conclusión.
+
+::: {.callout-tip title="Ejemplo de uso"}
+Los seis números, que son el ejercicio entero:
+
+| El array de 2.000 elementos | `Conteos.hayRepetido` | `RepetidosEjercicio.hayRepetido` |
+|---|---:|---:|
+| sin repetido | 1 999 000 | 2 000 |
+| con el repetido en medio | 1 498 501 | 1 001 |
+| con el repetido al principio | 1 | 2 |
+
+La tercera fila merece una mirada: ahí la versión cuadrática **gana**, porque encuentra el repetido
+en su primera comparación mientras que la del conjunto necesita dos inserciones. Es el mejor caso de
+la cuadrática, y no cambia nada de lo que dicen las dos primeras filas.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el resultado con y sin repetidos, el array vacío y
+el de un elemento, y los recuentos: `datos.length` cuando no hay repetido, y la posición del primer
+repetido más uno cuando lo hay. Hay además una con cien mil elementos, que con el conjunto pasa al
+instante.
+
+**Para pensar.** El conjunto gasta memoria $O(n)$ que la versión cuadrática no gasta. ¿Hay algún
+tamaño de entrada, o alguna situación, en la que prefieras la lenta?
+::::
+
+:::: {.callout-note title="2.3.2 Clase `ConsumirPorElPrincipio`: por el extremo equivocado" collapse="true"}
+Consumir elementos por el principio de un `ArrayList` con `remove(0)` es el error de la tabla de
+costes de 2.2.2 que más veces se comete, porque el bucle que lo hace **se lee como si fuera lineal**.
+Este ejercicio escribe las dos versiones y cuenta la diferencia.
+
+Escribe en `ConsumirPorElPrincipio`:
+
+```java
+public static List<Integer> conLista(int n)
+public static List<Integer> conDeque(int n)
+public static long ultimosDesplazamientos()
+```
+
+Las dos primeras construyen los números de 1 a `n`, los consumen **por el principio** hasta
+vaciar la colección y devuelven la lista de lo consumido, en el orden en que salió. Tienen que
+devolver exactamente lo mismo.
+
+1. **`conLista`** usa un `ArrayList` y lo consume con `remove(0)`. Antes de cada `remove`, suma al
+   contador **cuántos elementos va a desplazar**, que son todos los que quedan menos el que se
+   quita. El total sale $n(n-1)/2$.
+
+2. **`conDeque`** usa un `ArrayDeque` declarado como `Deque` y lo consume con `pollFirst`, que no
+   desplaza nada porque un array circular solo mueve un índice. Aquí no hay nada que contar: el
+   coste es $O(1)$ por elemento.
+
+3. **El bucle de `conDeque`.** `pollFirst` devuelve `null` cuando la cola se vacía, así que el bucle
+   natural es `while ((siguiente = cola.pollFirst()) != null)`. Con `removeFirst` habría que
+   preguntar `isEmpty()` antes de cada vuelta; las dos valen y la primera es la que la tabla de
+   parejas recomienda cuando vaciarse es lo normal.
+
+4. **Validación.** `n` menor que 1, `IllegalArgumentException`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+System.out.println(ConsumirPorElPrincipio.conLista(5));                  // [1, 2, 3, 4, 5]
+System.out.println(ConsumirPorElPrincipio.ultimosDesplazamientos());     // 10
+System.out.println(ConsumirPorElPrincipio.conDeque(5));                  // [1, 2, 3, 4, 5]
+```
+
+Y la tabla que hay que mirar:
+
+| $n$ | desplazamientos con `remove(0)` | con `pollFirst` |
+|---:|---:|---:|
+| 5 | 10 | 0 |
+| 1 000 | 499 500 | 0 |
+| 10 000 | 49 995 000 | 0 |
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que los dos métodos devuelven la misma lista en el
+mismo orden para varios tamaños, que el contador es exactamente $n(n-1)/2$, y el rechazo de un `n`
+inválido.
+
+**Para pensar.** La tabla de 2.2.2 dice que una `LinkedList` también añade y quita por los extremos
+en $O(1)$, así que para este problema sería igual de buena que `ArrayDeque`. ¿Por qué el tema
+recomienda `ArrayDeque` de todas formas?
+::::
+
+:::: {.callout-note title="2.3.3 Clase `Telefonos`: tabla o árbol" collapse="true"}
+Las dos estructuras de clave-valor del tema responden bien a preguntas distintas, y la forma de
+elegir es mirar **qué preguntas hace el programa**, que es el método de
+[la operación dominante](../contenido/tema2.qmd#imp-operacion-dominante). Una guía de teléfonos hace
+dos, y cada una tira para un lado.
+
+Escribe `Telefonos`:
+
+```java
+public void anadir(String nombre, String telefono)
+public Optional<String> telefonoDe(String nombre)
+public List<String> nombresQueEmpiezanPor(String prefijo)
+public int tamano()
+```
+
+1. **La estructura.** Un `TreeMap<String, String>`. La primera pregunta la contestarían las dos, la
+   segunda solo el árbol, así que gana el árbol — y el coste que se paga por ello es que
+   `telefonoDe` pasa de $O(1)$ esperado a $O(\log n)$ garantizado.
+
+2. **`nombresQueEmpiezanPor`** devuelve los nombres que empiezan por el prefijo, en orden
+   alfabético. Sale en tres líneas y sin comparar con todos: `tailMap(prefijo, true)` da los nombres
+   desde el prefijo en adelante, y como vienen en orden, basta **recorrer hasta el primero que ya no
+   empieza por el prefijo y parar**. Un prefijo vacío devuelve todos los nombres, porque toda cadena
+   empieza por la cadena vacía.
+
+3. **El comentario que se pide.** Cuál de las dos preguntas podría contestar un `HashMap`, qué
+   costaría la otra con un `HashMap`, y por qué el orden de las claves del árbol **es** el índice que
+   hace barata la segunda.
+
+4. **Validación.** Nombre o teléfono en blanco, `IllegalArgumentException`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var guia = new Telefonos();
+guia.anadir("Marcos", "971 10 10 10");
+guia.anadir("Maria",  "971 20 20 20");
+guia.anadir("Marta",  "971 30 30 30");
+guia.anadir("Pau",    "971 40 40 40");
+guia.anadir("Laia",   "971 50 50 50");
+
+System.out.println(guia.telefonoDe("Maria"));            // Optional[971 20 20 20]
+System.out.println(guia.telefonoDe("Joan"));             // Optional.empty
+System.out.println(guia.nombresQueEmpiezanPor("Mar"));   // [Marcos, Maria, Marta]
+System.out.println(guia.nombresQueEmpiezanPor("Z"));     // []
+System.out.println(guia.nombresQueEmpiezanPor(""));      // [Laia, Marcos, Maria, Marta, Pau]
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban la búsqueda exacta, el nombre que no está, el
+prefijo con varios resultados, el prefijo sin ninguno, el prefijo vacío, el prefijo que coincide
+exactamente con un nombre, y el caso de mil nombres cargados. Lo que las pruebas **no** pueden ver
+es si tu búsqueda por prefijo recorre la guía entera en lugar de parar: eso se juzga leyendo el
+código, y es parte del ejercicio.
+
+**Para pensar.** Si las dos preguntas se hicieran con la misma frecuencia y el programa tuviera un
+millón de nombres, ¿mantendrías las dos estructuras a la vez, un `HashMap` para la exacta y un
+`TreeMap` para el prefijo? ¿Qué te costaría?
+::::
+
+:::: {.callout-note title="2.3.4 Clase `ComparativaRepositorios`: el método, aplicado al monitor" collapse="true"}
+El cierre del tema: las dos versiones del repositorio —la lista única del Tema 1 y el índice por
+servicio de 2.2.4— ejecutadas sobre la misma carga y comparadas **contando**, no cronometrando,
+porque un cronómetro mide también la máquina y el recuento no. Es el ejercicio 2.1.9 con la segunda
+versión al lado.
+
+Escribe en `ComparativaRepositorios` dos métodos de clase:
+
+```java
+public static long examinadosConListaUnica(int rondas, int numServicios)
+public static long examinadosConIndice(int rondas, int numServicios)
+```
+
+Cada uno reproduce una ejecución completa del monitor —en cada ronda y para cada servicio, guardar un
+resultado y después pedir el historial de ese servicio— y devuelve **cuántos resultados se han
+examinado** al responder los historiales. No necesitas el `Monitor` ni las clases del repositorio:
+con una `List<Resultado>` en el primer caso y un `HashMap<Servicio, List<Resultado>>` en el segundo,
+dentro del propio método, es suficiente.
+
+1. **Qué cuenta como «examinado».** Un resultado mirado al construir la respuesta: en la lista
+   única, los `equals` contra el servicio pedido; en el índice, los elementos que se copian de la
+   lista del servicio. Es la misma unidad en los dos, que es lo que permite dividir un número por el
+   otro.
+
+2. **Los servicios** se crean con `new ServicioTcp("s" + i, 9000 + i)`, y lo único que importa es
+   que sean distintos entre sí y que su `equals` sea por valor, que lo es por ser `record`.
+
+3. **Las dos fórmulas**, que las pruebas comprueban y que hay que escribir en un comentario. Con $r$
+   rondas, $s$ servicios y $N = r \cdot s$ resultados al final: la lista única examina
+   $N(N+1)/2$, porque en la llamada $k$-ésima tiene $k$ resultados y los recorre todos; el índice
+   examina $s \cdot r(r+1)/2$, porque cada llamada solo copia los del servicio preguntado, que son
+   tantos como rondas van.
+
+4. **La conclusión**, también en un comentario: qué operación dominaba, cuánto mejora el índice, y
+   por qué —esto es lo importante— **el índice sigue siendo cuadrático en las rondas**.
+
+::: {.callout-tip title="Ejemplo de uso"}
+Con 20 servicios:
+
+| Rondas | Lista única | Índice | Cociente |
+|---:|---:|---:|---:|
+| 100 | 2 001 000 | 101 000 | 19,8 |
+| 200 | 8 002 000 | 402 000 | 19,9 |
+| 400 | 32 004 000 | 1 604 000 | 20,0 |
+| 800 | 128 008 000 | 6 408 000 | 20,0 |
+
+Dos cosas que leer en la tabla. El cociente tiende a 20, que es el número de servicios: lo que el
+índice elimina es exactamente el factor $s$, y eso es lo que el tema anuncia. Y las dos columnas se
+multiplican **por cuatro** al duplicar las rondas, así que las dos son cuadráticas en $r$: el índice
+mejora veinte veces y no arregla el problema de fondo.
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban los dos recuentos contra sus fórmulas para varias
+parejas de rondas y servicios, incluidas las dos primeras filas de la tabla —las otras dos las
+produces tú, y tardan unos segundos—; que el cociente se acerca al número de servicios; que al
+duplicar las rondas los dos se multiplican por cuatro; y el rechazo de los argumentos inválidos.
+
+**Para pensar.** La medición dice que el índice mejora veinte veces y deja el problema sin resolver.
+¿Qué podrías haber calculado **antes** de programarlo para saberlo, y por qué crees que el tema lo
+programó y lo midió de todas formas?
 ::::
