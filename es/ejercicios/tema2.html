@@ -532,6 +532,8 @@ window.Quarto = {
   <ul>
   <li><a href="#cómo-trabajar-estos-ejercicios" id="toc-cómo-trabajar-estos-ejercicios" class="nav-link active" data-scroll-target="#cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</a></li>
   <li><a href="#eficiencia-de-algoritmos" id="toc-eficiencia-de-algoritmos" class="nav-link" data-scroll-target="#eficiencia-de-algoritmos">2.1. Eficiencia de algoritmos</a></li>
+  <li><a href="#estructuras-de-datos-fundamentales-y-la-java-collections-framework" id="toc-estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="nav-link" data-scroll-target="#estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</a></li>
+  <li><a href="#criterios-de-selección-de-estructura-según-operación-dominante" id="toc-criterios-de-selección-de-estructura-según-operación-dominante" class="nav-link" data-scroll-target="#criterios-de-selección-de-estructura-según-operación-dominante">2.3. Criterios de selección de estructura según operación dominante</a></li>
   </ul>
 </nav>
     </div>
@@ -560,9 +562,9 @@ window.Quarto = {
 
 <section id="cómo-trabajar-estos-ejercicios" class="level2">
 <h2 class="anchored" data-anchor-id="cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</h2>
-<p>Los ejercicios de esta página acompañan al <a href="../../es/contenido/tema2.html">contenido del Tema 2</a> y se numeran <code>2.X.k</code>, donde <code>X</code> es el subapartado del tema al que corresponden. De momento está publicada la sección <strong>2.1</strong>; las de 2.2 y 2.3 se añaden a esta misma página al empezar cada sección.</p>
+<p>Los ejercicios de esta página acompañan al <a href="../../es/contenido/tema2.html">contenido del Tema 2</a> y se numeran <code>2.X.k</code>, donde <code>X</code> es el subapartado del tema al que corresponden. Están publicadas las tres secciones del tema.</p>
 <p>Todo lo que hace falta para resolverlos está en el Tema 2 y en el Tema 1, y solo ahí: ningún enunciado usa nada que no se haya explicado antes. En particular, los ejercicios de 2.1 <strong>no usan ninguna estructura de datos de 2.2</strong>: con arrays, <code>List</code> y los <code>Comparator</code> del Tema 1 hay de sobra. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio enunciado.</p>
-<p>No empiezas desde una carpeta vacía. En la organización del curso hay <strong>una plantilla por cada sección</strong>, con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejemplos"><code>t2-ejemplos</code></a>:</p>
+<p>No empiezas desde una carpeta vacía. En la organización del curso hay <strong>dos plantillas</strong>, con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejemplos"><code>t2-ejemplos</code></a>:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -575,8 +577,13 @@ window.Quarto = {
 <td>2.1</td>
 <td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-1"><code>t2-ejercicios-2-1</code></a></td>
 </tr>
+<tr class="even">
+<td>2.2 y 2.3</td>
+<td><a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3"><code>t2-ejercicios-2-2-3</code></a></td>
+</tr>
 </tbody>
 </table>
+<p>Que 2.2 y 2.3 compartan plantilla es una excepción deliberada a la regla de una por sección: los ocho ejercicios de las dos usan el mismo catálogo de estructuras y varios de 2.3 comparan con lo que se construye en 2.2, de modo que separarlos obligaría a duplicar código entre repositorios.</p>
 <p>Cada plantilla se publica al empezar su sección y trae solo lo que esa sección necesita:</p>
 <ul>
 <li>un <strong>esqueleto</strong> de cada clase que se pide, con las firmas de sus métodos y las cláusulas <code>implements</code> del ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 2.X.k</code>;</li>
@@ -1086,6 +1093,507 @@ window.Quarto = {
 </div>
 <p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que <code>RepositorioContador</code> sigue cumpliendo el contrato de <code>RepositorioResultados</code> —el historial de cada servicio, en orden, y el conjunto de servicios—, que el contador acumula entre llamadas y no se reinicia, y que <code>comparacionesDeUnaEjecucion</code> da <span class="math inline">\(N(N+1)/2\)</span> para varias parejas de rondas y servicios, incluidas las dos filas de la tabla del tema.</p>
 <p><strong>Para pensar.</strong> El contador vive dentro del repositorio, que es código de producción, y cuenta algo que solo le interesa a quien está midiendo. ¿Dónde pondrías ese contador para no mezclar las dos responsabilidades, y qué principio del Tema 1 estás aplicando al moverlo?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="level2">
+<h2 class="anchored" data-anchor-id="estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</h2>
+<p><strong>Plantilla:</strong> <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3"><code>t2-ejercicios-2-2-3</code></a></p>
+<p>Ejercicios sobre <a href="../../es/contenido/tema2.html#estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2 del tema</a>: el catálogo de estructuras, presentado por el mecanismo que hace funcionar a cada una.</p>
+<p>Los cuatro son problemas pequeños y de dominios distintos —palabras, un navegador, una agenda— y solo el último vuelve al monitor. Es deliberado: lo que hay que ver en cada uno es <strong>por qué esa estructura y no una lista</strong>, y eso se aprecia mejor en un problema que se entiende en una frase. Los cuatro van en el paquete <code>es.uib.prgava.tema2.ejercicios</code> y se pueden resolver en cualquier orden.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.2.1 Clase `PalabrasUnicas`: el conjunto">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.2.1 Clase <code>PalabrasUnicas</code>: el conjunto
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>«¿Lo he visto ya?» es la pregunta que contesta un conjunto, y la razón de que exista la <a href="../../es/contenido/tema2.html#imp-tabla-hash">tabla <em>hash</em></a>: responde en tiempo constante esperado, mientras que preguntárselo a una lista cuesta un recorrido. Este ejercicio es el caso más simple y el que hace visible la diferencia de orden.</p>
+<p>Escribe en <code>PalabrasUnicas</code> tres métodos de clase:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb22-1"><a href="#cb22-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">cuantasDistintas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">)</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">distintasEnOrdenDeAparicion</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">)</span></span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">sinLasCortas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">,</span> <span class="dt">int</span> minimo<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong><code>cuantasDistintas</code></strong> devuelve cuántas palabras distintas hay. La comparación es <strong>exacta</strong>, sin normalizar: <code>"Sol"</code> y <code>"sol"</code> son dos palabras. Con un <code>HashSet</code> es una línea.</p></li>
+<li><p><strong><code>distintasEnOrdenDeAparicion</code></strong> devuelve las distintas, <strong>en el orden en que aparecen por primera vez</strong>. Un <code>HashSet</code> no sirve, porque no promete orden alguno; el que sí lo promete es <code>LinkedHashSet</code>, que mantiene además una lista enlazada de sus elementos. Devuelve el resultado con <code>List.copyOf</code>, como siempre.</p></li>
+<li><p><strong><code>sinLasCortas</code></strong> devuelve una lista <strong>nueva</strong> sin las palabras de menos de <code>minimo</code> letras, conservando el orden y <strong>sin quitar repetidas</strong>: es un filtro, no una deduplicación. El código de abajo es el que la gente escribe primero, y viene en la plantilla; ejecútalo antes de arreglarlo y explica en un comentario qué pasa y por qué. La respuesta está en el <a href="../../es/contenido/tema2.html#cau-modificar-mientras-recorres">Error Frecuente sobre modificar mientras se recorre</a>, y de paso ahí está también el método de una línea que resuelve el ejercicio.</p></li>
+</ol>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1"></a><span class="co">// Lo que NO hay que hacer: viene en la plantilla, en sinLasCortasRoto.</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a><span class="dt">var</span> copia <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span>palabras<span class="op">);</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a><span class="cf">for</span> <span class="op">(</span><span class="bu">String</span> palabra <span class="op">:</span> copia<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb23-4"><a href="#cb23-4"></a>    <span class="cf">if</span> <span class="op">(</span>palabra<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&lt;</span> minimo<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb23-5"><a href="#cb23-5"></a>        copia<span class="op">.</span><span class="fu">remove</span><span class="op">(</span>palabra<span class="op">);</span></span>
+<span id="cb23-6"><a href="#cb23-6"></a>    <span class="op">}</span></span>
+<span id="cb23-7"><a href="#cb23-7"></a><span class="op">}</span></span>
+<span id="cb23-8"><a href="#cb23-8"></a><span class="cf">return</span> copia<span class="op">;</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol start="4" type="1">
+<li><strong>Validación.</strong> Una lista <code>null</code> es <code>NullPointerException</code> —te sirve <code>Objects.requireNonNull</code>— y un <code>minimo</code> menor que 1, <code>IllegalArgumentException</code>.</li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1"></a><span class="dt">var</span> palabras <span class="op">=</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"sol"</span><span class="op">,</span> <span class="st">"luna"</span><span class="op">,</span> <span class="st">"sol"</span><span class="op">,</span> <span class="st">"mar"</span><span class="op">,</span> <span class="st">"luna"</span><span class="op">,</span> <span class="st">"sol"</span><span class="op">);</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a></span>
+<span id="cb24-3"><a href="#cb24-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PalabrasUnicas<span class="op">.</span><span class="fu">cuantasDistintas</span><span class="op">(</span>palabras<span class="op">));</span>              <span class="co">// 3</span></span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PalabrasUnicas<span class="op">.</span><span class="fu">distintasEnOrdenDeAparicion</span><span class="op">(</span>palabras<span class="op">));</span>   <span class="co">// [sol, luna, mar]</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PalabrasUnicas<span class="op">.</span><span class="fu">sinLasCortas</span><span class="op">(</span>palabras<span class="op">,</span> <span class="dv">4</span><span class="op">));</span>               <span class="co">// [luna, luna]</span></span>
+<span id="cb24-6"><a href="#cb24-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PalabrasUnicas<span class="op">.</span><span class="fu">cuantasDistintas</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"Sol"</span><span class="op">,</span> <span class="st">"sol"</span><span class="op">)));</span> <span class="co">// 2</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban los tres métodos con repetidos, con la lista vacía y con mayúsculas; que la lista de entrada no se modifica y que las devueltas son inmutables; que <code>sinLasCortas</code> conserva las repeticiones; y hay una con <strong>diez mil palabras</strong> que pasa en milisegundos con un conjunto y que no terminaría en un tiempo razonable preguntándole a una lista.</p>
+<p><strong>Para pensar.</strong> <code>LinkedHashSet</code> hace todo lo que hace <code>HashSet</code> y además recuerda el orden de inserción. ¿Por qué no es entonces la elección por omisión?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.2.2 Clase `HistorialDeNavegacion`: la pila">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-22-contents" aria-controls="callout-22" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.2.2 Clase <code>HistorialDeNavegacion</code>: la pila
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-22" class="callout-22-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El botón «atrás» de un navegador es una <a href="../../es/contenido/tema2.html#imp-pila-cola">pila</a>: la última página que visitaste es la primera que recuperas. La estructura correcta en Java es un <code>ArrayDeque</code> —no <code>java.util.Stack</code>, por las razones del <a href="../../es/contenido/tema2.html#cau-usar-stack">Error Frecuente</a>—, y lo que de verdad se decide en este ejercicio es <strong>qué pareja de métodos usar</strong>.</p>
+<p>Escribe <code>HistorialDeNavegacion</code> con un <code>Deque&lt;String&gt;</code> por dentro:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb25-1"><a href="#cb25-1"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">visitar</span><span class="op">(</span><span class="bu">String</span> url<span class="op">)</span></span>
+<span id="cb25-2"><a href="#cb25-2"></a><span class="kw">public</span> Optional<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">actual</span><span class="op">()</span></span>
+<span id="cb25-3"><a href="#cb25-3"></a><span class="kw">public</span> Optional<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">atras</span><span class="op">()</span></span>
+<span id="cb25-4"><a href="#cb25-4"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">tamano</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong><code>visitar</code></strong> apila una página. Una <code>url</code> <code>null</code> o en blanco es <code>IllegalArgumentException</code>.</p></li>
+<li><p><strong><code>actual</code></strong> devuelve la página en la que estás, sin quitarla, o <code>Optional.empty()</code> si no has visitado ninguna.</p></li>
+<li><p><strong><code>atras</code></strong> retrocede: descarta la página actual y devuelve <strong>la anterior</strong>, que pasa a ser la actual. Si solo hay una página, o ninguna, no hay a dónde retroceder: no cambia nada y devuelve <code>Optional.empty()</code>.</p></li>
+<li><p><strong>La decisión.</strong> De la tabla de parejas de 2.2.3, <code>removeLast</code> lanza excepción con la pila vacía y <code>pollLast</code> devuelve <code>null</code>. Aquí la pila vacía es un caso <strong>esperado</strong> —un navegador recién abierto no es un error—, así que la pareja correcta es la que no lanza, y de ahí el <code>Optional</code> en el tipo de retorno. Escríbelo en un comentario de dos líneas.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1"></a><span class="dt">var</span> historial <span class="op">=</span> <span class="kw">new</span> <span class="fu">HistorialDeNavegacion</span><span class="op">();</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">actual</span><span class="op">());</span>     <span class="co">// Optional.empty</span></span>
+<span id="cb26-3"><a href="#cb26-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">atras</span><span class="op">());</span>      <span class="co">// Optional.empty</span></span>
+<span id="cb26-4"><a href="#cb26-4"></a></span>
+<span id="cb26-5"><a href="#cb26-5"></a>historial<span class="op">.</span><span class="fu">visitar</span><span class="op">(</span><span class="st">"uib.es"</span><span class="op">);</span></span>
+<span id="cb26-6"><a href="#cb26-6"></a>historial<span class="op">.</span><span class="fu">visitar</span><span class="op">(</span><span class="st">"uib.es/eps"</span><span class="op">);</span></span>
+<span id="cb26-7"><a href="#cb26-7"></a>historial<span class="op">.</span><span class="fu">visitar</span><span class="op">(</span><span class="st">"uib.es/eps/22354"</span><span class="op">);</span></span>
+<span id="cb26-8"><a href="#cb26-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">actual</span><span class="op">().</span><span class="fu">get</span><span class="op">());</span>   <span class="co">// uib.es/eps/22354</span></span>
+<span id="cb26-9"><a href="#cb26-9"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">tamano</span><span class="op">());</span>         <span class="co">// 3</span></span>
+<span id="cb26-10"><a href="#cb26-10"></a></span>
+<span id="cb26-11"><a href="#cb26-11"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">atras</span><span class="op">().</span><span class="fu">get</span><span class="op">());</span>    <span class="co">// uib.es/eps</span></span>
+<span id="cb26-12"><a href="#cb26-12"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">atras</span><span class="op">().</span><span class="fu">get</span><span class="op">());</span>    <span class="co">// uib.es</span></span>
+<span id="cb26-13"><a href="#cb26-13"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>historial<span class="op">.</span><span class="fu">atras</span><span class="op">());</span>          <span class="co">// Optional.empty  &lt;- ya es la primera</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban la secuencia de arriba completa, el historial vacío, que <code>atras</code> sobre una sola página no la borra, el rechazo de una <code>url</code> en blanco, y que <code>tamano</code> baja al retroceder.</p>
+<p><strong>Para pensar.</strong> Si en lugar del botón «atrás» esto fuera la pila de llamadas de la máquina virtual, donde sacar de una pila vacía significa que el programa está roto, ¿seguirías devolviendo <code>Optional</code>?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.2.3 Clase `Agenda`: el árbol de búsqueda">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-24-contents" aria-controls="callout-24" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.2.3 Clase <code>Agenda</code>: el árbol de búsqueda
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-24" class="callout-24-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Una tabla <em>hash</em> contesta «¿está esta clave?» y es incapaz de contestar «¿qué claves hay entre estas dos?», porque calcular la cubeta destruye el orden a propósito. Cuando el orden hace falta, la estructura es un <a href="../../es/contenido/tema2.html#imp-arbol-busqueda">árbol de búsqueda</a>. Este ejercicio es una agenda de un día, donde las tres preguntas que se hacen son justamente las que el árbol responde y la tabla no.</p>
+<p>Escribe <code>Agenda</code> con un <code>TreeMap&lt;LocalTime, String&gt;</code> por dentro:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb27-1"><a href="#cb27-1"></a><span class="kw">public</span> <span class="kw">record</span> <span class="fu">Cita</span><span class="op">(</span>LocalTime hora<span class="op">,</span> <span class="bu">String</span> texto<span class="op">)</span> <span class="op">{</span> <span class="op">}</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a></span>
+<span id="cb27-3"><a href="#cb27-3"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">anadir</span><span class="op">(</span>LocalTime hora<span class="op">,</span> <span class="bu">String</span> texto<span class="op">)</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a><span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span>Cita<span class="op">&gt;</span> <span class="fu">entre</span><span class="op">(</span>LocalTime desde<span class="op">,</span> LocalTime hasta<span class="op">)</span></span>
+<span id="cb27-5"><a href="#cb27-5"></a><span class="kw">public</span> Optional<span class="op">&lt;</span>Cita<span class="op">&gt;</span> <span class="fu">siguienteDespuesDe</span><span class="op">(</span>LocalTime hora<span class="op">)</span></span>
+<span id="cb27-6"><a href="#cb27-6"></a><span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span>Cita<span class="op">&gt;</span> <span class="fu">todas</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong><code>anadir</code>.</strong> Una hora, un texto. Si ya había una cita a esa hora, la <strong>sustituye</strong>, que es lo que hace <code>put</code>. Hora <code>null</code> o texto en blanco, excepción.</p></li>
+<li><p><strong><code>entre</code></strong> devuelve las citas desde <code>desde</code> <strong>incluido</strong> hasta <code>hasta</code> <strong>excluido</strong>, en orden de hora. Es <code>subMap(desde, true, hasta, false)</code>. Si <code>hasta</code> es anterior a <code>desde</code>, <code>IllegalArgumentException</code>.</p></li>
+<li><p><strong><code>siguienteDespuesDe</code></strong> devuelve la primera cita <strong>estrictamente posterior</strong> a la hora dada, o <code>Optional.empty()</code> si no hay ninguna. Es <code>higherEntry</code>, y conviene no confundirlo con <code>ceilingEntry</code>, que incluiría una cita a esa misma hora.</p></li>
+<li><p><strong><code>todas</code></strong> devuelve todas en orden de hora, que es el orden natural del recorrido del árbol: no hay que ordenar nada.</p></li>
+<li><p><strong>El comentario que se pide.</strong> Escribe qué método tendrías que escribir para contestar <code>entre</code> si la agenda fuera un <code>HashMap&lt;LocalTime, String&gt;</code>, y cuánto costaría.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb28-1"><a href="#cb28-1"></a><span class="dt">var</span> agenda <span class="op">=</span> <span class="kw">new</span> <span class="fu">Agenda</span><span class="op">();</span></span>
+<span id="cb28-2"><a href="#cb28-2"></a>agenda<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">9</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span> <span class="st">"claustro"</span><span class="op">);</span></span>
+<span id="cb28-3"><a href="#cb28-3"></a>agenda<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">30</span><span class="op">),</span> <span class="st">"clase de 22354"</span><span class="op">);</span></span>
+<span id="cb28-4"><a href="#cb28-4"></a>agenda<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">12</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span> <span class="st">"tutoria"</span><span class="op">);</span></span>
+<span id="cb28-5"><a href="#cb28-5"></a>agenda<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">16</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span> <span class="st">"reunion de departamento"</span><span class="op">);</span></span>
+<span id="cb28-6"><a href="#cb28-6"></a></span>
+<span id="cb28-7"><a href="#cb28-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>agenda<span class="op">.</span><span class="fu">entre</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">9</span><span class="op">,</span> <span class="dv">0</span><span class="op">),</span> LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">12</span><span class="op">,</span> <span class="dv">0</span><span class="op">)));</span></span>
+<span id="cb28-8"><a href="#cb28-8"></a><span class="co">// [Cita[hora=09:00, texto=claustro], Cita[hora=10:30, texto=clase de 22354]]</span></span>
+<span id="cb28-9"><a href="#cb28-9"></a></span>
+<span id="cb28-10"><a href="#cb28-10"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>agenda<span class="op">.</span><span class="fu">siguienteDespuesDe</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">10</span><span class="op">,</span> <span class="dv">30</span><span class="op">)));</span></span>
+<span id="cb28-11"><a href="#cb28-11"></a><span class="co">// Optional[Cita[hora=12:00, texto=tutoria]]</span></span>
+<span id="cb28-12"><a href="#cb28-12"></a></span>
+<span id="cb28-13"><a href="#cb28-13"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>agenda<span class="op">.</span><span class="fu">siguienteDespuesDe</span><span class="op">(</span>LocalTime<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="dv">16</span><span class="op">,</span> <span class="dv">0</span><span class="op">)));</span>   <span class="co">// Optional.empty</span></span>
+<span id="cb28-14"><a href="#cb28-14"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>agenda<span class="op">.</span><span class="fu">todas</span><span class="op">().</span><span class="fu">size</span><span class="op">());</span>                            <span class="co">// 4</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Fíjate en que la cita de las 12:00 <strong>no</strong> sale en el intervalo <code>[9:00, 12:00)</code>, y en que <code>siguienteDespuesDe(10:30)</code> no devuelve la de las 10:30.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el intervalo con los dos extremos, el intervalo vacío, la cita siguiente cuando existe y cuando no, que <code>anadir</code> dos veces a la misma hora sustituye, que <code>todas</code> sale en orden de hora aunque las citas se añadan desordenadas, y el rechazo de los argumentos inválidos.</p>
+<p><strong>Para pensar.</strong> <code>subMap</code> no copia: devuelve una <strong>vista</strong> del propio árbol. Si pidieras el intervalo y después añadieras una cita dentro de él, ¿qué le pasaría a la vista? ¿Y qué le pasa a la lista que devuelve tu <code>entre</code>?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.2.4 Clase `ResultadosMasLentos`: el montículo">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-26-contents" aria-controls="callout-26" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.2.4 Clase <code>ResultadosMasLentos</code>: el montículo
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-26" class="callout-26-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>«Dame el mínimo de un conjunto que cambia» es lo que responde una <a href="../../es/contenido/tema2.html#imp-monticulo">cola de prioridad</a>, y «dame los <span class="math inline">\(k\)</span> peores de muchos» es la misma estructura usada de otra manera. Este ejercicio es el segundo caso, sobre los datos del monitor, y trae dentro la trampa que todo el mundo pisa la primera vez.</p>
+<p>Escribe en <code>ResultadosMasLentos</code> un método de clase:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">masLentos</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> resultados<span class="op">,</span> <span class="dt">int</span> k<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que devuelva los <code>k</code> resultados de <strong>mayor latencia</strong>, de mayor a menor. Si hay menos de <code>k</code>, devuelve todos los que haya.</p>
+<ol type="1">
+<li><p><strong>El comparador.</strong> Una <code>PriorityQueue</code> saca siempre el <strong>mínimo</strong>, y aquí lo que interesa es el máximo, así que el comparador va invertido: <code>Comparator.comparing(Resultado::latencia).reversed()</code>. <code>Duration</code> es <code>Comparable</code>, de modo que no hay que convertir a milisegundos para compararlo.</p></li>
+<li><p><strong>Llenar y vaciar.</strong> Metes todos los resultados con <code>addAll</code> y sacas <code>k</code> veces con <code>poll</code>.</p></li>
+<li><p><strong>La trampa.</strong> Recorrer la cola —con un <code>for</code> mejorado, o imprimiéndola— <strong>no da los elementos ordenados</strong>: el iterador recorre el array interno del montículo, donde solo la raíz está garantizada en su sitio. La única forma de obtenerlos en orden es sacarlos, y con tres o cuatro elementos el recorrido suele salir ordenado por casualidad, lo que hace el error más difícil de ver. Está en el <a href="../../es/contenido/tema2.html#cau-iterar-priorityqueue">Error Frecuente sobre recorrer una <code>PriorityQueue</code></a>.</p></li>
+<li><p><strong>Validación.</strong> <code>k</code> menor que 1, <code>IllegalArgumentException</code>; lista <code>null</code>, <code>NullPointerException</code>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb30-1"><a href="#cb30-1"></a><span class="co">// Cinco resultados con latencias de 40, 900, 120, 650 y 30 ms.</span></span>
+<span id="cb30-2"><a href="#cb30-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado r <span class="op">:</span> ResultadosMasLentos<span class="op">.</span><span class="fu">masLentos</span><span class="op">(</span>resultados<span class="op">,</span> <span class="dv">3</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb30-3"><a href="#cb30-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>r<span class="op">.</span><span class="fu">servicio</span><span class="op">().</span><span class="fu">nombre</span><span class="op">()</span> <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> r<span class="op">.</span><span class="fu">latencia</span><span class="op">().</span><span class="fu">toMillis</span><span class="op">()</span> <span class="op">+</span> <span class="st">" ms"</span><span class="op">);</span></span>
+<span id="cb30-4"><a href="#cb30-4"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb31-1"><a href="#cb31-1"></a>dns:53 900 ms</span>
+<span id="cb31-2"><a href="#cb31-2"></a>web:80 650 ms</span>
+<span id="cb31-3"><a href="#cb31-3"></a>api:8080 120 ms</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Y con <code>k = 99</code> sobre esos cinco resultados, devuelve los cinco.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el ranking con <code>k</code> menor, igual y mayor que el número de resultados, la lista vacía, el rechazo de <code>k = 0</code>, y que la lista devuelta es inmutable. Una de ellas usa quince resultados <strong>colocados a propósito</strong> para que el array interno del montículo no quede ordenado: es la que falla si recorres la cola en lugar de vaciarla.</p>
+<p><strong>Para pensar.</strong> Esta versión mete los <span class="math inline">\(n\)</span> resultados en el montículo, así que cuesta <span class="math inline">\(O(n \log n)\)</span> y ocupa <span class="math inline">\(O(n)\)</span>. Con un montículo de <strong>tamaño <span class="math inline">\(k\)</span></strong> se puede hacer en <span class="math inline">\(O(n \log k)\)</span> y con memoria <span class="math inline">\(O(k)\)</span>, como explica el <a href="../../es/contenido/tema2.html#nte-k-peores">Ejemplo de los <span class="math inline">\(k\)</span> peores</a>. ¿Cuándo compensa la complicación, y qué permite la versión de tamaño <span class="math inline">\(k\)</span> que esta no permite?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="criterios-de-selección-de-estructura-según-operación-dominante" class="level2">
+<h2 class="anchored" data-anchor-id="criterios-de-selección-de-estructura-según-operación-dominante">2.3. Criterios de selección de estructura según operación dominante</h2>
+<p><strong>Plantilla:</strong> la misma de 2.2, <a href="https://github.com/UIB-22354-Programacion-Avanzada/t2-ejercicios-2-2-3"><code>t2-ejercicios-2-2-3</code></a></p>
+<p>Ejercicios sobre <a href="../../es/contenido/tema2.html#criterios-de-selección-de-estructura-según-operación-dominante">2.3 del tema</a>: elegir la estructura según lo que el programa pide, y comprobar con números que la elección fue la correcta.</p>
+<p>En los cuatro, el entregable es <strong>un recuento que coincida con una fórmula</strong>, igual que en 2.1: la diferencia entre dos estructuras no se argumenta, se cuenta. Los dos primeros usan el convenio del contador de la cabecera de esta página.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.3.1 Método `hayRepetido` de `RepetidosEjercicio`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-28-contents" aria-controls="callout-28" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.3.1 Método <code>hayRepetido</code> de <code>RepetidosEjercicio</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-28" class="callout-28-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El tema deja una promesa pendiente en 2.1.1: <code>Conteos.hayRepetido</code> compara todos los pares y es cuadrático, y el mismo problema <strong>metiendo cada elemento en un conjunto y preguntando si ya estaba es lineal</strong>. Este ejercicio cumple la promesa y la comprueba con los mismos arrays que <code>DemoConteos</code>. Es el ejercicio que demuestra que cambiar la estructura cambia el <strong>orden</strong>, no la constante.</p>
+<p>Escribe en <code>RepetidosEjercicio</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb32-1"><a href="#cb32-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">boolean</span> <span class="fu">hayRepetido</span><span class="op">(</span><span class="dt">int</span><span class="op">[]</span> datos<span class="op">)</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">ultimasOperaciones</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>El algoritmo.</strong> Un <code>HashSet&lt;Integer&gt;</code>, un recorrido, y para cada elemento intentar añadirlo: si <code>add</code> devuelve <code>false</code> es que ya estaba, y hay repetido. No hace falta <code>contains</code> <strong>y</strong> <code>add</code>: el valor de retorno de <code>add</code> dice las dos cosas, y así se recorre la tabla una vez en lugar de dos.</p></li>
+<li><p><strong>El recuento.</strong> Cuenta las iteraciones del cuerpo del bucle, anúncialas con <code>Recuento.anunciar("conConjunto", datos.length, operaciones, "n")</code> y guárdalas en <code>ultimasOperaciones()</code>, como dice el convenio de la cabecera. Cuando encuentres el repetido y salgas antes, la fórmula que se anuncia es <code>"n como maximo"</code>.</p></li>
+<li><p><strong>La comparación.</strong> Ejecútalo sobre los tres arrays de 2.000 elementos de <code>DemoConteos</code> —sin repetido, con el repetido en medio, con el repetido al principio— y pon los seis números en una tabla en un comentario, junto con la conclusión.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Los seis números, que son el ejercicio entero:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 27%">
+<col style="width: 36%">
+<col style="width: 36%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>El array de 2.000 elementos</th>
+<th style="text-align: right;"><code>Conteos.hayRepetido</code></th>
+<th style="text-align: right;"><code>RepetidosEjercicio.hayRepetido</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>sin repetido</td>
+<td style="text-align: right;">1 999 000</td>
+<td style="text-align: right;">2 000</td>
+</tr>
+<tr class="even">
+<td>con el repetido en medio</td>
+<td style="text-align: right;">1 498 501</td>
+<td style="text-align: right;">1 001</td>
+</tr>
+<tr class="odd">
+<td>con el repetido al principio</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>La tercera fila merece una mirada: ahí la versión cuadrática <strong>gana</strong>, porque encuentra el repetido en su primera comparación mientras que la del conjunto necesita dos inserciones. Es el mejor caso de la cuadrática, y no cambia nada de lo que dicen las dos primeras filas.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el resultado con y sin repetidos, el array vacío y el de un elemento, y los recuentos: <code>datos.length</code> cuando no hay repetido, y la posición del primer repetido más uno cuando lo hay. Hay además una con cien mil elementos, que con el conjunto pasa al instante.</p>
+<p><strong>Para pensar.</strong> El conjunto gasta memoria <span class="math inline">\(O(n)\)</span> que la versión cuadrática no gasta. ¿Hay algún tamaño de entrada, o alguna situación, en la que prefieras la lenta?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.3.2 Clase `ConsumirPorElPrincipio`: por el extremo equivocado">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-30-contents" aria-controls="callout-30" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.3.2 Clase <code>ConsumirPorElPrincipio</code>: por el extremo equivocado
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-30" class="callout-30-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Consumir elementos por el principio de un <code>ArrayList</code> con <code>remove(0)</code> es el error de la tabla de costes de 2.2.2 que más veces se comete, porque el bucle que lo hace <strong>se lee como si fuera lineal</strong>. Este ejercicio escribe las dos versiones y cuenta la diferencia.</p>
+<p>Escribe en <code>ConsumirPorElPrincipio</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb33"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb33-1"><a href="#cb33-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> <span class="fu">conLista</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> <span class="fu">conDeque</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span></span>
+<span id="cb33-3"><a href="#cb33-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">ultimosDesplazamientos</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Las dos primeras construyen los números de 1 a <code>n</code>, los consumen <strong>por el principio</strong> hasta vaciar la colección y devuelven la lista de lo consumido, en el orden en que salió. Tienen que devolver exactamente lo mismo.</p>
+<ol type="1">
+<li><p><strong><code>conLista</code></strong> usa un <code>ArrayList</code> y lo consume con <code>remove(0)</code>. Antes de cada <code>remove</code>, suma al contador <strong>cuántos elementos va a desplazar</strong>, que son todos los que quedan menos el que se quita. El total sale <span class="math inline">\(n(n-1)/2\)</span>.</p></li>
+<li><p><strong><code>conDeque</code></strong> usa un <code>ArrayDeque</code> declarado como <code>Deque</code> y lo consume con <code>pollFirst</code>, que no desplaza nada porque un array circular solo mueve un índice. Aquí no hay nada que contar: el coste es <span class="math inline">\(O(1)\)</span> por elemento.</p></li>
+<li><p><strong>El bucle de <code>conDeque</code>.</strong> <code>pollFirst</code> devuelve <code>null</code> cuando la cola se vacía, así que el bucle natural es <code>while ((siguiente = cola.pollFirst()) != null)</code>. Con <code>removeFirst</code> habría que preguntar <code>isEmpty()</code> antes de cada vuelta; las dos valen y la primera es la que la tabla de parejas recomienda cuando vaciarse es lo normal.</p></li>
+<li><p><strong>Validación.</strong> <code>n</code> menor que 1, <code>IllegalArgumentException</code>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb34"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb34-1"><a href="#cb34-1"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ConsumirPorElPrincipio<span class="op">.</span><span class="fu">conLista</span><span class="op">(</span><span class="dv">5</span><span class="op">));</span>                  <span class="co">// [1, 2, 3, 4, 5]</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ConsumirPorElPrincipio<span class="op">.</span><span class="fu">ultimosDesplazamientos</span><span class="op">());</span>     <span class="co">// 10</span></span>
+<span id="cb34-3"><a href="#cb34-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>ConsumirPorElPrincipio<span class="op">.</span><span class="fu">conDeque</span><span class="op">(</span><span class="dv">5</span><span class="op">));</span>                  <span class="co">// [1, 2, 3, 4, 5]</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Y la tabla que hay que mirar:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;"><span class="math inline">\(n\)</span></th>
+<th style="text-align: right;">desplazamientos con <code>remove(0)</code></th>
+<th style="text-align: right;">con <code>pollFirst</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">5</td>
+<td style="text-align: right;">10</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">1 000</td>
+<td style="text-align: right;">499 500</td>
+<td style="text-align: right;">0</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">10 000</td>
+<td style="text-align: right;">49 995 000</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que los dos métodos devuelven la misma lista en el mismo orden para varios tamaños, que el contador es exactamente <span class="math inline">\(n(n-1)/2\)</span>, y el rechazo de un <code>n</code> inválido.</p>
+<p><strong>Para pensar.</strong> La tabla de 2.2.2 dice que una <code>LinkedList</code> también añade y quita por los extremos en <span class="math inline">\(O(1)\)</span>, así que para este problema sería igual de buena que <code>ArrayDeque</code>. ¿Por qué el tema recomienda <code>ArrayDeque</code> de todas formas?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.3.3 Clase `Telefonos`: tabla o árbol">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-32-contents" aria-controls="callout-32" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.3.3 Clase <code>Telefonos</code>: tabla o árbol
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-32" class="callout-32-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Las dos estructuras de clave-valor del tema responden bien a preguntas distintas, y la forma de elegir es mirar <strong>qué preguntas hace el programa</strong>, que es el método de <a href="../../es/contenido/tema2.html#imp-operacion-dominante">la operación dominante</a>. Una guía de teléfonos hace dos, y cada una tira para un lado.</p>
+<p>Escribe <code>Telefonos</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb35-1"><a href="#cb35-1"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">anadir</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">,</span> <span class="bu">String</span> telefono<span class="op">)</span></span>
+<span id="cb35-2"><a href="#cb35-2"></a><span class="kw">public</span> Optional<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">telefonoDe</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">)</span></span>
+<span id="cb35-3"><a href="#cb35-3"></a><span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">nombresQueEmpiezanPor</span><span class="op">(</span><span class="bu">String</span> prefijo<span class="op">)</span></span>
+<span id="cb35-4"><a href="#cb35-4"></a><span class="kw">public</span> <span class="dt">int</span> <span class="fu">tamano</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ol type="1">
+<li><p><strong>La estructura.</strong> Un <code>TreeMap&lt;String, String&gt;</code>. La primera pregunta la contestarían las dos, la segunda solo el árbol, así que gana el árbol — y el coste que se paga por ello es que <code>telefonoDe</code> pasa de <span class="math inline">\(O(1)\)</span> esperado a <span class="math inline">\(O(\log n)\)</span> garantizado.</p></li>
+<li><p><strong><code>nombresQueEmpiezanPor</code></strong> devuelve los nombres que empiezan por el prefijo, en orden alfabético. Sale en tres líneas y sin comparar con todos: <code>tailMap(prefijo, true)</code> da los nombres desde el prefijo en adelante, y como vienen en orden, basta <strong>recorrer hasta el primero que ya no empieza por el prefijo y parar</strong>. Un prefijo vacío devuelve todos los nombres, porque toda cadena empieza por la cadena vacía.</p></li>
+<li><p><strong>El comentario que se pide.</strong> Cuál de las dos preguntas podría contestar un <code>HashMap</code>, qué costaría la otra con un <code>HashMap</code>, y por qué el orden de las claves del árbol <strong>es</strong> el índice que hace barata la segunda.</p></li>
+<li><p><strong>Validación.</strong> Nombre o teléfono en blanco, <code>IllegalArgumentException</code>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb36"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb36-1"><a href="#cb36-1"></a><span class="dt">var</span> guia <span class="op">=</span> <span class="kw">new</span> <span class="fu">Telefonos</span><span class="op">();</span></span>
+<span id="cb36-2"><a href="#cb36-2"></a>guia<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"Marcos"</span><span class="op">,</span> <span class="st">"971 10 10 10"</span><span class="op">);</span></span>
+<span id="cb36-3"><a href="#cb36-3"></a>guia<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"Maria"</span><span class="op">,</span>  <span class="st">"971 20 20 20"</span><span class="op">);</span></span>
+<span id="cb36-4"><a href="#cb36-4"></a>guia<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"Marta"</span><span class="op">,</span>  <span class="st">"971 30 30 30"</span><span class="op">);</span></span>
+<span id="cb36-5"><a href="#cb36-5"></a>guia<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"Pau"</span><span class="op">,</span>    <span class="st">"971 40 40 40"</span><span class="op">);</span></span>
+<span id="cb36-6"><a href="#cb36-6"></a>guia<span class="op">.</span><span class="fu">anadir</span><span class="op">(</span><span class="st">"Laia"</span><span class="op">,</span>   <span class="st">"971 50 50 50"</span><span class="op">);</span></span>
+<span id="cb36-7"><a href="#cb36-7"></a></span>
+<span id="cb36-8"><a href="#cb36-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>guia<span class="op">.</span><span class="fu">telefonoDe</span><span class="op">(</span><span class="st">"Maria"</span><span class="op">));</span>            <span class="co">// Optional[971 20 20 20]</span></span>
+<span id="cb36-9"><a href="#cb36-9"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>guia<span class="op">.</span><span class="fu">telefonoDe</span><span class="op">(</span><span class="st">"Joan"</span><span class="op">));</span>             <span class="co">// Optional.empty</span></span>
+<span id="cb36-10"><a href="#cb36-10"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>guia<span class="op">.</span><span class="fu">nombresQueEmpiezanPor</span><span class="op">(</span><span class="st">"Mar"</span><span class="op">));</span>   <span class="co">// [Marcos, Maria, Marta]</span></span>
+<span id="cb36-11"><a href="#cb36-11"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>guia<span class="op">.</span><span class="fu">nombresQueEmpiezanPor</span><span class="op">(</span><span class="st">"Z"</span><span class="op">));</span>     <span class="co">// []</span></span>
+<span id="cb36-12"><a href="#cb36-12"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>guia<span class="op">.</span><span class="fu">nombresQueEmpiezanPor</span><span class="op">(</span><span class="st">""</span><span class="op">));</span>      <span class="co">// [Laia, Marcos, Maria, Marta, Pau]</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban la búsqueda exacta, el nombre que no está, el prefijo con varios resultados, el prefijo sin ninguno, el prefijo vacío, el prefijo que coincide exactamente con un nombre, y el caso de mil nombres cargados. Lo que las pruebas <strong>no</strong> pueden ver es si tu búsqueda por prefijo recorre la guía entera en lugar de parar: eso se juzga leyendo el código, y es parte del ejercicio.</p>
+<p><strong>Para pensar.</strong> Si las dos preguntas se hicieran con la misma frecuencia y el programa tuviera un millón de nombres, ¿mantendrías las dos estructuras a la vez, un <code>HashMap</code> para la exacta y un <code>TreeMap</code> para el prefijo? ¿Qué te costaría?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="2.3.4 Clase `ComparativaRepositorios`: el método, aplicado al monitor">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-34-contents" aria-controls="callout-34" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>2.3.4 Clase <code>ComparativaRepositorios</code>: el método, aplicado al monitor
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-34" class="callout-34-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El cierre del tema: las dos versiones del repositorio —la lista única del Tema 1 y el índice por servicio de 2.2.4— ejecutadas sobre la misma carga y comparadas <strong>contando</strong>, no cronometrando, porque un cronómetro mide también la máquina y el recuento no. Es el ejercicio 2.1.9 con la segunda versión al lado.</p>
+<p>Escribe en <code>ComparativaRepositorios</code> dos métodos de clase:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb37"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb37-1"><a href="#cb37-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">examinadosConListaUnica</span><span class="op">(</span><span class="dt">int</span> rondas<span class="op">,</span> <span class="dt">int</span> numServicios<span class="op">)</span></span>
+<span id="cb37-2"><a href="#cb37-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">examinadosConIndice</span><span class="op">(</span><span class="dt">int</span> rondas<span class="op">,</span> <span class="dt">int</span> numServicios<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Cada uno reproduce una ejecución completa del monitor —en cada ronda y para cada servicio, guardar un resultado y después pedir el historial de ese servicio— y devuelve <strong>cuántos resultados se han examinado</strong> al responder los historiales. No necesitas el <code>Monitor</code> ni las clases del repositorio: con una <code>List&lt;Resultado&gt;</code> en el primer caso y un <code>HashMap&lt;Servicio, List&lt;Resultado&gt;&gt;</code> en el segundo, dentro del propio método, es suficiente.</p>
+<ol type="1">
+<li><p><strong>Qué cuenta como «examinado».</strong> Un resultado mirado al construir la respuesta: en la lista única, los <code>equals</code> contra el servicio pedido; en el índice, los elementos que se copian de la lista del servicio. Es la misma unidad en los dos, que es lo que permite dividir un número por el otro.</p></li>
+<li><p><strong>Los servicios</strong> se crean con <code>new ServicioTcp("s" + i, 9000 + i)</code>, y lo único que importa es que sean distintos entre sí y que su <code>equals</code> sea por valor, que lo es por ser <code>record</code>.</p></li>
+<li><p><strong>Las dos fórmulas</strong>, que las pruebas comprueban y que hay que escribir en un comentario. Con <span class="math inline">\(r\)</span> rondas, <span class="math inline">\(s\)</span> servicios y <span class="math inline">\(N = r \cdot s\)</span> resultados al final: la lista única examina <span class="math inline">\(N(N+1)/2\)</span>, porque en la llamada <span class="math inline">\(k\)</span>-ésima tiene <span class="math inline">\(k\)</span> resultados y los recorre todos; el índice examina <span class="math inline">\(s \cdot r(r+1)/2\)</span>, porque cada llamada solo copia los del servicio preguntado, que son tantos como rondas van.</p></li>
+<li><p><strong>La conclusión</strong>, también en un comentario: qué operación dominaba, cuánto mejora el índice, y por qué —esto es lo importante— <strong>el índice sigue siendo cuadrático en las rondas</strong>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Con 20 servicios:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: right;">Rondas</th>
+<th style="text-align: right;">Lista única</th>
+<th style="text-align: right;">Índice</th>
+<th style="text-align: right;">Cociente</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: right;">100</td>
+<td style="text-align: right;">2 001 000</td>
+<td style="text-align: right;">101 000</td>
+<td style="text-align: right;">19,8</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">200</td>
+<td style="text-align: right;">8 002 000</td>
+<td style="text-align: right;">402 000</td>
+<td style="text-align: right;">19,9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: right;">400</td>
+<td style="text-align: right;">32 004 000</td>
+<td style="text-align: right;">1 604 000</td>
+<td style="text-align: right;">20,0</td>
+</tr>
+<tr class="even">
+<td style="text-align: right;">800</td>
+<td style="text-align: right;">128 008 000</td>
+<td style="text-align: right;">6 408 000</td>
+<td style="text-align: right;">20,0</td>
+</tr>
+</tbody>
+</table>
+<p>Dos cosas que leer en la tabla. El cociente tiende a 20, que es el número de servicios: lo que el índice elimina es exactamente el factor <span class="math inline">\(s\)</span>, y eso es lo que el tema anuncia. Y las dos columnas se multiplican <strong>por cuatro</strong> al duplicar las rondas, así que las dos son cuadráticas en <span class="math inline">\(r\)</span>: el índice mejora veinte veces y no arregla el problema de fondo.</p>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban los dos recuentos contra sus fórmulas para varias parejas de rondas y servicios, incluidas las dos primeras filas de la tabla —las otras dos las produces tú, y tardan unos segundos—; que el cociente se acerca al número de servicios; que al duplicar las rondas los dos se multiplican por cuatro; y el rechazo de los argumentos inválidos.</p>
+<p><strong>Para pensar.</strong> La medición dice que el índice mejora veinte veces y deja el problema sin resolver. ¿Qué podrías haber calculado <strong>antes</strong> de programarlo para saberlo, y por qué crees que el tema lo programó y lo midió de todas formas?</p>
 </div>
 </div>
 </div>
