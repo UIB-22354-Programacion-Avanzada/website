@@ -143,20 +143,51 @@ frase: la concurrencia consiste en *ocuparse* de muchas cosas a la vez; el paral
 :::
 
 Para el monitor la distinción importa mucho, porque lo que se gana con la concurrencia no viene
-del paralelismo. Veinte sondas esperando a la red no necesitan veinte núcleos: necesitan que
-alguien se ocupe de las veinte a la vez, y un solo núcleo basta para eso, porque mientras esperan
-no usan el procesador. Las tareas se dividen en dos grandes clases según en qué se les va el
-tiempo, y cada una se beneficia de la concurrencia de una forma distinta:
+del paralelismo. La forma más útil de clasificar una tarea es preguntarse **en qué se le va el
+tiempo**: si la mayor parte la pasa ejecutando instrucciones o esperando a que algo de fuera le
+conteste. De la respuesta depende todo lo demás.
 
 | | Limitada por cálculo (*CPU-bound*) | Limitada por la entrada/salida (*I/O-bound*) |
 |---|---|---|
-| En qué se le va el tiempo | en operaciones del procesador | en esperar: a la red, al disco, a otro programa |
-| Ejemplos | comprimir un fichero, ordenar un millón de elementos, cifrar | una consulta HTTP, una sonda, leer de una base de datos |
-| Qué gana con más tareas a la vez | hasta tantas como núcleos, y no más | muchas más que núcleos: mientras unas esperan, otras avanzan |
-| Lo que la limita | el número de núcleos y la parte que no se puede repartir | cuántas esperas se pueden mantener abiertas a la vez |
+| En qué se le va el tiempo | en ejecutar instrucciones | en esperar: a la red, al disco, a otro programa |
+| Qué hace el núcleo mientras tanto | trabajar para ella | nada: queda libre para otra tarea |
+| Ejemplos | comprimir un fichero, ordenar un millón de elementos, cifrar | una consulta HTTP, una [sonda]{.glos}, una consulta a una base de datos |
+| Cuántas tareas a la vez compensan | tantas como núcleos | muchas más que núcleos |
+| Lo que pone el techo | el número de núcleos y la parte que no se puede repartir | cuántas esperas puedes mantener abiertas, y lo que aguante el otro extremo |
 
-La primera fila de esa tabla tiene un límite que conviene conocer antes de entusiasmarse con los
-núcleos.
+La fila que lo explica todo es la segunda. Una tarea limitada por cálculo **ocupa el núcleo** todo
+el tiempo que dura. Si tienes dos núcleos y lanzas veinte tareas de este tipo, solo avanzan dos a
+la vez y las otras dieciocho hacen cola. Repartirlas en veinte hilos no las acelera: añade el coste
+de que el sistema operativo vaya cambiando de una a otra. Con $N$ núcleos, la aceleración nunca
+puede pasar de $N$, y en la práctica se queda por debajo.
+
+Una tarea limitada por la entrada/salida **no ocupa el núcleo mientras espera**. Una sonda que manda
+un paquete y aguarda 200 ms la respuesta usa el procesador una fracción minúscula de ese tiempo; el
+resto, el núcleo está libre. Si en ese hueco otras diecinueve sondas mandan sus paquetes, las veinte
+esperas transcurren **a la vez**, y la ronda dura lo que la espera más larga, no lo que la suma de
+todas. Por eso aquí compensan muchas más tareas que núcleos: lo que se reparte no es el procesador,
+es el [tiempo de espera]{.glos}.
+
+**En el monitor.** Lo verás medido en 3.1.3. En una máquina con **dos núcleos**, la ronda de veinte
+sondas tarda 4.574 ms en secuencia y 1.004 ms con un hilo por sonda: es **cuatro veces y media** más
+rápida. Con tareas de cálculo eso sería imposible, porque dos núcleos no dan para más que el doble.
+Y los 1.004 ms no los decide el número de núcleos sino la espera más larga: la de los servicios
+caídos, que agotan su tiempo de espera de un segundo.
+
+La mayoría de las tareas reales mezclan las dos cosas, y la pregunta pasa a ser *en qué proporción*.
+Goetz da una regla para dimensionar un conjunto de hilos que lo resume [@goetz2006]: si $W$ es el
+tiempo que cada tarea pasa esperando y $C$ el que pasa calculando, el número de hilos que mantiene
+ocupados $N$ núcleos es
+
+$$N_{\text{hilos}} \approx N \cdot \left(1 + \frac{W}{C}\right)$$
+
+Para una tarea de cálculo puro, $W = 0$ y salen tantos hilos como núcleos. Para una sonda que,
+pongamos, calcula una décima de milisegundo por cada 200 ms de espera, $W/C = 2.000$, y dos núcleos
+podrían mantener unos cuatro mil hilos ocupados. La fórmula no da un número exacto. Lo que enseña es
+el orden de magnitud, y que **la respuesta depende de la tarea, no de la máquina**.
+
+La columna de las tareas de cálculo tiene además un límite que conviene conocer antes de
+entusiasmarse con los núcleos.
 
 ::: {#tip-amdahl .callout-tip title="La ley de Amdahl: la parte secuencial pone el techo"}
 Si una fracción $p$ del trabajo de un programa se puede repartir entre $N$ núcleos y el resto,
