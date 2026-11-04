@@ -224,9 +224,9 @@ Esta cuenta es la que justifica los hilos virtuales de la sección 3.3, y la pro
 los introdujo en Java la usa como argumento [@jep444].
 :::
 
-**Amdahl** muestra que, en un programa que calcula, **la parte que no se puede repartir pone un techo a la aceleración**, por muchos núcleos que añadas. Si solo una fracción $p$ del trabajo se reparte entre los núcleos, el resto, $1-p$, tarda lo mismo con uno que con mil. Eso limita la aceleración a $1/(1-p)$. Con un 90 % repartible no pasas de 10, y con 16 núcleos te quedas en 6,4. La consecuencia práctica es que, para acelerar, conviene atacar antes la parte secuencial que comprar núcleos. También explica por qué la columna de cálculo de la tabla «no da para más».
-
-**Little** muestra cuánta concurrencia hace falta en un sistema que atiende peticiones: **las peticiones en curso son las que llegan por segundo multiplicadas por lo que dura cada una**, $L = \lambda W$. Leída al revés, si cada petición ocupa un hilo mientras espera, el número de hilos limita el rendimiento: $\lambda \le \text{hilos}/W$. Con 100 hilos y esperas de 200 ms no pasas de 500 peticiones por segundo, tengas los núcleos que tengas. Es la ley de la columna de entrada/salida y el argumento a favor de los hilos virtuales.
+Las dos leyes ponen techo a las dos columnas de la tabla. En un programa que calcula, el techo lo
+pone la parte que no se reparte, por muchos núcleos que añadas (Amdahl). En uno que espera, lo pone
+cuántas esperas puedes tener abiertas a la vez, tengas los núcleos que tengas (Little).
 
 Queda una distinción por hacer, la que separa los dos tipos de tarea que el sistema operativo sabe
 ejecutar a la vez.
@@ -247,7 +247,7 @@ con solo leer y escribir los mismos objetos— y el origen de todos los errores 
 
 ### 3.1.2 Hilos en Java
 
-Para que una tarea se ejecute de forma concurrente junto a otras tareas en un programa hacen falta dos cosas: **qué tarea** hay que hacer y **quién** la hace. Java las separa en dos tipos:
+Para que un trozo de código se ejecute a la vez que el resto del programa hacen falta dos cosas: **qué** hay que hacer y **quién** lo hace. Java las separa en dos tipos:
 
 - **La tarea** es un `Runnable`: una interfaz funcional con un único método, `run`, sin parámetros ni resultado. Es el «qué», un trozo de código empaquetado como objeto.
 - **El hilo** es un objeto de la clase `Thread`, el «quién». Recibe una tarea y, cuando se le pone en marcha, la ejecuta por su cuenta, a la vez que el hilo que lo creó.
@@ -323,9 +323,9 @@ Las cuatro formas, de la más antigua a la más moderna:
 3. **Una lambda.** Como `Runnable` es una interfaz funcional, la tarea se escribe en el sitio con una [lambda del Tema 1](tema1.qmd#lambdas-e-interfaces-funcionales), o con una referencia a método. Es lo mismo que la forma 2 sin la clase, y es lo habitual.
 4. **El constructor de hilos** `Thread.ofPlatform()`, disponible desde Java 21. Configura el hilo paso a paso (su nombre, si es un hilo demonio) y lo crea con `unstarted(tarea)` o lo arranca directamente con `start(tarea)`. Hace lo mismo que la forma 3, pero su interés está en que existe un gemelo, `Thread.ofVirtual()`, que crea los hilos virtuales de 3.3 con la misma escritura.
 
-Las cuatro salidas cuentan además lo esencial del tema antes de empezarlo: **el orden cambia en cada ejecución**. Los cuatro hilos se arrancan en el mismo orden, uno detrás de otro, y aun así saludan en el orden que el sistema operativo decide. Lo único que no cambia es la última línea, y enseguida verás por qué.
+Las tres ejecuciones cuentan además lo esencial del tema antes de empezarlo: **el orden cambia en cada ejecución**. Los cuatro hilos se arrancan en el mismo orden, uno detrás de otro, y aun así saludan en el orden que el sistema operativo decide. Lo único que no cambia es la última línea, y enseguida verás por qué.
 
-Lo que aún no hace ninguna de las cuatro es **devolver un resultado**. El método `run` no devuelve nada ni puede lanzar excepciones comprobadas, y para una sonda, cuyo sentido es devolver un resultado, eso es una limitación seria. En esta sección se rodea guardando el resultado en algún sitio compartido, que es justo lo que va a traer problemas en 3.1.4. La solución de verdad, `Callable` y `Future`, llega en 3.2.
+Lo que aún no hace ninguna de las cuatro es **devolver un resultado**. El método `run` no devuelve nada ni puede lanzar excepciones comprobadas, y para una sonda, cuyo sentido es devolver un resultado, eso es una limitación seria. En esta sección se rodea guardando cada resultado en el repositorio del monitor, que comparten todos los hilos, y eso es justo lo que va a traer problemas en 3.1.4. La solución de verdad, `Callable` y `Future`, llega en 3.2.
 
 Crear un hilo, se haga como se haga, no lo pone en marcha: lo pone en marcha el método `start`, que vuelve inmediatamente y deja al hilo nuevo ejecutándose **a la vez** que el que lo arrancó. El método `join` hace lo contrario: bloquea al hilo que lo llama hasta que el otro termina. El ejemplo siguiente lo muestra con dos hilos que tardan distinto.
 
