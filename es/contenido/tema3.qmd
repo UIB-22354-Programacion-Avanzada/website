@@ -168,11 +168,11 @@ esperas transcurren **a la vez**, y la ronda dura lo que la espera más larga, n
 todas. Por eso aquí compensan muchas más tareas que núcleos: lo que se reparte no es el procesador,
 es el [tiempo de espera]{.glos}.
 
-**En el monitor.** Lo verás medido en 3.1.3. En una máquina con **dos núcleos**, la ronda de veinte
-sondas tarda 4.574 ms en secuencia y 1.004 ms con un hilo por sonda: es **cuatro veces y media** más
-rápida. Con tareas de cálculo eso sería imposible, porque dos núcleos no dan para más que el doble.
-Y los 1.004 ms no los decide el número de núcleos sino la espera más larga: la de los servicios
-caídos, que agotan su tiempo de espera de un segundo.
+**En el monitor.** Lo verás medido en la ampliación de 3.1.3. En una máquina con **dos núcleos**, la
+ronda de veinte sondas tarda 4.574 ms en secuencia y 1.004 ms con un hilo por sonda: es **cuatro
+veces y media** más rápida. Con tareas de cálculo eso sería imposible, porque dos núcleos no dan
+para más que el doble. Y los 1.004 ms no los decide el número de núcleos sino la espera más larga:
+la de los servicios caídos, que agotan su tiempo de espera de un segundo.
 
 La mayoría de las tareas reales mezclan las dos cosas, y la pregunta pasa a ser *en qué proporción*.
 Goetz da una regla para dimensionar un conjunto de hilos que lo resume [@goetz2006]: si $W$ es el
@@ -459,6 +459,7 @@ Es lo que hacen todos los ejemplos de este tema.
 
 ### 3.1.3 El monitor con un hilo por servicio
 
+:::: {.ampliacion}
 **En el monitor.** Para medir lo que se gana hace falta una sonda que tarde lo que tarda la red. La
 `SondaSimulada` del Tema 1 devolvía una [latencia]{.glos} inventada al instante, y aquí no sirve:
 lo que interesa medir es precisamente la espera. La clase `SondaLenta` es otra subclase de la
@@ -673,10 +674,129 @@ secciones siguientes.
 
 Y este programa tiene un error que la medida no enseña.
 
+La ronda con hilos guarda los resultados desde veinte hilos a la vez en el mismo repositorio, y en
+el [Tema 2](tema2.qmd#lo-que-la-biblioteca-no-trae) quedó dicho que ninguna de las estructuras de
+la biblioteca estándar es segura si varios hilos la modifican a la vez. Le pasa al
+`RepositorioEnMemoria` del Tema 1, que es el que usa la ronda, y le pasa más aún al
+`RepositorioConVentana` del Tema 2, que por dentro son dos `HashMap` y una `ArrayDeque` por
+servicio. Con veinte servicios y una ronda, el choque es improbable y el programa parece funcionar.
+Para ver lo que pasa cuando el choque ocurre basta con forzarlo: una **prueba de esfuerzo** con
+ocho hilos que guardan veinte mil resultados cada uno en el mismo `RepositorioConVentana`.
+
+```java
+// DemoRepositorioCompartido.java
+package es.uib.prgava.tema3.monitor;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import es.uib.prgava.tema1.monitor.Estado;
+import es.uib.prgava.tema1.monitor.RepositorioResultados;
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+import es.uib.prgava.tema2.monitor.RepositorioConVentana;
+
+/**
+ * Prueba de esfuerzo: ocho hilos guardan veinte mil resultados cada uno en el mismo repositorio,
+ * repartidos entre cincuenta servicios. Primero en el repositorio del Tema 2 tal cual, después
+ * envuelto en el decorador sincronizado.
+ */
+public final class DemoRepositorioCompartido {
+
+    private DemoRepositorioCompartido() { }
+
+    private static final int HILOS = 8;
+    private static final int POR_HILO = 20_000;
+
+    private static void esforzar(String nombre, RepositorioResultados repositorio)
+            throws InterruptedException {
+        List<Servicio> servicios = Escenario.servicios(50);
+        var reventados = new AtomicInteger();
+
+        Thread[] hilos = new Thread[HILOS];
+        for (int h = 0; h < HILOS; h++) {
+            final int desplazamiento = h;
+            hilos[h] = new Thread(() -> {
+                try {
+                    for (int k = 0; k < POR_HILO; k++) {
+                        Servicio servicio = servicios.get((k + desplazamiento) % servicios.size());
+                        repositorio.guardar(new Resultado(servicio, Instant.EPOCH, Estado.ACTIVO, Duration.ZERO));
+                    }
+                } catch (RuntimeException e) {
+                    reventados.incrementAndGet();
+                    System.out.println("      un hilo revienta con " + e.getClass().getSimpleName());
+                }
+            });
+            hilos[h].start();
+        }
+        for (Thread hilo : hilos) {
+            hilo.join();
+        }
+
+        long guardados = 0;
+        for (Servicio servicio : repositorio.servicios()) {
+            guardados += repositorio.historial(servicio).size();
+        }
+        System.out.printf("   %-28s esperados %d, guardados %d, hilos reventados %d%n",
+                nombre, HILOS * POR_HILO, guardados, reventados.get());
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        esforzar("RepositorioConVentana:", new RepositorioConVentana(10));
+        esforzar("RepositorioSincronizado:", new RepositorioSincronizado(new RepositorioConVentana(10)));
+    }
+}
+```
+
+Una ejecución, con la primera línea del resumen, que es la del repositorio del Tema 2 tal cual:
+
+```text
+      un hilo revienta con ConcurrentModificationException
+      un hilo revienta con ConcurrentModificationException
+      un hilo revienta con ConcurrentModificationException
+      un hilo revienta con NoSuchElementException
+      un hilo revienta con NoSuchElementException
+      un hilo revienta con NoSuchElementException
+   RepositorioConVentana:       esperados 160000, guardados 45755, hilos reventados 6
+   RepositorioSincronizado:     esperados 160000, guardados 160000, hilos reventados 0
+```
+
+La segunda línea del resumen es la del arreglo que viene en 3.1.5; la que importa ahora es la
+primera. En esta ejecución no se han perdido unos cuantos resultados: se han perdido **más de dos
+de cada tres**. Y seis de los ocho hilos han muerto con
+excepciones lanzadas **desde dentro de la biblioteca de Java**. Si la repites, los números bailan
+mucho —en ocho ejecuciones seguidas se perdió desde un tercio hasta casi todo, y reventaron entre
+tres y ocho hilos—, pero en ninguna salió bien la primera línea. La `NoSuchElementException` sale de la `ArrayDeque` de
+la ventana, que al estar llena intenta descartar el elemento más antiguo y se encuentra vacía,
+porque otro hilo la estaba modificando a medias. La `ConcurrentModificationException` sale del
+`computeIfAbsent` del `HashMap`, que detecta que el mapa ha cambiado mientras él trabajaba: es la
+única de las dos excepciones cuyo nombre dice la verdad.
+
+Lo que enseña este experimento es que, cuando varios hilos modifican a la vez una estructura de
+datos, no solo se pierden datos: se **rompen los invariantes** de la estructura, que deja de ser
+una lista o un mapa coherente y pasa a ser un amasijo de referencias a medio actualizar. Lo que
+ocurra después ya no tiene nada que ver con el código que escribiste. Por qué pasa, y cómo se
+evita, es lo que explican 3.1.4 y 3.1.5 con un ejemplo mucho más pequeño.
+::::
+
 ### 3.1.4 Condiciones de carrera
 
-Para verlo hace falta un ejemplo más pequeño que el monitor. Cuatro hilos incrementan un mismo
-contador un millón de veces cada uno; al final, el contador debería valer cuatro millones.
+Cuando varios hilos trabajan sobre el mismo dato, cada uno ejecuta sus operaciones en orden, pero
+**nada fija cómo se intercalan las de un hilo con las del otro**. Casi siempre eso da igual. Pero si
+una operación que parece única se compone en realidad de varios pasos (leer un valor, calcular el
+nuevo y escribirlo), otro hilo puede colarse entre esos pasos y trabajar con un valor que está a
+punto de dejar de ser válido. El resultado es que una de las dos operaciones se pierde o deja el
+dato a medias.
+
+A eso se le llama **condición de carrera**: el resultado depende de qué hilo llega antes a cada
+paso, como en una carrera, y eso no lo controla el programa sino el sistema operativo. Lo
+traicionero es que casi siempre sale bien. El error aparece de tarde en tarde, cambia de una
+ejecución a otra y desaparece en cuanto intentas observarlo de cerca.
+
+Un ejemplo pequeño lo muestra. Cuatro hilos incrementan un mismo contador un millón de veces cada
+uno; al final, el contador debería valer cuatro millones.
 
 ```java
 // DemoCarrera.java
@@ -766,119 +886,14 @@ En el ejemplo, la sección crítica es `contador++`. Es una sola línea de Java 
 operaciones del procesador, y precisamente por eso no parece una sección crítica.
 :::
 
-**En el monitor.** El contador es un ejemplo de juguete, y conviene ver qué le pasa al repositorio
-del Tema 2 en la misma situación. La ronda con hilos guarda los resultados desde veinte hilos a la
-vez en un `RepositorioConVentana`, que por dentro son dos `HashMap` y una `ArrayDeque` por servicio,
-y en el [Tema 2](tema2.qmd#lo-que-la-biblioteca-no-trae) quedó dicho que ninguna de las estructuras
-de la biblioteca estándar es segura si varios hilos la modifican a la vez. Con veinte servicios y
-una ronda, el choque es improbable y el programa de 3.1.3 parece funcionar. Para ver lo que pasa
-cuando el choque ocurre basta con forzarlo: una **prueba de esfuerzo** con ocho hilos que guardan
-veinte mil resultados cada uno en el mismo repositorio.
-
-```java
-// DemoRepositorioCompartido.java
-package es.uib.prgava.tema3.monitor;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import es.uib.prgava.tema1.monitor.Estado;
-import es.uib.prgava.tema1.monitor.RepositorioResultados;
-import es.uib.prgava.tema1.monitor.Resultado;
-import es.uib.prgava.tema1.monitor.Servicio;
-import es.uib.prgava.tema2.monitor.RepositorioConVentana;
-
-/**
- * Prueba de esfuerzo: ocho hilos guardan veinte mil resultados cada uno en el mismo repositorio,
- * repartidos entre cincuenta servicios. Primero en el repositorio del Tema 2 tal cual, después
- * envuelto en el decorador sincronizado.
- */
-public final class DemoRepositorioCompartido {
-
-    private DemoRepositorioCompartido() { }
-
-    private static final int HILOS = 8;
-    private static final int POR_HILO = 20_000;
-
-    private static void esforzar(String nombre, RepositorioResultados repositorio)
-            throws InterruptedException {
-        List<Servicio> servicios = Escenario.servicios(50);
-        var reventados = new AtomicInteger();
-
-        Thread[] hilos = new Thread[HILOS];
-        for (int h = 0; h < HILOS; h++) {
-            final int desplazamiento = h;
-            hilos[h] = new Thread(() -> {
-                try {
-                    for (int k = 0; k < POR_HILO; k++) {
-                        Servicio servicio = servicios.get((k + desplazamiento) % servicios.size());
-                        repositorio.guardar(new Resultado(servicio, Instant.EPOCH, Estado.ACTIVO, Duration.ZERO));
-                    }
-                } catch (RuntimeException e) {
-                    reventados.incrementAndGet();
-                    System.out.println("      un hilo revienta con " + e.getClass().getSimpleName());
-                }
-            });
-            hilos[h].start();
-        }
-        for (Thread hilo : hilos) {
-            hilo.join();
-        }
-
-        long guardados = 0;
-        for (Servicio servicio : repositorio.servicios()) {
-            guardados += repositorio.historial(servicio).size();
-        }
-        System.out.printf("   %-28s esperados %d, guardados %d, hilos reventados %d%n",
-                nombre, HILOS * POR_HILO, guardados, reventados.get());
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        esforzar("RepositorioConVentana:", new RepositorioConVentana(10));
-        esforzar("RepositorioSincronizado:", new RepositorioSincronizado(new RepositorioConVentana(10)));
-    }
-}
-```
-
-Una ejecución, con la primera línea del resumen, que es la del repositorio del Tema 2 tal cual:
-
-```text
-      un hilo revienta con ConcurrentModificationException
-      un hilo revienta con ConcurrentModificationException
-      un hilo revienta con ConcurrentModificationException
-      un hilo revienta con NoSuchElementException
-      un hilo revienta con NoSuchElementException
-      un hilo revienta con NoSuchElementException
-   RepositorioConVentana:       esperados 160000, guardados 45755, hilos reventados 6
-   RepositorioSincronizado:     esperados 160000, guardados 160000, hilos reventados 0
-```
-
-La segunda línea del resumen es la del arreglo que viene en 3.1.5; la que importa ahora es la
-primera, y es bastante peor que la del contador. En esta ejecución no se han perdido unos cuantos
-resultados: se han perdido **más de dos de cada tres**. Y seis de los ocho hilos han muerto con
-excepciones lanzadas **desde dentro de la biblioteca de Java**. Si la repites, los números bailan
-mucho —en ocho ejecuciones seguidas se perdió desde un tercio hasta casi todo, y reventaron entre
-tres y ocho hilos—, pero en ninguna salió bien la primera línea. La `NoSuchElementException` sale de la `ArrayDeque` de
-la ventana, que al estar llena intenta descartar el elemento más antiguo y se encuentra vacía,
-porque otro hilo la estaba modificando a medias. La `ConcurrentModificationException` sale del
-`computeIfAbsent` del `HashMap`, que detecta que el mapa ha cambiado mientras él trabajaba: es la
-única de las dos excepciones cuyo nombre dice la verdad.
-
-Lo que enseña este experimento es que una condición de carrera sobre una estructura de datos no
-solo pierde datos: **rompe los invariantes** de la estructura, que deja de ser una lista o un mapa
-coherente y pasa a ser un amasijo de referencias a medio actualizar. Lo que ocurra después ya no
-tiene nada que ver con el código que escribiste.
-
 ::: {#wrn-provocar-carrera .callout-warning title="Provocar una condición de carrera para poder verla"}
 Una carrera que aparece una vez de cada mil ejecuciones no se puede depurar: hay que conseguir que
-aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo anterior:
+aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador:
 
 1. **Muchos hilos y muchas repeticiones.** La probabilidad de que dos hilos coincidan en la sección
-   crítica crece con las dos. Ocho hilos por veinte mil operaciones es una prueba de esfuerzo
-   pequeña; el programa real hace una operación por servicio y por ronda, y por eso parece
-   funcionar.
+   crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo
+   pequeña; un programa real que toca el dato compartido solo de vez en cuando rara vez da con el
+   choque, y por eso parece funcionar.
 2. **Nada de imprimir dentro del bucle.** El método `println` toma un cerrojo interno para que las
    líneas no se mezclen, y con eso **sincroniza sin querer** a los hilos que escriben: la carrera
    desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta
@@ -1038,10 +1053,10 @@ public final class RepositorioSincronizado implements RepositorioResultados {
 }
 ```
 
-Es la segunda línea de la prueba de esfuerzo de 3.1.4: 160.000 resultados guardados de 160.000, y
-ningún hilo reventado. Y como el decorador envuelve **cualquier** repositorio, sirve tanto para el
-`RepositorioEnMemoria` del Tema 1 como para el `RepositorioConVentana` del Tema 2, sin tocar
-ninguno de los dos.
+Es la segunda línea de la prueba de esfuerzo de la ampliación de 3.1.3: 160.000 resultados guardados
+de 160.000, y ningún hilo reventado. Y como el decorador envuelve **cualquier** repositorio, sirve
+tanto para el `RepositorioEnMemoria` del Tema 1 como para el `RepositorioConVentana` del Tema 2, sin
+tocar ninguno de los dos.
 
 El javadoc de la clase señala la condición de la que depende todo: que `historial` y `servicios`
 devuelvan **copias**. El cerrojo protege lo que pasa dentro del repositorio, pero quien recibe una
@@ -1831,8 +1846,8 @@ presentó como métodos que ahorran código y que aquí tienen una segunda razó
 importante.
 :::
 
-La prueba de esfuerzo de 3.1.4, repetida veinte veces sobre cada uno de los tres repositorios, deja
-ver la característica que hace a este error tan peligroso:
+La prueba de esfuerzo de la ampliación de 3.1.3, repetida veinte veces sobre cada uno de los tres
+repositorios, deja ver la característica que hace a este error tan peligroso:
 
 ```java
 // DemoRepositoriosConcurrentes.java
