@@ -1232,6 +1232,14 @@ public final class DemoInterbloqueo {
    segundo: tengo B, voy a por A
 ```
 
+Paso a paso, con las pausas del ejemplo:
+
+| Momento | `primero` | `segundo` |
+|:---:|---|---|
+| 1 | toma A | toma B |
+| 2 | pide B: lo tiene `segundo`, **espera** | pide A: lo tiene `primero`, **espera** |
+| 3 | sigue esperando a que `segundo` suelte B | sigue esperando a que `primero` suelte A |
+
 Y ahí se queda. El primero tiene A y espera a B; el segundo tiene B y espera a A; ninguno de los dos
 va a soltar lo que tiene, porque los dos están esperando para poder terminar. El programa no consume
 procesador, no lanza ninguna excepción y no termina nunca.
@@ -1263,6 +1271,110 @@ rendirse si no está libre. Y la cuarta es la que se rompe en la práctica casi 
 regla sencilla: **todos los hilos toman los cerrojos en el mismo orden**. Si los dos hilos del
 ejemplo tomaran primero A y después B, el segundo esperaría a que el primero terminara con los
 dos, y no habría ciclo posible.
+:::
+
+La regla del orden se comprueba en el propio ejemplo. Basta con que el segundo hilo pida los
+cerrojos en el mismo orden que el primero, A y después B:
+
+```java
+// Fragmento: el segundo hilo de DemoInterbloqueo, con el mismo orden que el primero
+Thread segundo = new Thread(() -> {
+    synchronized (RECURSO_A) {
+        System.out.println("   segundo: tengo A, voy a por B");
+        pausa();
+        synchronized (RECURSO_B) {
+            System.out.println("   segundo: tengo los dos");
+        }
+    }
+}, "segundo");
+```
+
+```text
+   primero: tengo A, voy a por B
+   primero: tengo los dos
+   segundo: tengo A, voy a por B
+   segundo: tengo los dos
+```
+
+Ahora el programa termina siempre, aunque las pausas siguen ahí. Paso a paso:
+
+| Momento | `primero` | `segundo` |
+|:---:|---|---|
+| 1 | toma A | pide A: lo tiene `primero`, **espera sin tener nada** |
+| 2 | toma B | sigue esperando a A |
+| 3 | termina y suelta B y A | — |
+| 4 | — | toma A, toma B y termina |
+
+Todo se decide en el momento 1. Como los dos empiezan por A, el que pierde la carrera por A se
+queda esperando **con las manos vacías**: no retiene nada que el otro necesite, el otro puede
+terminar, y el círculo no llega a cerrarse. Cuál de los dos se lleva A primero cambia de una
+ejecución a otra, y con él el orden de las cuatro líneas; lo que no cambia es que el programa
+acaba. El precio es pequeño: mientras un hilo tiene A, el otro no puede ni empezar, y se pierde algo
+de concurrencia a cambio de no quedarse parado nunca.
+
+Con dos cerrojos fijos y con nombre, el orden lo decides tú al escribir el código. Se complica
+cuando los cerrojos que se toman dependen de los datos.
+
+::: {#cau-orden-de-los-argumentos .callout-caution title="Tomar los cerrojos en el orden de los argumentos"}
+Una transferencia entre dos cuentas tiene que bloquear las dos, para que nadie vea el dinero
+retirado de una y todavía sin ingresar en la otra. La forma que sale sola es tomar el cerrojo del
+origen y después el del destino:
+
+```java
+// Fragmento: se bloquea si dos hilos transfieren en sentidos contrarios
+static void transferir(Cuenta origen, Cuenta destino, long cantidad) {
+    synchronized (origen) {
+        synchronized (destino) {
+            origen.retirar(cantidad);
+            destino.ingresar(cantidad);
+        }
+    }
+}
+```
+
+Solo hay un método, y siempre hace lo mismo, así que parece imposible que dos hilos tomen los
+cerrojos en orden contrario. Pero el orden lo deciden los **argumentos**:
+
+| Llamada | Cerrojos que toma |
+|---|---|
+| `transferir(x, y, 10)` | `x` y después `y` |
+| `transferir(y, x, 5)` | `y` y después `x` |
+
+Si dos hilos hacen esas dos llamadas a la vez, es el ciclo de `DemoInterbloqueo`, con `x` en el
+papel de A e `y` en el de B, y nadie lo ha escrito al revés: lo han creado quién llama y con qué
+argumentos. Con un millón de transferencias en cada sentido, esta versión se quedó parada en las
+diez ejecuciones de prueba.
+
+El arreglo es la misma regla, con un orden que **no dependa de quién llama**. Aquí lo da el número
+de cada cuenta: los cerrojos se toman siempre de menor a mayor.
+
+```java
+// Fragmento: los cerrojos se toman siempre de menor a mayor número de cuenta
+static void transferir(Cuenta origen, Cuenta destino, long cantidad) {
+    Cuenta primera = origen.id() < destino.id() ? origen : destino;
+    Cuenta segunda = primera == origen ? destino : origen;
+    synchronized (primera) {
+        synchronized (segunda) {
+            origen.retirar(cantidad);
+            destino.ingresar(cantidad);
+        }
+    }
+}
+```
+
+Si `x` es la cuenta 1 e `y` la cuenta 2, las dos llamadas toman ahora los cerrojos igual, aunque el
+dinero vaya en sentidos contrarios:
+
+| Llamada | Cerrojos que toma | El dinero va |
+|---|---|---|
+| `transferir(x, y, 10)` | `x` y después `y` | de `x` a `y` |
+| `transferir(y, x, 5)` | `x` y después `y` | de `y` a `x` |
+
+Conviene separar dos cosas que en la primera versión iban juntas: **el orden de los cerrojos**, que
+es una decisión técnica para no bloquearse y se fija por el número de cuenta, y **el sentido del
+dinero**, que es lo que pide quien llama y se sigue respetando. Con esta versión, las diez
+ejecuciones de prueba terminaron, y el saldo total de las dos cuentas siguió siendo el del
+principio.
 :::
 
 Cuando un programa se queda parado y se sospecha de un interbloqueo, la máquina virtual sabe
@@ -1319,11 +1431,11 @@ funciona también en un servidor sin entorno gráfico, que es donde suelen apare
 interbloqueos de verdad.
 :::
 
-Con esto están todas las piezas de la sección: los hilos, lo que se rompe cuando comparten datos y
-la herramienta mínima del lenguaje para evitarlo. Las tres tienen el mismo defecto, que es que
-obligan a pensar en hilos —crearlos, esperarlos, decidir cuántos— cuando lo que el programa quiere
-expresar son **tareas**. La sección siguiente cambia de nivel.
-
+Con esto están todas las piezas de la sección: los hilos, lo que se rompe cuando comparten datos, la
+herramienta mínima del lenguaje para evitarlo y la regla para usarla sin que el programa se quede
+parado. Las cuatro tienen el mismo defecto, que es que obligan a pensar en hilos —crearlos,
+esperarlos, decidir cuántos— cuando lo que el programa quiere expresar son **tareas**. La sección
+siguiente cambia de nivel.
 ## 3.2. Herramientas de concurrencia en Java
 
 **En el monitor de servicios** (@fig-monitor3) la ronda de 3.1 crea un hilo por servicio y lo tira
