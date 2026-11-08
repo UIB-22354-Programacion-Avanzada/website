@@ -1436,16 +1436,25 @@ herramienta mínima del lenguaje para evitarlo y la regla para usarla sin que el
 parado. Las cuatro tienen el mismo defecto, que es que obligan a pensar en hilos —crearlos,
 esperarlos, decidir cuántos— cuando lo que el programa quiere expresar son **tareas**. La sección
 siguiente cambia de nivel.
+
 ## 3.2. Herramientas de concurrencia en Java
 
-**En el monitor de servicios** (@fig-monitor3) la ronda de 3.1 crea un hilo por servicio y lo tira
-al terminar, el repositorio está protegido por un solo cerrojo que todos los hilos se disputan, y
-el aviso de una alerta se hace dentro de la comprobación, de modo que un servidor de correo lento
-frena a la sonda que lo llama. Las tres cosas se pueden hacer mejor con lo que trae el paquete
-`java.util.concurrent` desde Java 5, y esta sección lo recorre: cada herramienta con un ejemplo
-breve, y su uso en el monitor en una ampliación, salvo el aviso de 3.2.5. El paquete se diseñó bajo la
-dirección de Doug Lea, y está explicado, por varios de sus autores, en *Java Concurrency in
-Practice* [@goetz2006], que sigue siendo el libro de referencia sobre el tema.
+Con lo visto en 3.1 (crear hilos, esperarlos con `join` y proteger datos con `synchronized`) ya se puede escribir cualquier programa concurrente, igual que con un lenguaje ensamblador se puede escribir cualquier programa. Pero casi nadie lo hace así. Esas piezas obligan a decidir cada detalle a mano: cuántos hilos crear y cuándo destruirlos, cómo recoger el resultado de cada uno, cómo enterarse de que alguno ha fallado, qué estructura de datos se puede compartir sin romperse. Cada una de esas decisiones es una ocasión para cometer los errores de 3.1, y los errores de concurrencia son los más difíciles de encontrar.
+
+Java 5 incorporó en 2004 el paquete `java.util.concurrent`, diseñado bajo la dirección de Doug Lea, con piezas ya resueltas para esos problemas que se repiten. Desde entonces es la forma normal de escribir concurrencia en Java, y está debajo de casi todo lo que la usa. Los servidores web atienden cada petición en un hilo sacado de un **conjunto de hilos** (*thread pool*), no en uno creado para ella. El cliente HTTP de la biblioteca estándar devuelve sus respuestas asíncronas como un `CompletableFuture`. Las cachés que comparten muchos hilos son, casi siempre, un `ConcurrentHashMap`. Y muchas bibliotecas de registro escriben en disco desde un hilo aparte, alimentado por una cola. Quien programa en Java usa estas herramientas a menudo sin saberlo; esta sección trata de usarlas sabiendo qué garantizan y qué no.
+
+Cada apartado responde a una necesidad concreta:
+
+| Necesidad | Herramienta | Apartado |
+|---|---|---|
+| Ejecutar muchas tareas sin crear un hilo para cada una | ejecutores y conjuntos de hilos | 3.2.1 |
+| Recoger el resultado de una tarea, o combinar varios, sin esperar de más | `Future` y `CompletableFuture` | 3.2.2 |
+| Compartir una colección entre hilos sin un cerrojo que los frene a todos | colecciones concurrentes | 3.2.3 |
+| Actualizar un contador o una referencia compartida sin cerrojo | variables atómicas | 3.2.4 |
+| Pasar trabajo de unos hilos a otros, cada uno a su ritmo | colas bloqueantes y el patrón productor-consumidor | 3.2.5 |
+| Lo que `synchronized` no permite: intentar, esperar con plazo, ceder | cerrojos explícitos | 3.2.6 |
+
+El hilo común es un cambio de nivel. En 3.1 el programa hablaba de **hilos**; a partir de aquí habla de **tareas**, y deja que la biblioteca decida qué hilo las ejecuta, cuándo y cómo se reparten los datos entre ellos. Lo que no cambia son los peligros de 3.1: las herramientas los evitan si se usan bien, pero no los hacen desaparecer, y cada apartado señala el error que sigue siendo posible con ellas. La referencia sobre todo el paquete sigue siendo el libro de varios de sus autores, *Java Concurrency in Practice* [@goetz2006].
 
 ### 3.2.1 Ejecutores: separar la tarea del hilo
 
