@@ -97,11 +97,8 @@ flowchart LR
 Como en los temas anteriores, conviene distinguir dos tipos de código. Los **ejemplos breves** son
 autocontenidos y sirven para una idea sola: un contador que varios hilos incrementan, dos hilos que
 se bloquean mutuamente, un publicador y un suscriptor. Los pasajes que hacen avanzar el monitor se
-reconocen porque el párrafo abre con **En el monitor.** en negrita, y casi todos van en
-**ampliaciones**: el texto principal explica cada idea con un ejemplo breve, y la ampliación la
-aplica al monitor. Las secciones 3.2.5 y 3.3.4 son la excepción, porque en ellas el monitor no es
-una aplicación de la idea sino su motivo. El esquema (@fig-monitor3) es el mapa al que volver si se
-pierde el hilo.
+reconocen porque el párrafo abre con **En el monitor.** en negrita, y el esquema (@fig-monitor3) es
+el mapa al que volver si se pierde el hilo.
 
 Los paquetes de los listados son `es.uib.prgava.tema3.fundamentos` para los ejemplos breves de la
 sección 3.1, `es.uib.prgava.tema3.herramientas` para los de la 3.2, `es.uib.prgava.tema3.virtuales`
@@ -123,8 +120,7 @@ llama siempre **cerrojo intrínseco**, y «el monitor» a secas es siempre el mo
 **En el monitor de servicios** (@fig-monitor3) la ronda va a pasar de comprobar los servicios uno
 detrás de otro a comprobarlos todos a la vez, y eso va a funcionar a la primera en lo que se ve y
 a fallar en lo que no se ve. Esta sección explica las dos cosas: qué es exactamente lo que se
-gana, y qué es exactamente lo que se rompe cuando varias tareas comparten datos. Las dos se ven
-primero con ejemplos breves, y las ampliaciones de 3.1.3 y 3.1.5 las aplican al monitor.
+gana, y qué es exactamente lo que se rompe cuando varias tareas comparten datos.
 
 ### 3.1.1 Concurrencia, paralelismo y por qué importan
 
@@ -175,7 +171,7 @@ es el [tiempo de espera]{.glos}.
 :::: {.ampliacion}
 #### **Las cifras del monitor**
 
-**En el monitor.** Lo verás medido en la ampliación de 3.1.3. En una máquina con **dos núcleos**, la
+**En el monitor.** Lo verás medido en 3.1.3. En una máquina con **dos núcleos**, la
 ronda de veinte sondas tarda 4.574 ms en secuencia y 1.004 ms con un hilo por sonda: es **cuatro
 veces y media** más rápida. Con tareas de cálculo eso sería imposible, porque dos núcleos no dan
 para más que el doble. Y los 1.004 ms no los decide el número de núcleos sino la espera más larga:
@@ -771,7 +767,7 @@ Una ejecución, con la primera línea del resumen, que es la del repositorio del
    RepositorioSincronizado:     esperados 160000, guardados 160000, hilos reventados 0
 ```
 
-La segunda línea del resumen es la del arreglo que viene en la ampliación de 3.1.5; la que importa
+La segunda línea del resumen es la del arreglo que viene en 3.1.5; la que importa
 ahora es la primera. En esta ejecución no se han perdido unos cuantos resultados: se han perdido
 **más de dos de cada tres**. Y seis de los ocho hilos han muerto con excepciones lanzadas **desde
 dentro de la biblioteca de Java**. Si la repites, los números bailan mucho —en ocho ejecuciones
@@ -1064,7 +1060,7 @@ public final class RepositorioSincronizado implements RepositorioResultados {
 }
 ```
 
-Es la segunda línea de la prueba de esfuerzo de la ampliación de 3.1.3: 160.000 resultados guardados
+Es la segunda línea de la prueba de esfuerzo de 3.1.3: 160.000 resultados guardados
 de 160.000, y ningún hilo reventado. Y como el decorador envuelve **cualquier** repositorio, sirve
 tanto para el `RepositorioEnMemoria` del Tema 1 como para el `RepositorioConVentana` del Tema 2, sin
 tocar ninguno de los dos.
@@ -1801,6 +1797,11 @@ ya casi no se nota la diferencia con veinte, porque la ronda está limitada por 
 cuestan los dos servicios caídos: más hilos no hacen que un servidor caído conteste antes. Y la
 última línea es la novedad: con un plazo de medio segundo, la ronda dura medio segundo y devuelve
 dieciocho resultados. Los dos caídos no han llegado a tiempo y no están.
+
+O no del todo: sus sondas, interrumpidas a los 500 ms, siguen ejecutándose un instante después de
+que `invokeAll` haya vuelto, el que tardan en devolver un resultado de caído y guardarlo
+(@tip-cancelacion-cooperativa). En cinco ejecuciones con un repositorio vacío, al volver la ronda
+el repositorio contenía el resultado de cero, cero, uno, cero y cero de los dos servicios caídos.
 ::::
 
 Para elegir el tamaño del conjunto, la regla depende del tipo de tarea de 3.1.1. Para tareas
@@ -1928,9 +1929,7 @@ La primera fila es la del ejemplo: el futuro se da por terminado y la tarea sigu
 segunda tiene una consecuencia menos visible: las tareas interrumpidas **siguen ejecutándose** un
 instante después de que `invokeAll` haya vuelto —el que tardan en enterarse de la interrupción y
 terminar—, de modo que lo que hayan dejado hecho cuando el método vuelve **depende del
-entrelazado**. En la ronda del monitor de la ampliación de 3.2.1, con un plazo de 500 ms y un
-repositorio vacío, al volver la ronda el repositorio contenía el resultado de cero, cero, uno, cero
-y cero de los dos servicios caídos en cinco ejecuciones.
+entrelazado**.
 La tercera fila es la que lo arregla, y es la razón de ser de la concurrencia estructurada.
 :::
 
@@ -2099,8 +2098,7 @@ Con `get` y `put` fallan las veinte pruebas, y en cada una se pierde casi una de
 palabras; con `merge`, ninguna. Aquí el error salta a la vista porque cuatro hilos se pasan el rato
 contando las mismas cinco palabras y coinciden constantemente. En un programa en el que los hilos
 rara vez tocan la misma clave a la vez, la misma carrera falla de tarde en tarde, y por eso es mucho
-más peligrosa: una prueba que la ejecute una vez pasará casi siempre. La ampliación siguiente lo
-mide en el repositorio del monitor.
+más peligrosa: una prueba que la ejecute una vez pasará casi siempre.
 
 :::: {.ampliacion}
 #### **El repositorio del monitor, con colecciones concurrentes**
@@ -2163,176 +2161,7 @@ No hay ni un `synchronized`. El método `computeIfAbsent` de `ConcurrentHashMap`
 dos hilos piden a la vez la cola de un servicio que todavía no existe, se crea una sola y los dos
 reciben la misma. La cola de cada servicio es una `ConcurrentLinkedQueue`, que admite que varios
 hilos añadan a la vez y conserva el orden de llegada.
-
-La versión del repositorio con la carrera de @cau-comprobar-y-actuar sería esta, con
-`containsKey` y `put` en lugar de `computeIfAbsent`:
-
-```java
-// RepositorioComprobarYActuar.java
-package es.uib.prgava.tema3.herramientas;
-
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-
-import es.uib.prgava.tema1.monitor.RepositorioResultados;
-import es.uib.prgava.tema1.monitor.Resultado;
-import es.uib.prgava.tema1.monitor.Servicio;
-
-/**
- * Las mismas estructuras concurrentes que {@code RepositorioConcurrente}, y un error: el método
- * {@code guardar} comprueba y después actúa en dos pasos separados.
- */
-public final class RepositorioComprobarYActuar implements RepositorioResultados {
-
-    private final ConcurrentMap<Servicio, Queue<Resultado>> porServicio = new ConcurrentHashMap<>();
-
-    @Override
-    public void guardar(Resultado resultado) {
-        Servicio servicio = resultado.servicio();
-        if (!porServicio.containsKey(servicio)) {                   // comprobar
-            porServicio.put(servicio, new ConcurrentLinkedQueue<>());  // actuar
-        }
-        porServicio.get(servicio).add(resultado);
-    }
-
-    @Override
-    public List<Resultado> historial(Servicio servicio) {
-        Queue<Resultado> suyos = porServicio.get(servicio);
-        return suyos == null ? List.of() : List.copyOf(suyos);
-    }
-
-    @Override
-    public Set<Servicio> servicios() {
-        return Set.copyOf(porServicio.keySet());
-    }
-}
-```
-
-Entre el `containsKey` y el `put` hay un hueco. Dos hilos que guardan el primer resultado de un
-servicio pueden ver los dos que no hay cola, crear los dos una cola nueva, y el segundo `put`
-sustituye a la cola del primero, con los resultados que el primero ya hubiera añadido dentro. Esos
-resultados desaparecen.
-
-La prueba de esfuerzo de la ampliación de 3.1.3, repetida veinte veces sobre cada uno de los tres
-repositorios, deja ver la característica que hace a este error tan peligroso:
-
-```java
-// DemoRepositoriosConcurrentes.java
-package es.uib.prgava.tema3.monitor;
-
-import java.time.Duration;
-import java.time.Instant;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
-
-import es.uib.prgava.tema1.monitor.Estado;
-import es.uib.prgava.tema1.monitor.RepositorioResultados;
-import es.uib.prgava.tema1.monitor.Resultado;
-import es.uib.prgava.tema1.monitor.Servicio;
-import es.uib.prgava.tema2.monitor.RepositorioConVentana;
-import es.uib.prgava.tema3.herramientas.RepositorioComprobarYActuar;
-
-/**
- * La prueba de esfuerzo de 3.1 sobre tres repositorios, repetida veinte veces cada uno: lo que
- * interesa del error de comprobar y actuar no es si aparece, sino con qué frecuencia.
- */
-public final class DemoRepositoriosConcurrentes {
-
-    private DemoRepositoriosConcurrentes() { }
-
-    private static final int HILOS = 8;
-    private static final int POR_HILO = 20_000;
-    private static final int REPETICIONES = 20;
-
-    /** Resultados que faltan al terminar una prueba de esfuerzo sobre {@code repositorio}. */
-    private static long perdidos(RepositorioResultados repositorio)
-            throws InterruptedException, ExecutionException {
-        List<Servicio> servicios = Escenario.servicios(50);
-        try (ExecutorService ejecutor = Executors.newFixedThreadPool(HILOS)) {
-            List<Future<?>> futuros = new ArrayList<>();
-            for (int h = 0; h < HILOS; h++) {
-                final int desplazamiento = h;
-                futuros.add(ejecutor.submit(() -> {
-                    for (int k = 0; k < POR_HILO; k++) {
-                        Servicio servicio = servicios.get((k + desplazamiento) % servicios.size());
-                        repositorio.guardar(new Resultado(servicio, Instant.EPOCH, Estado.ACTIVO, Duration.ZERO));
-                    }
-                }));
-            }
-            for (Future<?> futuro : futuros) {
-                futuro.get();
-            }
-        }
-        long guardados = 0;
-        for (Servicio servicio : repositorio.servicios()) {
-            guardados += repositorio.historial(servicio).size();
-        }
-        return (long) HILOS * POR_HILO - guardados;
-    }
-
-    private static void medir(String nombre, java.util.function.Supplier<RepositorioResultados> fabrica)
-            throws InterruptedException, ExecutionException {
-        long conPerdidas = 0;
-        long totalPerdidos = 0;
-        long inicio = System.nanoTime();
-        for (int i = 0; i < REPETICIONES; i++) {
-            long p = perdidos(fabrica.get());
-            if (p > 0) {
-                conPerdidas++;
-                totalPerdidos += p;
-            }
-        }
-        long milis = (System.nanoTime() - inicio) / 1_000_000;
-        System.out.printf("   %-30s %2d de %d con perdidas, %4d perdidos en total, %5d ms%n",
-                nombre, conPerdidas, REPETICIONES, totalPerdidos, milis);
-    }
-
-    public static void main(String[] args) throws InterruptedException, ExecutionException {
-        medir("RepositorioSincronizado:", () -> new RepositorioSincronizado(new RepositorioConVentana(10)));
-        medir("RepositorioConcurrente:", RepositorioConcurrente::new);
-        medir("RepositorioComprobarYActuar:", RepositorioComprobarYActuar::new);
-    }
-}
-```
-
-Tres ejecuciones seguidas del programa:
-
-```text
-   RepositorioSincronizado:        0 de 20 con perdidas,    0 perdidos en total,   638 ms
-   RepositorioConcurrente:         0 de 20 con perdidas,    0 perdidos en total,   588 ms
-   RepositorioComprobarYActuar:    7 de 20 con perdidas, 1159 perdidos en total,   550 ms
-
-   RepositorioSincronizado:        0 de 20 con perdidas,    0 perdidos en total,   803 ms
-   RepositorioConcurrente:         0 de 20 con perdidas,    0 perdidos en total,   702 ms
-   RepositorioComprobarYActuar:    3 de 20 con perdidas, 2006 perdidos en total,   634 ms
-
-   RepositorioSincronizado:        0 de 20 con perdidas,    0 perdidos en total,   690 ms
-   RepositorioConcurrente:         0 de 20 con perdidas,    0 perdidos en total,   635 ms
-   RepositorioComprobarYActuar:    5 de 20 con perdidas,   26 perdidos en total,   606 ms
-```
-
-El repositorio con la carrera falla en una de cada tres o cuatro pruebas, y lo que pierde va de
-veintiséis resultados a dos mil. Una prueba unitaria que lo ejecutara una vez pasaría la mayoría de
-los días.
-
-La columna de tiempos merece una lectura honesta: en esta máquina, de dos núcleos, el repositorio
-sincronizado y el concurrente tardan prácticamente lo mismo. Con dos núcleos hay poca contención por
-el cerrojo, y la sección crítica es tan corta que esperar a otro hilo cuesta muy poco. La diferencia
-aparece con muchos núcleos y mucha contención, que no es el caso de este ejemplo, y es un recordatorio
-del [Tema 2](tema2.qmd#cuándo-la-estructura-no-es-el-problema): elegir la estructura «rápida» sin
-haber medido cuál es el cuello de botella es decorar.
 ::::
-
-
-
 
 ### 3.2.4 Variables atómicas
 
@@ -2561,8 +2390,11 @@ esperando para siempre en una cola vacía. Y el método `close` no declara `Inte
 —la interfaz `AutoCloseable` recomienda expresamente que no lo haga—, así que restaura la marca de
 interrupción, como pedía @cau-tragarse-interrupcion.
 
-Con un notificador que tarda medio segundo en cada envío y la política de un solo fallo, para que
-los dos servicios caídos alerten en cada ronda:
+El programa de prueba usa un notificador que tarda medio segundo en cada envío y la política de un
+solo fallo, para que los servicios caídos alerten en cada ronda. Además se apoya en tres clases
+auxiliares del monitor: `Escenario`, que da veinte servicios simulados con latencias fijas entre 50
+y 250 ms, dos de ellos caídos, que tardan un segundo en descubrirse; `RondaConEjecutor`, que reparte
+las comprobaciones entre los hilos de un ejecutor; y el `RepositorioConVentana` del Tema 2.
 
 ```java
 // DemoNotificadorAsincrono.java
@@ -2795,8 +2627,7 @@ hace.
 corrompe y el aviso no frena a nadie. Queda una pregunta que la sección anterior dejó abierta: con
 mil servicios, ¿cuántos hilos tiene que tener el ejecutor? Y la respuesta, con las herramientas de
 3.2, es incómoda. Esta sección presenta las dos novedades de Java que la cambian, y que son la
-razón de que la concurrencia en Java se escriba hoy de otra manera que hace cinco años. Las
-ampliaciones de 3.3.2 y 3.3.3 las aplican a una ronda de mil servicios.
+razón de que la concurrencia en Java se escriba hoy de otra manera que hace cinco años.
 
 ### 3.3.1 Lo que cuesta un hilo de plataforma
 
@@ -2908,7 +2739,7 @@ los dos hilos portadores de una máquina de dos núcleos.
 :::: {.ampliacion}
 #### **Mil servicios con hilos virtuales**
 
-**En el monitor.** La ronda de la ampliación de 3.2.1 recibe el ejecutor, así que pasar a hilos
+**En el monitor.** La ronda de 3.2.1 recibe el ejecutor, así que pasar a hilos
 virtuales no exige tocarla: basta con darle otro. Con mil servicios del escenario:
 
 ```java
@@ -2969,7 +2800,7 @@ public final class DemoMilServicios {
 Las dos primeras líneas son el argumento. Con cien hilos de plataforma, mil sondas tardan tres
 segundos; con un hilo virtual por servicio, tardan lo que la más lenta, el segundo de un servicio
 caído, y la máquina virtual no ha necesitado ni un hilo del sistema más que antes. La tercera línea
-es la de la ampliación de 3.3.3.
+es la de 3.3.3.
 ::::
 
 Los hilos virtuales hacen barata la espera, y solo la espera, y de ahí salen los dos errores
@@ -3179,7 +3010,7 @@ Como en el ejemplo, el `release` va en un `finally`. Y si el hilo se interrumpe 
 permiso, la sonda devuelve el servicio como caído y restaura la marca, que es la misma respuesta que
 da `SondaLenta` cuando se la interrumpe en mitad de la espera.
 
-Es la tercera línea de la tabla de la ampliación de 3.3.2: con un límite de cien sondeos a la vez,
+Es la tercera línea de la tabla de 3.3.2: con un límite de cien sondeos a la vez,
 la ronda tarda lo mismo que con cien hilos de plataforma, 3.085 ms frente a 3.094, y usa **diez
 hilos del sistema en lugar de ciento seis**. El límite está ahora donde tiene que estar —en la red,
 no en los hilos—, y se puede cambiar sin tocar nada más.
@@ -3187,12 +3018,14 @@ no en los hilos—, y se puede cambiar sin tocar nada más.
 
 ### 3.3.4 Concurrencia estructurada
 
-Las rondas de este tema tienen todas la misma forma: una tarea —la ronda— reparte su trabajo en
-subtareas —las comprobaciones— y no termina hasta tener sus resultados. Esa forma es la más común en
-programación concurrente, y las herramientas de 3.2 no la expresan: la expresan **las personas**,
-con disciplina. La ronda de la ampliación de 3.2.1 llama a `invokeAll` y espera a los futuros, pero
-nada en el lenguaje impide que una subtarea siga viva cuando la ronda ha terminado, y
-@tip-cancelacion-cooperativa enseñó que eso es exactamente lo que pasa cuando vence el plazo.
+Muchos programas concurrentes tienen la misma forma: una tarea reparte su trabajo en subtareas y
+no termina hasta tener sus resultados. Un servidor que, para responder a una petición, consulta a la
+vez dos bases de datos la tiene, y también la ronda del monitor, que reparte las comprobaciones.
+Esa forma es la más común en programación concurrente, y las herramientas de 3.2 no la expresan: la
+expresan **las personas**, con disciplina. Con un ejecutor, el método `invokeAll` entrega un grupo de
+tareas y espera a todas, con un plazo si se le da, pero nada en el lenguaje impide que una subtarea
+siga viva cuando la tarea que la lanzó ha terminado, y @tip-cancelacion-cooperativa enseñó que eso
+es exactamente lo que pasa cuando vence el plazo.
 
 ::: {#imp-concurrencia-estructurada .callout-important title="Concurrencia estructurada"}
 La **concurrencia estructurada** (*structured concurrency*) es el principio de que, si una tarea se
@@ -3340,6 +3173,11 @@ que cada `Subtask` diga cómo acabó, con su método `state`. Hay otros, según 
 | `anySuccessfulResultOrThrow()` | con el primer éxito, cancela las demás y `join` devuelve ese resultado | preguntar a varios servidores replicados y quedarse con el que conteste antes |
 | `awaitAllSuccessfulOrThrow()` | como el segundo, sin devolver los resultados | tareas que solo producen efectos |
 
+El programa de prueba ejecuta la ronda con un plazo holgado y con uno de medio segundo. Usa dos
+clases auxiliares del monitor: `Escenario`, que da veinte servicios simulados con latencias fijas
+entre 50 y 250 ms, dos de ellos caídos, que tardan un segundo en descubrirse; y
+`RepositorioConcurrente`, un repositorio que se puede compartir entre hilos.
+
 ```java
 // DemoRondaEstructurada.java
 package es.uib.prgava.tema3.monitor;
@@ -3377,16 +3215,18 @@ public final class DemoRondaEstructurada {
    servicios con historial: 20
 ```
 
-Los mismos números que la ronda de 3.2.1, y una diferencia que esa salida no deja ver y que es la
-que importa. El experimento de @tip-cancelacion-cooperativa, repetido con esta ronda, da otro
-resultado: en las cinco ejecuciones con un repositorio vacío y un plazo de medio segundo, al volver
-de la ronda el repositorio contenía **siempre** el resultado de los dos servicios caídos. Las sondas
-interrumpidas siguen teniendo que terminar —la cancelación sigue siendo cooperativa—, pero el
-ámbito **las espera**, y cuando el bloque termina ya han terminado. Lo que hay en el repositorio al
-volver de la ronda ha dejado de depender del entrelazado.
+Con el plazo holgado, la ronda dura lo que la comprobación más lenta; con medio segundo, dura medio
+segundo y guarda los dieciocho resultados que llegaron a tiempo. Lo que importa no se ve en esa
+salida. Con `invokeAll`, las tareas interrumpidas siguen ejecutándose un instante después de que el
+método haya vuelto (@tip-cancelacion-cooperativa), y lo que dejan escrito depende del entrelazado.
+Con el ámbito estructurado, en cinco ejecuciones con un repositorio vacío y un plazo de medio
+segundo, al volver de la ronda el repositorio contenía **siempre** el resultado de los dos servicios
+caídos. Las sondas interrumpidas siguen teniendo que terminar —la cancelación sigue siendo
+cooperativa—, pero el ámbito **las espera**, y cuando el bloque termina ya han terminado. Lo que hay
+en el repositorio al volver de la ronda ha dejado de depender del entrelazado.
 
-Esa es la segunda ventaja, y la de fondo: con la ronda de 3.2.1, para saber qué estado deja la
-ronda había que pensar en los hilos que seguían vivos después; con esta, basta con leer el bloque.
+Esa es la segunda ventaja, y la de fondo: con `invokeAll`, para saber qué estado deja la ronda hay
+que pensar en los hilos que siguen vivos después; con un ámbito, basta con leer el bloque.
 
 ### 3.3.5 Valores con ámbito
 
@@ -3471,8 +3311,7 @@ Es la misma idea de 3.3.4 aplicada a los datos, y por eso las dos API se diseña
 ver los resultados **mientras llegan**, en un panel que se actualice solo, sin esperar a que la
 ronda termine. Es un problema de otra forma que los anteriores —no se pide algo y se espera la
 respuesta, sino que llega un **flujo** continuo de datos al que alguien quiere reaccionar—, y para
-problemas de esa forma existe un enfoque propio, con el que la ampliación de 3.4.2 construye el
-panel. Esta sección es una panorámica: qué problema
+problemas de esa forma existe un enfoque propio. Esta sección es una panorámica: qué problema
 resolvía, cuál es su idea central y cuándo sigue siendo la elección correcta.
 
 ### 3.4.1 El problema que resolvía
@@ -3887,7 +3726,7 @@ Pero la programación reactiva tenía una segunda razón de ser, que los hilos v
 una red— que hay que transformar, combinar y repartir entre consumidores a distinto ritmo, y donde
 el problema central no es esperar sino que **el productor y el consumidor no van a la misma
 velocidad**. Ahí la contrapresión es justo lo que hace falta, los operadores de las bibliotecas
-reactivas ahorran mucho código, y el panel en vivo de la ampliación de 3.4.2 es un ejemplo pequeño
+reactivas ahorran mucho código, y un panel que muestra los resultados según llegan es un ejemplo pequeño
 del caso.
 
 | | Hilos virtuales | Programación reactiva |
