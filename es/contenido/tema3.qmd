@@ -1562,26 +1562,110 @@ evitan si se usan bien, pero no los hacen desaparecer, y cada apartado señala e
 siendo posible con ellas. La referencia sobre todo el paquete sigue siendo el libro de varios de sus
 autores, *Java Concurrency in Practice* [@goetz2006].
 
-### 3.2.1 Ejecutores: separar la tarea del hilo
+### 3.2.1 Ejecutores: administrar hilos para ejecutar tareas
 
-Crear un hilo por tarea mezcla dos decisiones que conviene separar: **qué hay que hacer** y **quién
-lo hace**. La primera es del programa; la segunda depende de cuántas tareas hay, de cuánto tardan y
-de cuántos núcleos tiene la máquina, y conviene poder cambiarla sin tocar la primera.
+Crear un hilo por tarea obliga al programa a decidir dos cosas que conviene separar: **qué hay que
+hacer** y **quién lo hace**. La primera es del programa. La segunda depende de cuántas tareas hay,
+de cuánto tardan y de cuántos núcleos tiene la máquina, y es mejor dejarla en manos de un objeto que
+**administre los hilos**: los cree, los reutilice y reparta entre ellos el trabajo.
 
 ::: {#imp-ejecutor .callout-important title="Ejecutor"}
 Un **ejecutor** (*executor*) es un objeto que recibe tareas y se encarga de ejecutarlas. Quien
 entrega la tarea no sabe en qué hilo se va a ejecutar, ni cuándo, ni si ese hilo existía antes o se
-crea para ella: eso lo decide el ejecutor.
-
-En Java la interfaz es `ExecutorService`, y la forma más habitual es un **conjunto de hilos**
+crea para ella: eso lo decide el ejecutor. La forma más habitual es un **conjunto de hilos**
 (*thread pool*): un número fijo de hilos que se crean una vez y van sacando tareas de una cola
-interna, una detrás de otra. La clase `Executors` tiene métodos de fábrica para los casos
-habituales, como `Executors.newFixedThreadPool(n)`.
+interna, una detrás de otra.
 
-Una tarea que devuelve un resultado es un `Callable<T>`, la versión de `Runnable` con valor de
-retorno y que puede lanzar excepciones. Entregarla con `submit` devuelve inmediatamente un
-`Future<T>`, el **futuro** de su resultado (@imp-futuro), que se explica después de @nte-ejecutor.
+En Java intervienen tres piezas de nombres casi iguales:
+
+| Nombre | Qué es |
+|---|---|
+| `Executor` | Una interfaz con un solo método, `execute(tarea)`: la idea mínima de «ejecuta esta tarea». |
+| `ExecutorService` | Una interfaz que amplía `Executor` con lo que hace falta en la práctica: cerrarlo, esperar a que terminen las tareas y recoger sus resultados. Es la que se usa. |
+| `Executors` | Una clase con métodos estáticos que crean ejecutores ya hechos, como `Executors.newFixedThreadPool(n)`, un conjunto de `n` hilos, o `Executors.newSingleThreadExecutor()`, uno solo. |
 :::
+
+El primer ejemplo entrega seis tareas `Runnable`, como las de 3.1, a un conjunto de tres hilos. En
+lugar de crear un hilo para cada una, se le pasan al ejecutor con `execute`:
+
+::: {#nte-ejecutar .callout-note title="Seis tareas sin resultado y tres hilos, con `execute`"}
+```java
+// DemoEjecutar.java
+package es.uib.prgava.tema3.herramientas;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+/** Seis tareas sin resultado, entregadas a un ejecutor de tres hilos con execute. */
+public final class DemoEjecutar {
+
+    private DemoEjecutar() { }
+
+    /** Una tarea que tarda un poco y dice qué hilo la ejecuta. */
+    private static Runnable tarea(int numero) {
+        return () -> {
+            try {
+                Thread.sleep(200);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            System.out.println("   tarea " + numero + " hecha por " + Thread.currentThread().getName());
+        };
+    }
+
+    public static void main(String[] args) {
+        long inicio = System.nanoTime();
+        try (ExecutorService ejecutor = Executors.newFixedThreadPool(3)) {
+            for (int i = 1; i <= 6; i++) {
+                ejecutor.execute(tarea(i));
+            }
+            System.out.println("   main: seis tareas entregadas");
+        }
+        long milis = (System.nanoTime() - inicio) / 1_000_000;
+        System.out.println("   total: unos " + milis + " ms");
+    }
+}
+```
+
+Una ejecución:
+
+```text
+   main: seis tareas entregadas
+   tarea 3 hecha por pool-1-thread-3
+   tarea 2 hecha por pool-1-thread-2
+   tarea 1 hecha por pool-1-thread-1
+   tarea 4 hecha por pool-1-thread-3
+   tarea 5 hecha por pool-1-thread-2
+   tarea 6 hecha por pool-1-thread-1
+   total: unos 447 ms
+```
+:::
+
+Los nombres de hilo se repiten porque cada hilo, al terminar una tarea, saca la siguiente de la
+cola: seis tareas de 200 ms en tres hilos son dos tandas, unos 400 ms. El programa no tiene ni un
+`new Thread` ni un `join`. Lo que sustituye al `join` es el bloque `try`: desde Java 19,
+`ExecutorService` es `AutoCloseable`, y su método `close` deja de aceptar tareas nuevas y **espera a
+que terminen las que ya tiene**. Cuando el bloque se cierra, no queda ninguna tarea a medias.
+
+El orden de las líneas, en cambio, cambia de una ejecución a otra, porque cada tarea imprime por su
+cuenta al terminar, como los hilos de 3.1. Y ahí está el límite de esta versión: `main` no recibe
+nada de las tareas. Si necesitara sus resultados, habría que dejarlos en una estructura compartida,
+con los riesgos de 3.1.4, y si una tarea fallara, `main` no se enteraría.
+
+Para recoger resultados hacen falta dos piezas más. Una tarea que devuelve un resultado es un
+`Callable<T>`, la versión de `Runnable` cuyo método, `call`, devuelve un valor de tipo `T` y puede
+lanzar excepciones comprobadas. Se entrega con `submit` en lugar de con `execute`, y `submit`
+devuelve al instante un `Future<T>`, el **futuro** de su resultado (@imp-futuro):
+
+| | Sin resultado | Con resultado |
+|---|---|---|
+| La tarea | `Runnable`: `void run()` | `Callable<T>`: `T call() throws Exception` |
+| Se entrega con | `ejecutor.execute(tarea)` | `ejecutor.submit(tarea)` |
+| La entrega devuelve | nada | un `Future<T>` |
+
+El segundo ejemplo es el mismo programa con las tareas convertidas en `Callable<String>`: cada una
+devuelve su texto en lugar de imprimirlo, y ya no necesita el `try` de `InterruptedException`.
 
 ::: {#nte-ejecutor .callout-note title="Seis tareas y tres hilos con un ejecutor"}
 ```java
@@ -1642,9 +1726,9 @@ Una ejecución:
 ```
 :::
 
-Seis tareas, tres hilos: los nombres se repiten porque cada hilo, al terminar una tarea, saca la
-siguiente de la cola. Las seis tardan 200 ms cada una y el total es de unos 400, dos tandas de
-tres. Y el programa no tiene ni un `new Thread` ni un `join`.
+El reparto entre hilos y el tiempo son los de @nte-ejecutar. Lo que cambia es quién imprime: ahora
+solo `main`, que recoge los resultados en el orden en que los pidió, así que las líneas salen
+**siempre** en el orden 1, 2, 3, 4, 5, 6, aunque las tareas terminen en otro.
 
 Lo que devuelve `submit` merece mirarse despacio, porque es lo que hace útil todo lo demás. Con un
 método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como
@@ -1682,42 +1766,6 @@ en lugar de quedarte plantado en el mostrador.
 | «Se nos ha quemado» | `get` lanza `ExecutionException` con el motivo |
 | Anular el pedido | `futuro.cancel(true)` |
 
-Con tiempos se ve mejor. En este fragmento, una tarea tarda un segundo y el hilo principal va
-anotando qué hace y cuándo; el método `ms` devuelve los milisegundos transcurridos desde que empezó
-el programa.
-
-```java
-// Fragmento
-System.out.println(ms() + "  main: entrego la tarea");
-Future<String> futuro = ejecutor.submit(() -> {
-    System.out.println(ms() + "  tarea: empiezo (tardo un segundo)");
-    Thread.sleep(1000);
-    System.out.println(ms() + "  tarea: termino");
-    return "resultado";
-});
-System.out.println(ms() + "  main: ya tengo el Future. isDone = " + futuro.isDone());
-Thread.sleep(500);                                       // otras cosas
-System.out.println(ms() + "  main: he hecho otras cosas. isDone = " + futuro.isDone());
-System.out.println(ms() + "  main: llamo a get() y espero...");
-String r = futuro.get();
-System.out.println(ms() + "  main: get() devuelve \"" + r + "\". isDone = " + futuro.isDone());
-```
-
-```text
-    5 ms  main: entrego la tarea
-   49 ms  tarea: empiezo (tardo un segundo)
-   48 ms  main: ya tengo el Future. isDone = false
-  552 ms  main: he hecho otras cosas. isDone = false
-  552 ms  main: llamo a get() y espero...
- 1049 ms  tarea: termino
- 1051 ms  main: get() devuelve "resultado". isDone = true
-```
-
-El hilo principal tiene el futuro a los 48 ms, y el resultado no existe hasta los 1.049: durante un
-segundo tiene en la mano algo que vale por un resultado que todavía no se ha calculado. Mientras
-tanto no está bloqueado —hace sus «otras cosas» y pregunta con `isDone` sin esperar—, y cuando por
-fin llama a `get`, espera solo lo que falta, medio segundo, no el segundo entero.
-
 Lo que distingue a un futuro de un hilo suelto es lo que puede pasar al llamar a `get`:
 
 | El método `get`… | cuando… |
@@ -1741,10 +1789,26 @@ unos 1.250 ms en lugar de 450, con dos de los tres hilos del ejecutor parados to
 **Primero se pide todo, después se recoge**: es la forma de que el ejecutor tenga trabajo para
 todos sus hilos a la vez.
 
-El bloque `try` con el ejecutor como recurso es lo que garantiza que el programa termine bien.
-Desde Java 19, `ExecutorService` es `AutoCloseable`, y su método `close` hace dos cosas: deja de
-aceptar tareas nuevas y **espera a que terminen las que ya tiene**. Cuando el bloque se cierra, no
-queda ninguna tarea a medias.
+Además de `execute` y `submit`, la interfaz `ExecutorService` tiene métodos para entregar tareas
+en grupo y para controlar cómo termina el ejecutor. Los plazos se dan con un número y una unidad
+de `TimeUnit`, como `10, TimeUnit.SECONDS`.
+
+| Método | Qué hace |
+|---|---|
+| `execute(tarea)` | Entrega un `Runnable`. No devuelve nada. |
+| `submit(tarea)` | Entrega un `Callable` (o un `Runnable`) y devuelve su `Future`. |
+| `invokeAll(tareas)` | Entrega una colección de `Callable`, **espera a que terminen todas** y devuelve la lista de sus futuros, ya terminados. Con un plazo, `invokeAll(tareas, plazo, unidad)`, cancela las que no hayan terminado a tiempo. |
+| `invokeAny(tareas)` | Entrega varias y devuelve el resultado de **la primera que termine bien**; cancela las demás. |
+| `shutdown()` | Empieza el cierre: no acepta tareas nuevas, pero deja terminar las que ya tiene, incluidas las que esperan en la cola. **No espera** a que terminen. |
+| `shutdownNow()` | Cierre brusco: no acepta tareas nuevas, **interrumpe** las que se están ejecutando y devuelve la lista de las que no habían empezado. |
+| `awaitTermination(plazo, unidad)` | Después de un `shutdown`, espera a que terminen todas las tareas, como mucho ese tiempo. Devuelve `true` si terminaron. |
+| `isShutdown()`, `isTerminated()` | Dicen si el ejecutor ha empezado a cerrarse y si ya han terminado todas sus tareas. |
+| `close()` | Desde Java 19: hace un `shutdown` y espera a que terminen todas las tareas. Es lo que llama el `try` con recursos al salir del bloque. |
+
+Dos detalles de la tabla evitan errores habituales. El método `shutdown` **no espera**: si después
+no se llama a `awaitTermination`, el programa sigue sin saber si las tareas han terminado. Y
+`shutdownNow` no detiene nada a la fuerza: interrumpe las tareas, que es pedirles que paren, y una
+tarea que no atienda la interrupción seguirá ejecutándose (3.2.2 vuelve sobre esto).
 
 ::: {#cau-no-cerrar-ejecutor .callout-caution title="No cerrar un ejecutor"}
 Los hilos de un `Executors.newFixedThreadPool` no son hilos *demonio* (*daemon threads*): mientras
@@ -1752,7 +1816,7 @@ existan, la máquina virtual no termina. Un programa que crea un ejecutor y no l
 `main` y **se queda colgado** sin hacer nada, con los hilos del conjunto esperando tareas que no
 van a llegar.
 
-Lo correcto es crearlo en un `try` con recursos, como en el ejemplo. En código anterior a Java 19,
+Lo correcto es crearlo en un `try` con recursos, como en los dos ejemplos. En código anterior a Java 19,
 que es la mayoría del que encontrarás escrito, el equivalente era llamar a `shutdown()` y después a
 `awaitTermination(...)` en un bloque `finally`; hace lo mismo con bastantes más líneas y con más
 sitios donde equivocarse.
