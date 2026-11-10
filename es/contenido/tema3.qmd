@@ -440,6 +440,49 @@ antes que el paso 2 del lento porque las pausas son muy distintas, pero si las a
 definición de concurrencia (@imp-concurrencia). Lo que sí está garantizado es lo que fija `join`:
 la última línea va siempre al final.
 
+::: {#imp-metodos-thread .callout-important title="Los métodos principales de `Thread`"}
+Un objeto `Thread` representa un hilo. Al crearlo recibe una **tarea**, un `Runnable`, y la
+ejecuta cuando se le pone en marcha. Los métodos que más se usan son pocos. Los marcados como
+*estáticos* se llaman sobre la clase, como en `Thread.sleep(200)`, y actúan siempre sobre el hilo
+que está ejecutando esa línea.
+
+| Método | Qué hace |
+|---|---|
+| `new Thread(tarea)`, `new Thread(tarea, nombre)` | Crea el hilo, con un nombre opcional. No lo arranca. |
+| `start()` | Arranca el hilo, que ejecuta la tarea a la vez que el resto del programa. El método vuelve al instante, y solo se puede llamar una vez. |
+| `join()` | El hilo que llama espera a que este termine. Con un plazo, `join(milisegundos)`, espera como mucho ese tiempo. |
+| `Thread.sleep(milisegundos)` *(estático)* | Detiene el hilo actual durante ese tiempo. |
+| `interrupt()` | Pide al hilo que pare. No lo detiene a la fuerza: si está esperando, su espera termina con una `InterruptedException`, y es el hilo quien decide qué hacer. |
+| `Thread.currentThread()` *(estático)* | Devuelve el hilo que está ejecutando esa línea. |
+| `getName()`, `setName(nombre)` | Consultan y cambian el nombre del hilo. Si no se le da ninguno, Java le pone uno como `Thread-0`. |
+| `isAlive()` | Dice si el hilo está arrancado y todavía no ha terminado. |
+| `setDaemon(true)` | Lo convierte en un hilo demonio. Hay que llamarlo antes de `start`. |
+
+Un **hilo demonio** (*daemon thread*) es un hilo de servicio, que trabaja en segundo plano para
+los demás. La máquina virtual **no lo espera**: cuando terminan todos los hilos normales, incluido
+el de `main`, el programa acaba aunque queden hilos demonio en marcha, que se cortan donde estén.
+Un hilo normal, en cambio, mantiene vivo el programa hasta que termina.
+
+Java 21 añadió una forma nueva de crear hilos, con un **constructor de hilos**:
+`Thread.ofPlatform()` crea hilos normales, como `new Thread`, y `Thread.ofVirtual()` crea los
+**hilos virtuales** de 3.3. Los dos se configuran paso a paso con métodos encadenados, como
+`name("forma-4")`, que le da nombre al hilo, y acaban con `unstarted(tarea)`, que lo crea sin
+arrancarlo, o con `start(tarea)`, que además lo arranca:
+
+```java
+// Fragmento
+Thread h4 = Thread.ofPlatform().name("forma-4").unstarted(tarea);
+```
+
+Antes, Java 19 había añadido versiones de `join` y de `sleep` que reciben una duración en lugar de
+milisegundos, como `Thread.sleep(Duration.ofMillis(200))`; la de `join` devuelve además si el hilo
+terminó a tiempo.
+
+Dos cosas que **no** se deben hacer: llamar directamente a `run()`, que ejecuta la tarea en el
+hilo actual en lugar de en uno nuevo (@cau-llamar-run), y usar `stop()`, que desde Java 20 ni
+siquiera funciona: lanza una excepción.
+:::
+
 ::: {#cau-llamar-run .callout-caution title="Llamar a `run` en lugar de `start`"}
 Un `Thread` tiene un método `run`, y llamarlo compila, funciona y no da ningún aviso. Pero no
 arranca ningún hilo: ejecuta la tarea **en el hilo que hace la llamada**, como cualquier otro
