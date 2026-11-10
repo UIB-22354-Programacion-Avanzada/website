@@ -193,44 +193,58 @@ el orden de magnitud, y que **la respuesta depende de la tarea, no de la máquin
 La columna de las tareas de cálculo tiene además un límite que conviene conocer antes de
 entusiasmarse con los núcleos.
 
-::: {#tip-amdahl .callout-tip title="La ley de Amdahl: la parte secuencial pone el techo"}
-Si una fracción $p$ del trabajo de un programa se puede repartir entre $N$ núcleos y el resto,
-$1 - p$, tiene que hacerse en uno solo, la aceleración máxima que se obtiene es [@amdahl1967]
+::: {#tip-amdahl .callout-tip title="La ley de Amdahl, la parte secuencial pone el techo"}
 
-$$S(N) = \frac{1}{(1 - p) + \dfrac{p}{N}}$$
+La Ley de Amdahl [@amdahl1967] calcula la mejora máxima de rendimiento (o aceleración, speedup) que se puede obtener en un programa al usar múltiples procesadores o núcleos, considerando que una parte del código es secuencial y no se puede paralelizar.
 
-El primer sumando del denominador no depende de $N$, y eso lo decide todo: por muchos núcleos que
-haya, $S(N)$ no puede pasar de $1/(1-p)$. Un programa con un 90 % de trabajo repartible, $p = 0{,}9$,
-se acelera con 16 núcleos
+Está dada por la Fórmula
+$$
+S(N)=\frac{1}{(1-P)+\frac{P}{N}}
+$$
+donde
 
-$$S(16) = \frac{1}{0{,}1 + 0{,}9/16} = \frac{1}{0{,}15625} = 6{,}4$$
+• $S(N)$: Aceleración total obtenida con N procesadores.
+• $P$: La fracción del programa que es paralelizable (entre 0 y 1).
+• $1 - P$: La fracción del programa que es secuencial (que solo se puede ejecutar en un núcleo).
+• $N$: El número de procesadores o núcleos disponibles.
 
-veces, y con infinitos núcleos no pasaría de 10. El 10 % secuencial, que en el programa
-secuencial era una minucia, es lo que pone el techo.
+Se tiene entonces:
 
-La ley habla de tareas limitadas por cálculo. Para las que esperan, la cuenta relevante es otra.
+• El cuello de botella secuencial: Por más núcleos $N$ que agregues, cuando $N$ tiende a infinito, la aceleración máxima teórica se limita a $\frac{1}{1-P}$.
+	• Ejemplo: Si el 10% de un programa es secuencial ($1-P = 0.10$), la aceleración máxima jamás superará a × 10, sin importar si usas 10, 100 o 1,000 procesadores. 
+• Rendimientos decrecientes: Al principio, añadir núcleos acelera mucho el programa, pero a medida que aumentas $N$, el impacto de la parte paralela se reduce y el tiempo total queda dominado por la espera en la parte secuencial.
+
+La ley se refiere a tareas limitadas por cálculo. Para las que esperan, la cuenta relevante es otra.
 :::
 
-::: {#tip-little .callout-tip title="La ley de Little: cuántas esperas hay que tener abiertas"}
-En cualquier sistema estable que atiende peticiones, el número medio de peticiones que están
-dentro del sistema a la vez, $L$, es el producto de cuántas llegan por unidad de tiempo, $\lambda$,
-por cuánto tiempo pasa cada una dentro, $W$ [@little1961]:
+::: {#tip-little .callout-tip title="La ley de Little, cuántas esperas hay que tener abiertas"}
+En programación concurrente y arquitectura de sistemas, la Ley de Little es un teorema matemático fundamental derivado de la teoría de colas que relaciona la concurrencia de un sistema con su rendimiento (throughput) y el tiempo de respuesta.
 
-$$L = \lambda \cdot W$$
+Está dada por la ecuación:
+$$
+\mathbf{L}=\lambda \times \mathbf{W}
+$$
 
-Leída al revés, dice cuánta concurrencia hace falta. Un servidor que tenga que atender 10.000
-peticiones por segundo, $\lambda = 10^4$, cada una de las cuales pasa 200 ms esperando a una base
-de datos, $W = 0{,}2$, tiene en todo momento $L = 2.000$ peticiones a medias. Si cada una ocupa un
-hilo mientras espera, hacen falta dos mil hilos; con cien, el servidor no puede atender más de
-$100 / 0{,}2 = 500$ peticiones por segundo, tenga los núcleos que tenga.
+Donde cada variable se traduce al software de la siguiente manera:
+
+• $\mathbf{L}$ (Concurrencia Media): El número promedio de solicitudes, hilos, tareas o peticiones que están activas dentro del sistema al mismo tiempo (ej. peticiones HTTP procesándose simultáneamente).
+• $\lambda$ (Throughput o Rendimiento): La tasa promedio de llegada o salida de elementos del sistema (ej. peticiones completadas por segundo: RPS).
+• $\mathbf{W}$ (Tiempo de Respuesta / Latencia): El tiempo medio que tarda una sola solicitud en ser procesada desde que entra al sistema hasta que sale.
+
+**Ejemplo Práctico:**
+
+Si un servidor web procesa un promedio de 100 peticiones por segundo ($\lambda = 100$) y cada petición tarda en resolverse una media de 0.2 segundos ($\mathbf{W} = 0.2$), la concurrencia interna del servidor es:
+$$
+\mathbf{L}=100\times 0.2=\mathbf{20}\text{\ peticiones\ concurrentes}
+$$
+Esto significa que, de media, necesitas que tu servidor sea capaz de mantener 20 hilos o tareas simultáneas en ejecución sin bloquearse.
 
 Esta cuenta es la que justifica los hilos virtuales de la sección 3.3, y la propia propuesta que
 los introdujo en Java la usa como argumento [@jep444].
 :::
 
 Las dos leyes ponen techo a las dos columnas de la tabla. En un programa que calcula, el techo lo
-pone la parte que no se reparte, por muchos núcleos que añadas (Amdahl). En uno que espera, lo pone
-cuántas esperas puedes tener abiertas a la vez, tengas los núcleos que tengas (Little).
+pone la parte que no se reparte (se debe ejecutar en un solo hilo), por muchos núcleos que añadas (Amdahl). En uno que espera, lo pone cuántas esperas puedes tener abiertas a la vez, tengas los núcleos que tengas (Little).
 
 Queda una distinción por hacer, la que separa los dos tipos de tarea que el sistema operativo sabe
 ejecutar a la vez.
