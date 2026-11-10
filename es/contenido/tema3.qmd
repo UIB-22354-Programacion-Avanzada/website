@@ -193,58 +193,66 @@ el orden de magnitud, y que **la respuesta depende de la tarea, no de la máquin
 La columna de las tareas de cálculo tiene además un límite que conviene conocer antes de
 entusiasmarse con los núcleos.
 
-::: {#tip-amdahl .callout-tip title="La ley de Amdahl, la parte secuencial pone el techo"}
+::: {#tip-amdahl .callout-tip title="La ley de Amdahl: la parte secuencial pone el techo"}
+La ley de Amdahl [@amdahl1967] da la aceleración máxima (*speedup*) que se puede obtener al
+repartir un programa entre varios núcleos cuando una parte de su código es secuencial y no se
+puede repartir:
 
-La Ley de Amdahl [@amdahl1967] calcula la mejora máxima de rendimiento (o aceleración, speedup) que se puede obtener en un programa al usar múltiples procesadores o núcleos, considerando que una parte del código es secuencial y no se puede paralelizar.
+$$S(N) = \frac{1}{(1 - P) + \dfrac{P}{N}}$$
 
-Está dada por la Fórmula
-$$
-S(N)=\frac{1}{(1-P)+\frac{P}{N}}
-$$
 donde
 
-• $S(N)$: Aceleración total obtenida con N procesadores.
-• $P$: La fracción del programa que es paralelizable (entre 0 y 1).
-• $1 - P$: La fracción del programa que es secuencial (que solo se puede ejecutar en un núcleo).
-• $N$: El número de procesadores o núcleos disponibles.
+- $S(N)$ es la aceleración: cuántas veces más rápido va el programa con $N$ núcleos que con uno;
+- $P$ es la fracción del trabajo que se puede repartir, entre 0 y 1;
+- $1 - P$ es la fracción secuencial, la que solo se puede ejecutar en un núcleo;
+- $N$ es el número de núcleos.
 
-Se tiene entonces:
+De la fórmula salen dos consecuencias:
 
-• El cuello de botella secuencial: Por más núcleos $N$ que agregues, cuando $N$ tiende a infinito, la aceleración máxima teórica se limita a $\frac{1}{1-P}$.
-	• Ejemplo: Si el 10% de un programa es secuencial ($1-P = 0.10$), la aceleración máxima jamás superará a × 10, sin importar si usas 10, 100 o 1,000 procesadores. 
-• Rendimientos decrecientes: Al principio, añadir núcleos acelera mucho el programa, pero a medida que aumentas $N$, el impacto de la parte paralela se reduce y el tiempo total queda dominado por la espera en la parte secuencial.
+- **El cuello de botella secuencial.** El primer sumando del denominador no depende de $N$: por
+  muchos núcleos que se añadan, $S(N)$ no puede pasar de $1/(1-P)$. Si el 10 % de un programa es
+  secuencial, $1 - P = 0{,}1$, la aceleración no superará nunca 10, haya 10, 100 o 1.000 núcleos.
+- **Rendimientos decrecientes.** Los primeros núcleos aceleran mucho; los siguientes, cada vez
+  menos, porque el tiempo total queda dominado por la parte secuencial. Con $P = 0{,}9$, 16
+  núcleos dan $S(16) = 1/(0{,}1 + 0{,}9/16) = 6{,}4$: menos de la mitad de lo que prometen 16
+  núcleos, y lejos todavía del techo de 10.
 
 La ley se refiere a tareas limitadas por cálculo. Para las que esperan, la cuenta relevante es otra.
 :::
 
-::: {#tip-little .callout-tip title="La ley de Little, cuántas esperas hay que tener abiertas"}
-En programación concurrente y arquitectura de sistemas, la Ley de Little es un teorema matemático fundamental derivado de la teoría de colas que relaciona la concurrencia de un sistema con su rendimiento (throughput) y el tiempo de respuesta.
+::: {#tip-little .callout-tip title="La ley de Little: cuántas esperas hay que tener abiertas"}
+La ley de Little [@little1961] es un resultado de la teoría de colas. En cualquier sistema
+**estable** que atiende peticiones —uno en el que, a la larga, salen tantas como entran—, relaciona
+cuántas hay dentro a la vez con el ritmo al que llegan y con lo que tarda cada una:
 
-Está dada por la ecuación:
-$$
-\mathbf{L}=\lambda \times \mathbf{W}
-$$
+$$L = \lambda \cdot W$$
 
-Donde cada variable se traduce al software de la siguiente manera:
+donde
 
-• $\mathbf{L}$ (Concurrencia Media): El número promedio de solicitudes, hilos, tareas o peticiones que están activas dentro del sistema al mismo tiempo (ej. peticiones HTTP procesándose simultáneamente).
-• $\lambda$ (Throughput o Rendimiento): La tasa promedio de llegada o salida de elementos del sistema (ej. peticiones completadas por segundo: RPS).
-• $\mathbf{W}$ (Tiempo de Respuesta / Latencia): El tiempo medio que tarda una sola solicitud en ser procesada desde que entra al sistema hasta que sale.
+- $L$ es la **concurrencia media**: cuántas peticiones, tareas o hilos hay dentro del sistema a la
+  vez, por ejemplo peticiones HTTP a medio atender;
+- $\lambda$ es el **rendimiento** (*throughput*): cuántas peticiones llegan, o salen, por unidad de
+  tiempo;
+- $W$ es el **tiempo de respuesta**: cuánto pasa cada petición dentro del sistema, desde que entra
+  hasta que sale.
 
-**Ejemplo Práctico:**
+Un servidor que atiende 100 peticiones por segundo, $\lambda = 100$, cada una de las cuales tarda
+0,2 s, $W = 0{,}2$, tiene de media $L = 100 \cdot 0{,}2 = 20$ peticiones a medias. Si cada una
+ocupa un hilo mientras espera, necesita tener 20 hilos abiertos a la vez.
 
-Si un servidor web procesa un promedio de 100 peticiones por segundo ($\lambda = 100$) y cada petición tarda en resolverse una media de 0.2 segundos ($\mathbf{W} = 0.2$), la concurrencia interna del servidor es:
-$$
-\mathbf{L}=100\times 0.2=\mathbf{20}\text{\ peticiones\ concurrentes}
-$$
-Esto significa que, de media, necesitas que tu servidor sea capaz de mantener 20 hilos o tareas simultáneas en ejecución sin bloquearse.
+Leída al revés, la ley dice cuánta concurrencia hace falta para un rendimiento dado, y ahí está su
+interés. Con 10.000 peticiones por segundo y el mismo $W$, $L = 2.000$: dos mil hilos esperando a
+la vez. Y si el servidor solo tiene cien, no puede atender más de
+$\lambda = L / W = 100 / 0{,}2 = 500$ peticiones por segundo, tenga los núcleos que tenga.
 
 Esta cuenta es la que justifica los hilos virtuales de la sección 3.3, y la propia propuesta que
 los introdujo en Java la usa como argumento [@jep444].
 :::
 
 Las dos leyes ponen techo a las dos columnas de la tabla. En un programa que calcula, el techo lo
-pone la parte que no se reparte (se debe ejecutar en un solo hilo), por muchos núcleos que añadas (Amdahl). En uno que espera, lo pone cuántas esperas puedes tener abiertas a la vez, tengas los núcleos que tengas (Little).
+pone la parte que no se reparte (se debe ejecutar en un solo hilo), por muchos núcleos que añadas
+(Amdahl). En uno que espera, lo pone cuántas esperas puedes tener abiertas a la vez, tengas los
+núcleos que tengas (Little).
 
 Queda una distinción por hacer, la que separa los dos tipos de tarea que el sistema operativo sabe
 ejecutar a la vez.
@@ -272,6 +280,7 @@ Para que un trozo de código se ejecute a la vez que el resto del programa hacen
 
 Esa separación explica las formas de crear un hilo que vas a encontrar. Todas producen lo mismo, un `Thread` que ejecuta un `run`; cambia dónde se escribe la tarea:
 
+::: {#nte-formas-de-crear-hilos .callout-note title="Cuatro formas de crear un hilo"}
 ```java
 // DemoFormasDeCrearHilos.java
 package es.uib.prgava.tema3.fundamentos;
@@ -333,6 +342,7 @@ Tres ejecuciones seguidas:
    hola desde forma-3          hola desde forma-2          hola desde forma-3
    main: los cuatro han terminado   (en las tres)
 ```
+:::
 
 Las cuatro formas, de la más antigua a la más moderna:
 
@@ -347,6 +357,7 @@ Lo que aún no hace ninguna de las cuatro es **devolver un resultado**. El méto
 
 Crear un hilo, se haga como se haga, no lo pone en marcha: lo pone en marcha el método `start`, que vuelve inmediatamente y deja al hilo nuevo ejecutándose **a la vez** que el que lo arrancó. El método `join` hace lo contrario: bloquea al hilo que lo llama hasta que el otro termina. El ejemplo siguiente lo muestra con dos hilos que tardan distinto.
 
+::: {#nte-hilos .callout-note title="Dos hilos a la vez, con `start` y `join`"}
 ```java
 // DemoHilos.java
 package es.uib.prgava.tema3.fundamentos;
@@ -401,6 +412,7 @@ Una ejecución:
    lento  paso 3  (hilo hilo-lento)
    main: los dos han terminado en unos 763 ms
 ```
+:::
 
 Hay tres cosas que leer en esa salida. La primera línea la escribe `main` antes que ninguno de los
 dos hilos: arrancarlos no lo ha detenido. Las líneas de los dos hilos aparecen **entrelazadas**,
@@ -816,6 +828,7 @@ ejecución a otra y desaparece en cuanto intentas observarlo de cerca.
 Un ejemplo pequeño lo muestra. Cuatro hilos incrementan un mismo contador un millón de veces cada
 uno; al final, el contador debería valer cuatro millones.
 
+::: {#nte-carrera .callout-note title="Cuatro hilos y un contador sin proteger"}
 ```java
 // DemoCarrera.java
 package es.uib.prgava.tema3.fundamentos;
@@ -861,6 +874,7 @@ Una ejecución:
    obtenido: 3923860
    perdidos: 76140
 ```
+:::
 
 Ejecútalo varias veces y obtendrás un número distinto cada vez, a veces muy por debajo de los
 cuatro millones y casi nunca el correcto. No hay ningún error en el programa que se pueda señalar
@@ -906,7 +920,7 @@ operaciones del procesador, y precisamente por eso no parece una sección críti
 
 ::: {#wrn-provocar-carrera .callout-warning title="Provocar una condición de carrera para poder verla"}
 Una carrera que aparece una vez de cada mil ejecuciones no se puede depurar: hay que conseguir que
-aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador:
+aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (@nte-carrera):
 
 1. **Muchos hilos y muchas repeticiones.** La probabilidad de que dos hilos coincidan en la sección
    crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo
@@ -917,7 +931,7 @@ aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador:
    desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta
    registrar algo, se acumula y se imprime al final.
 3. **Repetir el experimento entero.** Una sola ejecución correcta no demuestra nada. El ejemplo de
-   3.2.3 repite la prueba veinte veces y cuenta en cuántas falla, que es la cifra que de verdad
+   3.2.3 (@nte-contar-palabras) repite la prueba veinte veces y cuenta en cuántas falla, que es la cifra que de verdad
    describe una carrera.
 4. **Varios núcleos.** En un ordenador con un solo núcleo los hilos se turnan y las carreras son
    mucho más raras. Los ejemplos de este tema se ejecutaron en una máquina de dos núcleos; en un
@@ -951,9 +965,10 @@ El cerrojo es **reentrante**: un hilo que ya lo tiene puede volver a tomarlo —
 método `synchronized` que llama a otro del mismo objeto— sin bloquearse a sí mismo.
 :::
 
-El contador del ejemplo anterior, protegido, se convierte en una clase con sus dos métodos
+El contador de @nte-carrera, protegido, se convierte en una clase con sus dos métodos
 sincronizados, y el experimento da exactamente lo que tiene que dar:
 
+::: {#nte-exclusion .callout-note title="El mismo contador, protegido con `synchronized`"}
 ```java
 // Contador.java
 package es.uib.prgava.tema3.fundamentos;
@@ -1016,6 +1031,7 @@ public final class DemoExclusion {
    esperado: 4000000
    obtenido: 4000000
 ```
+:::
 
 El método `valor` también es `synchronized`, aunque solo lee, y no es un exceso de celo: sin él,
 otro hilo podría leer el contador sin las garantías de visibilidad de @tip-visibilidad, que llega
@@ -1087,10 +1103,11 @@ carrera reaparecería en cuanto alguien la recorriera mientras otro hilo guarda.
 razón de ser que entonces no se podía ver.
 ::::
 
-Queda una pregunta que el ejemplo del contador deja sin contestar: si un hilo solo **lee** un dato
-que otro escribe, ¿hace falta sincronizar? La respuesta sorprende, y el siguiente programa la
-enseña.
+Queda una pregunta que el ejemplo del contador (@nte-exclusion) deja sin contestar: si un hilo solo
+**lee** un dato que otro escribe, ¿hace falta sincronizar? La respuesta sorprende, y el siguiente
+programa la enseña.
 
+::: {#nte-visibilidad .callout-note title="Un aviso que el otro hilo no ve"}
 ```java
 // DemoVisibilidad.java
 package es.uib.prgava.tema3.fundamentos;
@@ -1130,6 +1147,7 @@ public final class DemoVisibilidad {
    main: aviso enviado
    tres segundos despues, el trabajador sigue vivo: true
 ```
+:::
 
 El hilo principal cambia `parar` a `true`, el trabajador no se entera, y sigue dando vueltas tres
 segundos después y para siempre: en las ejecuciones que se hicieron para escribir este texto no
@@ -1183,6 +1201,7 @@ redimensionarse, con unas entradas en la tabla vieja y otras en la nueva—. La 
 La exclusión mutua resuelve las carreras y trae su propio problema. Este programa tiene dos hilos y
 dos cerrojos, y cada hilo los toma en el orden contrario:
 
+::: {#nte-interbloqueo .callout-note title="Dos hilos y dos cerrojos en orden contrario"}
 ```java
 // DemoInterbloqueo.java
 package es.uib.prgava.tema3.fundamentos;
@@ -1241,6 +1260,7 @@ public final class DemoInterbloqueo {
    primero: tengo A, voy a por B
    segundo: tengo B, voy a por A
 ```
+:::
 
 Paso a paso, con las pausas del ejemplo:
 
@@ -1283,8 +1303,8 @@ ejemplo tomaran primero A y después B, el segundo esperaría a que el primero t
 dos, y no habría ciclo posible.
 :::
 
-La regla del orden se comprueba en el propio ejemplo. Basta con que el segundo hilo pida los
-cerrojos en el mismo orden que el primero, A y después B:
+La regla del orden se comprueba en el propio ejemplo (@nte-interbloqueo). Basta con que el segundo
+hilo pida los cerrojos en el mismo orden que el primero, A y después B:
 
 ```java
 // Fragmento: el segundo hilo de DemoInterbloqueo, con el mismo orden que el primero
@@ -1350,7 +1370,7 @@ cerrojos en orden contrario. Pero el orden lo deciden los **argumentos**:
 | `transferir(x, y, 10)` | `x` y después `y` |
 | `transferir(y, x, 5)` | `y` y después `x` |
 
-Si dos hilos hacen esas dos llamadas a la vez, es el ciclo de `DemoInterbloqueo`, con `x` en el
+Si dos hilos hacen esas dos llamadas a la vez, es el ciclo de @nte-interbloqueo, con `x` en el
 papel de A e `y` en el de B, y nadie lo ha escrito al revés: lo han creado quién llama y con qué
 argumentos. Con un millón de transferencias en cada sentido, esta versión se quedó parada en las
 diez ejecuciones de prueba.
@@ -1503,9 +1523,10 @@ habituales, como `Executors.newFixedThreadPool(n)`.
 
 Una tarea que devuelve un resultado es un `Callable<T>`, la versión de `Runnable` con valor de
 retorno y que puede lanzar excepciones. Entregarla con `submit` devuelve inmediatamente un
-`Future<T>`, el **futuro** de su resultado (@imp-futuro), que se explica después del ejemplo.
+`Future<T>`, el **futuro** de su resultado (@imp-futuro), que se explica después de @nte-ejecutor.
 :::
 
+::: {#nte-ejecutor .callout-note title="Seis tareas y tres hilos con un ejecutor"}
 ```java
 // DemoEjecutor.java
 package es.uib.prgava.tema3.herramientas;
@@ -1562,6 +1583,7 @@ Una ejecución:
    tarea 6 hecha por pool-1-thread-2
    total: unos 443 ms
 ```
+:::
 
 Seis tareas, tres hilos: los nombres se repiten porque cada hilo, al terminar una tarea, saca la
 siguiente de la cola. Las seis tardan 200 ms cada una y el total es de unos 400, dos tandas de
@@ -1654,7 +1676,7 @@ muere y nadie se entera; con un futuro, el fallo **cruza de un hilo a otro** y l
 resultado. Y, como `join`, el método `get` garantiza que lo que la tarea escribió en memoria es
 visible cuando devuelve.
 
-Eso explica también por qué `DemoEjecutor` tiene dos bucles: el primero solo pide, y guarda los seis
+Eso explica también por qué @nte-ejecutor tiene dos bucles: el primero solo pide, y guarda los seis
 futuros en una lista; el segundo recoge. Si se pidiera y se recogiera en el mismo bucle, con
 `ejecutor.submit(tarea(i)).get()`, cada `get` esperaría a su tarea antes de entregar la siguiente.
 El resultado sería el mismo, pero las seis tareas irían una detrás de otra: el programa tarda así
@@ -1837,6 +1859,7 @@ El ejemplo comprueba dos cosas del mismo servidor a la vez —que su nombre se r
 [DNS]{.glos} y que su puerto [TCP]{.glos} contesta— y combina las dos respuestas en un veredicto.
 Para la consulta TCP hay un plazo de 300 ms.
 
+::: {#nte-futuro-completable .callout-note title="Dos consultas a la vez, combinadas con `CompletableFuture`"}
 ```java
 // DemoFuturoCompletable.java
 package es.uib.prgava.tema3.herramientas;
@@ -1905,6 +1928,7 @@ public final class DemoFuturoCompletable {
    veredicto: con problemas, en unos 300 ms
    termina la consulta TCP
 ```
+:::
 
 Las cuatro operaciones del ejemplo cubren casi todo lo que se usa en la práctica:
 
@@ -1939,7 +1963,7 @@ de las tres se está usando:
 | `ExecutorService.invokeAll` con plazo | sí | no |
 | `StructuredTaskScope` (3.3.4) | sí | **sí** |
 
-La primera fila es la del ejemplo: el futuro se da por terminado y la tarea sigue, huérfana. La
+La primera fila es la de @nte-futuro-completable: el futuro se da por terminado y la tarea sigue, huérfana. La
 segunda tiene una consecuencia menos visible: las tareas interrumpidas **siguen ejecutándose** un
 instante después de que `invokeAll` haya vuelto —el que tardan en enterarse de la interrupción y
 terminar—, de modo que lo que hayan dejado hecho cuando el método vuelve **depende del
@@ -2018,6 +2042,7 @@ El programa siguiente cuenta las mismas cinco palabras desde cuatro hilos, de la
 repite cada prueba veinte veces, que es la técnica de @wrn-provocar-carrera: lo que describe una
 carrera no es un resultado, sino una frecuencia.
 
+::: {#nte-contar-palabras .callout-note title="Contar palabras desde cuatro hilos: `get` y `put` frente a `merge`"}
 ```java
 // DemoContarPalabras.java
 package es.uib.prgava.tema3.herramientas;
@@ -2107,6 +2132,7 @@ Una ejecución:
    get y put:  20 de 20 con perdidas,  7304214 palabras perdidas en total
    merge:       0 de 20 con perdidas,        0 palabras perdidas en total
 ```
+:::
 
 Con `get` y `put` fallan las veinte pruebas, y en cada una se pierde casi una de cada cinco
 palabras; con `merge`, ninguna. Aquí el error salta a la vista porque cuatro hilos se pasan el rato
@@ -2183,6 +2209,7 @@ Para el caso más simple, un número que varios hilos actualizan, ni siquiera ha
 colección: el paquete `java.util.concurrent.atomic` trae `AtomicInteger`, `AtomicLong` y
 `AtomicReference`, que ofrecen operaciones compuestas que se ejecutan **de una vez**.
 
+::: {#nte-contadores .callout-note title="Tres formas de contar desde cuatro hilos"}
 ```java
 // DemoContadores.java
 package es.uib.prgava.tema3.herramientas;
@@ -2250,6 +2277,7 @@ Una ejecución, en la misma máquina de dos núcleos:
    synchronized     20000000   20000000   810 ms
    AtomicLong       20000000   20000000   412 ms
 ```
+:::
 
 La primera fila es la rápida y la que está mal: la mitad de los incrementos se han perdido. Las dos
 siguientes son correctas, y la variable atómica tarda la mitad que el cerrojo. La razón de la
@@ -2524,8 +2552,9 @@ primera línea del `finally`— es la única correcta.
 El método que justifica todo esto es `tryLock(plazo, unidad)`: intenta tomar el cerrojo, espera
 como mucho el plazo, y devuelve si lo ha conseguido. Con él se rompe la segunda condición de
 Coffman, la de retención y espera: el hilo que no consigue el segundo cerrojo suelta el primero. El
-interbloqueo de 3.1.6, rehecho así:
+interbloqueo de @nte-interbloqueo, rehecho así:
 
+::: {#nte-trylock .callout-note title="El interbloqueo deshecho con `tryLock`"}
 ```java
 // DemoTryLock.java
 package es.uib.prgava.tema3.herramientas;
@@ -2601,6 +2630,7 @@ public final class DemoTryLock {
    segundo: tengo los dos al intento 2
    los dos han terminado
 ```
+:::
 
 Los dos hilos se cruzan, se rinden y lo vuelven a intentar, y al segundo intento terminan. Hay un
 detalle que lo hace funcionar y que es fácil pasar por alto: las esperas antes de reintentar son
@@ -2609,10 +2639,10 @@ vez, volver a cruzarse, volver a rendirse y repetir el mismo baile indefinidamen
 tiene nombre, **bloqueo activo** (*livelock*): los hilos no están parados, trabajan sin descanso,
 pero ninguno avanza. Se evita haciendo que las esperas sean distintas, o aleatorias.
 
-En la práctica, de todos modos, la solución al interbloqueo de 3.1.6 sigue siendo la otra que daba
-@tip-coffman: tomar los cerrojos siempre en el mismo orden. Es más sencilla, no reintenta nada y
-no puede caer en un bloqueo activo. El `tryLock` es para cuando ese orden no se puede fijar, por
-ejemplo porque los cerrojos los decide la entrada del programa.
+En la práctica, de todos modos, la solución al interbloqueo de @nte-interbloqueo sigue siendo la
+otra que daba @tip-coffman: tomar los cerrojos siempre en el mismo orden. Es más sencilla, no
+reintenta nada y no puede caer en un bloqueo activo. El `tryLock` es para cuando ese orden no se
+puede fijar, por ejemplo porque los cerrojos los decide la entrada del programa.
 
 :::: {.ampliacion}
 #### **Lectores y escritores, y condiciones**
@@ -2690,6 +2720,7 @@ tarea, `Executors.newVirtualThreadPerTaskExecutor()`. Todo lo visto en 3.1 y 3.2
 El efecto se ve con el experimento más simple posible: diez mil tareas que esperan cien
 milisegundos cada una, que es lo que hace una sonda.
 
+::: {#nte-mil-hilos .callout-note title="Diez mil esperas con hilos de plataforma y con hilos virtuales"}
 ```java
 // DemoMilHilos.java
 package es.uib.prgava.tema3.virtuales;
@@ -2742,6 +2773,7 @@ public final class DemoMilHilos {
    200 hilos de plataforma:             5056 ms, como mucho  206 hilos del sistema
    un hilo virtual por tarea:            199 ms, como mucho   10 hilos del sistema
 ```
+:::
 
 Con doscientos hilos de plataforma, las diez mil esperas se hacen de doscientas en doscientas:
 cincuenta tandas de cien milisegundos, cinco segundos. Con hilos virtuales, se hacen **todas a la
@@ -2883,6 +2915,7 @@ cuántos, no para garantizar exclusión.
 El ejemplo lanza diez descargas simuladas de 200 ms, cada una en su hilo virtual, y anota cuántas
 hay en curso a la vez: primero sin límite, y después pidiendo antes un permiso a un semáforo de tres.
 
+::: {#nte-semaforo .callout-note title="Diez descargas con un semáforo de tres permisos"}
 ```java
 // DemoSemaforo.java
 package es.uib.prgava.tema3.virtuales;
@@ -2955,6 +2988,7 @@ Una ejecución:
    sin limite:       230 ms, como mucho 10 descargas a la vez
    con 3 permisos:   806 ms, como mucho  3 descargas a la vez
 ```
+:::
 
 Sin límite, las diez descargas van a la vez y el programa tarda poco más que una. Con tres
 permisos, nunca hay más de tres en curso: las diez se hacen en cuatro tandas —tres, tres, tres y
@@ -3259,6 +3293,7 @@ Java 25 incluye, ya como definitiva, la alternativa diseñada para este mundo: l
 un bloque, y dentro de ese bloque —y de todo lo que se llame desde él— se puede leer; fuera, no
 existe. No se puede modificar: para cambiarlo, se liga otro valor en un bloque más interno.
 
+::: {#nte-valor-con-ambito .callout-note title="Un identificador de ronda con `ScopedValue`"}
 ```java
 // DemoValorConAmbito.java
 package es.uib.prgava.tema3.virtuales;
@@ -3310,6 +3345,7 @@ public final class DemoValorConAmbito {
    [fuera de ronda] esto ya no esta dentro de ninguna ronda
    [fuera de ronda] desde otro hilo
 ```
+:::
 
 El método `registrar` no recibe la ronda y la conoce. Fuera del bloque, el valor ya no está ligado,
 y no hay nada que borrar. La última línea es la que conviene leer despacio: la tarea entregada al
@@ -3388,6 +3424,7 @@ El ejemplo enfrenta un publicador que produce doce números de golpe con un susc
 milisegundos en procesar cada uno y que los pide de uno en uno, con un búfer de cuatro elementos
 entre los dos.
 
+::: {#nte-contrapresion .callout-note title="Un publicador rápido y un suscriptor lento"}
 ```java
 // SuscriptorLento.java
 package es.uib.prgava.tema3.reactiva;
@@ -3513,6 +3550,7 @@ Una ejecución:
    el suscriptor recibio [1, 2, 3, 4]
    se descartaron       [5, 6, 7, 8, 9, 10, 11, 12]
 ```
+:::
 
 Son las dos estrategias básicas de contrapresión, y se ve cada una en una línea de tiempo. Con
 `submit`, el publicador **espera** cada vez que el búfer está lleno: tarda setecientos milisegundos
