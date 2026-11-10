@@ -281,7 +281,7 @@ Para que un trozo de código se ejecute a la vez que el resto del programa hacen
 Esa separación explica las formas de crear un hilo que vas a encontrar. Todas producen lo mismo, un `Thread` que ejecuta un `run`; cambia dónde se escribe la tarea:
 
 ::: {#nte-formas-de-crear-hilos .callout-note title="Cuatro formas de crear un hilo"}
-::: {.resaltar data-lineas="10-19,22-27,37-39"}
+::: {.resaltar data-lineas="35-39"}
 ```java
 // DemoFormasDeCrearHilos.java
 package es.uib.prgava.tema3.fundamentos;
@@ -335,7 +335,7 @@ public final class DemoFormasDeCrearHilos {
 ```
 :::
 
-Tres ejecuciones seguidas:
+Tres ejecuciones seguidas, separadas por una línea en blanco:
 
 ```text
    hola desde forma-2
@@ -360,10 +360,10 @@ Tres ejecuciones seguidas:
 
 Las cuatro formas, de la más antigua a la más moderna:
 
-1. **Heredar de `Thread` (líneas 10-19) y redefinir `run`**. Es la forma original y la que aparece en muchos libros y tutoriales antiguos, pero mezcla en una sola clase el qué y el quién. Además gasta la única herencia que permite Java, y deja la tarea atada a un hilo concreto: no la puedes reutilizar ni entregar más adelante a un ejecutor (3.2). Conviene reconocerla y no escribirla.
-2. **Una clase que implementa `Runnable` (líneas 22-27), entregada al constructor de `Thread`**. La tarea ya es un objeto independiente del hilo. Tiene sentido cuando la tarea tiene estado propio o se reutiliza en varios sitios.
-3. **Una lambda (línea 37)** Como `Runnable` es una interfaz funcional, la tarea se escribe en el sitio con una [lambda del Tema 1](tema1.qmd#lambdas-e-interfaces-funcionales), o con una referencia a método. Es lo mismo que la forma 2 sin la clase, y es lo habitual.
-4. **El constructor de hilos `Thread.ofPlatform()` (líneas 38-39), disponible desde Java 21**. Configura el hilo paso a paso (su nombre, si es un hilo demonio) y lo crea con `unstarted(tarea)` o lo arranca directamente con `start(tarea)`. Hace lo mismo que la forma 3, pero su interés está en que existe un gemelo, `Thread.ofVirtual()`, que crea los hilos virtuales de 3.3 con la misma escritura.
+1. **Clase `HiloSaludador` que hereda de `Thread` (líneas 10-19) y redefine `run` que se emplea para instanciar el hilo `h1` (línea 35)**. Es la forma original y la que aparece en muchos libros y tutoriales antiguos, pero mezcla en una sola clase el qué y el quién. Además gasta la única herencia que permite Java, y deja la tarea atada a un hilo concreto: no la puedes reutilizar ni entregar más adelante a un ejecutor (3.2). Conviene reconocerla y no escribirla.
+2. **Clase `TareaSaludo` que implementa `Runnable` (líneas 22-27), se entrega al constructor de `Thread` para instanciar el hilo `h2` (línea 36)**. La tarea ya es un objeto independiente del hilo. Tiene sentido cuando la tarea tiene estado propio o se reutiliza en varios sitios.
+3. **Una lambda para instanciar el hilo `h3` (línea 37)**. Como `Runnable` es una interfaz funcional, la tarea se escribe en el sitio con una [lambda del Tema 1](tema1.qmd#lambdas-e-interfaces-funcionales), o con una referencia a método. Es lo mismo que la forma 2 sin la clase, y es lo habitual.
+4. **El constructor de hilos `Thread.ofPlatform()`, disponible desde Java 21, para instanciar el hilo `h4` (líneas 38-39)**. Configura el hilo paso a paso (su nombre, si es un hilo demonio) y lo crea con `unstarted(tarea)` o lo arranca directamente con `start(tarea)`. Hace lo mismo que la forma 3, pero su interés está en que existe un gemelo, `Thread.ofVirtual()`, que crea los hilos virtuales de 3.3 con la misma escritura.
 
 Las tres ejecuciones muestran además lo esencial del tema antes de empezarlo: **el orden cambia en cada ejecución**. Los cuatro hilos se arrancan en el mismo orden, uno detrás de otro, y aun así saludan en el orden que el sistema operativo decide. Lo único que no cambia es la última línea, y enseguida verás por qué.
 
