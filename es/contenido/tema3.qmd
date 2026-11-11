@@ -1845,10 +1845,10 @@ sitios donde equivocarse.
 :::: {.ampliacion}
 #### **La ronda del monitor con un ejecutor**
 
-**En el monitor.** La ronda deja de crear hilos y pasa a recibir un ejecutor, que decide quien la
-construye. Para entregar todas las tareas a la vez y esperar a todas, `ExecutorService` tiene un
-método hecho a medida, `invokeAll`, que además admite un **plazo**: las tareas que no hayan
-terminado cuando vence se cancelan, y su `Future` lo dice.
+**En el monitor de servicios** (@fig-monitor3) la ronda deja de crear hilos y pasa a recibir un
+ejecutor, que decide quien la construye. Para entregar todas las tareas a la vez y esperar a todas,
+`ExecutorService` tiene un método hecho a medida, `invokeAll`, que además admite un **plazo**: las
+tareas que no hayan terminado cuando vence se cancelan, y su `Future` lo dice.
 
 ```java
 // RondaConEjecutor.java
@@ -2691,12 +2691,11 @@ el monitor desde que arrancó.
 
 ### 3.2.5 Productor y consumidor
 
-**En el monitor de servicios** (@fig-monitor3) queda un problema que ninguna de las herramientas
-anteriores resuelve: la alerta. El `Monitor` del Tema 1 avisa a sus notificadores **dentro** de
-`comprobar`, en el mismo hilo que hace la comprobación. Si el notificador manda un correo y el
-servidor de correo tarda medio segundo, la sonda que ha detectado la caída se queda medio segundo
-parada esperando a un servidor que no tiene nada que ver con lo que ella comprueba. La solución es
-un patrón con nombre propio.
+Muchos programas tienen una parte que genera trabajo y otra que lo procesa, y cada una va a su
+ritmo: un servidor recibe peticiones más deprisa de lo que algunas tardan en atenderse, un programa
+genera líneas de registro que hay que escribir en disco, una cámara produce imágenes que otro hilo
+analiza. Si quien genera el trabajo se lo entrega en mano a quien lo procesa, el más rápido tiene
+que esperar siempre al más lento. La solución es poner algo en medio.
 
 ::: {#imp-productor-consumidor .callout-important title="Productor y consumidor"}
 El patrón **productor-consumidor** separa a quien genera trabajo de quien lo procesa poniendo una
@@ -2705,15 +2704,239 @@ consumidores los sacan y los procesan a su ritmo. Ninguno espera al otro, salvo 
 un consumidor que encuentra la cola vacía espera a que haya algo, y un productor que la encuentra
 llena —si tiene capacidad limitada— espera a que haya sitio.
 
-En Java, la cola es una `BlockingQueue`. Además de las operaciones de una cola normal, tiene
-`put`, que espera si la cola está llena, y `take`, que espera si está vacía; y versiones con
-plazo, `offer(e, plazo, unidad)` y `poll(plazo, unidad)`, que esperan como mucho ese tiempo.
+Es uno de los problemas clásicos de la programación concurrente, y nació con ella. Dijkstra lo
+planteó en 1965, en el diseño de sistemas operativos, para presentar los semáforos [@dijkstra1965]:
+un proceso que produce datos, otro que los consume y, entre los dos, un búfer de capacidad limitada.
+Por eso también se le llama el problema del **búfer acotado** (*bounded buffer*). Hoare lo eligió en
+1974 como ejemplo para presentar los monitores [@hoare1974], y desde entonces se ha resuelto con
+cada herramienta de sincronización que ha aparecido. En Java no hace falta programarlo: la cola que
+lo resuelve ya está hecha, y es una `BlockingQueue`.
 :::
 
-**En el monitor.** El `NotificadorAsincrono` es un notificador más —implementa la interfaz
-`Notificador` del Tema 1, de modo que el `Monitor` no sabe que es distinto— que en lugar de avisar
-deja la alerta en una cola. Un único hilo, el repartidor, las va sacando y se las entrega al
-notificador de verdad. Las comprobaciones son los productores; el repartidor, el consumidor.
+Una `BlockingQueue` es una cola que, además de las operaciones de siempre, **sabe esperar**. Sus
+métodos vienen en cuatro versiones, según lo que hacen cuando la operación no se puede hacer en ese
+momento, porque se quiere meter en una cola llena o sacar de una vacía:
+
+| | Lanza una excepción | Devuelve un valor especial | **Espera** | Espera como mucho un plazo |
+|---|---|---|---|---|
+| Meter | `add(e)` | `offer(e)`, que devuelve `false` | `put(e)` | `offer(e, plazo, unidad)`, que devuelve `false` |
+| Sacar | `remove()` | `poll()`, que devuelve `null` | `take()` | `poll(plazo, unidad)`, que devuelve `null` |
+| Mirar sin sacar | `element()` | `peek()`, que devuelve `null` | — | — |
+
+Para el patrón productor-consumidor, las de la columna **Espera** son las que importan: el productor
+mete con `put` y el consumidor saca con `take`. Las de plazo sirven cuando no se quiere esperar para
+siempre. Como en `ConcurrentHashMap`, ninguna admite `null`, porque `null` es lo que devuelven
+`poll` y `peek` para decir «no hay nada». Las implementaciones más habituales son:
+
+| Clase | Capacidad |
+|---|---|
+| `ArrayBlockingQueue` | Fija: se indica al crearla, `new ArrayBlockingQueue<>(n)`. |
+| `LinkedBlockingQueue` | Sin límite, salvo que se indique una al crearla. |
+| `PriorityBlockingQueue` | Sin límite; saca los elementos por prioridad, según un comparador, como la `PriorityQueue` del Tema 2. |
+
+El ejemplo es uno de los clásicos de los ejercicios de concurrencia: la cocina de un restaurante.
+Un cocinero prepara platos y los deja en el **pasaplatos**, donde caben tres, y dos camareros los
+recogen y los sirven. El cocinero y los dos camareros son tres hilos, y lo único que comparten es el
+pasaplatos, una `ArrayBlockingQueue` de capacidad 3 que guarda los platos como textos —«plato 1»,
+«plato 2»…—:
+
+```java
+// Fragmento
+private static final BlockingQueue<String> PASAPLATOS = new ArrayBlockingQueue<>(3);
+private static final String FIN = "fin del servicio";
+```
+
+El cocinero prepara ocho platos. Cocinar cada uno cuesta 100 ms, y después lo deja en el pasaplatos
+con `put`. Si el pasaplatos está lleno, el cocinero se queda **bloqueado** en esa línea hasta que un
+camarero recoja un plato y deje sitio:
+
+```java
+// Fragmento
+private static void cocinar() throws InterruptedException {
+    for (int i = 1; i <= 8; i++) {
+        Thread.sleep(100);                              // cocinar cuesta 100 ms
+        long antes = ahora();
+        PASAPLATOS.put("plato " + i);                   // espera si esta lleno
+        anotar("cocinero deja el plato " + i, antes);
+    }
+    PASAPLATOS.put(FIN);                                // un aviso de fin
+    PASAPLATOS.put(FIN);                                // por cada camarero
+}
+```
+
+Cada camarero repite lo contrario: saca un plato con `take`, que lo deja **bloqueado** si el
+pasaplatos está vacío, y tarda 500 ms en servirlo:
+
+```java
+// Fragmento
+private static void servir() throws InterruptedException {
+    while (true) {
+        long antes = ahora();
+        String plato = PASAPLATOS.take();               // espera si esta vacio
+        if (plato.equals(FIN)) {
+            return;
+        }
+        anotar(Thread.currentThread().getName() + " recoge el " + plato, antes);
+        Thread.sleep(500);                              // servirlo cuesta 500 ms
+    }
+}
+```
+
+Queda una pregunta: cómo saben los camareros que se ha acabado el servicio, si `take` espera para
+siempre en un pasaplatos vacío. Para eso está `FIN`. El cocinero, al terminar, deja en el
+pasaplatos un aviso especial por cada camarero, y cada camarero que lo saca termina. Es una técnica
+habitual para terminar consumidores, y se conoce como **píldora venenosa** (*poison pill*).
+
+El resto del programa es infraestructura. El método `ahora` da los milisegundos transcurridos desde
+que empezó el programa, y el método `anotar` escribe una línea con la hora y, si alguien ha esperado
+más de 20 ms en el `put` o en el `take`, cuánto ha esperado. El método `arrancar` crea y arranca
+cada hilo con el constructor de hilos de 3.1.2, y `main` arranca los tres y los espera con `join`
+antes de cerrar la cocina.
+
+Antes de ejecutarlo se puede prever lo que va a pasar. El cocinero va más deprisa que los dos
+camareros juntos —diez platos por segundo frente a cuatro—, así que el pasaplatos se irá llenando
+y, en algún momento, el cocinero tendrá que esperar. Al principio, en cambio, los que esperan son
+los camareros, porque todavía no hay ningún plato.
+
+::: {#nte-pasaplatos .callout-note title="Un cocinero, dos camareros y un pasaplatos con sitio para tres"}
+```java
+// DemoPasaplatos.java
+package es.uib.prgava.tema3.herramientas;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+/** Un cocinero deja platos en un pasaplatos con sitio para tres, y dos camareros los recogen. */
+public final class DemoPasaplatos {
+
+    private static final BlockingQueue<String> PASAPLATOS = new ArrayBlockingQueue<>(3);
+    private static final String FIN = "fin del servicio";
+    private static final long INICIO = System.nanoTime();
+
+    private DemoPasaplatos() { }
+
+    /** Milisegundos transcurridos desde que empezó el programa. */
+    private static long ahora() {
+        return (System.nanoTime() - INICIO) / 1_000_000;
+    }
+
+    /** Escribe qué ha pasado y cuándo, y cuánto ha esperado antes, si ha sido apreciable. */
+    private static void anotar(String que, long antes) {
+        long espera = ahora() - antes;
+        System.out.printf("   %4d ms  %s%s%n", ahora(), que,
+                espera > 20 ? "  (ha esperado " + espera + " ms)" : "");
+    }
+
+    private static void cocinar() throws InterruptedException {
+        for (int i = 1; i <= 8; i++) {
+            Thread.sleep(100);                              // cocinar cuesta 100 ms
+            long antes = ahora();
+            PASAPLATOS.put("plato " + i);                   // espera si esta lleno
+            anotar("cocinero deja el plato " + i, antes);
+        }
+        PASAPLATOS.put(FIN);                                // un aviso de fin
+        PASAPLATOS.put(FIN);                                // por cada camarero
+    }
+
+    private static void servir() throws InterruptedException {
+        while (true) {
+            long antes = ahora();
+            String plato = PASAPLATOS.take();               // espera si esta vacio
+            if (plato.equals(FIN)) {
+                return;
+            }
+            anotar(Thread.currentThread().getName() + " recoge el " + plato, antes);
+            Thread.sleep(500);                              // servirlo cuesta 500 ms
+        }
+    }
+
+    /** Arranca un hilo con ese nombre que cocina o sirve; si lo interrumpen, termina. */
+    private static Thread arrancar(String nombre, boolean cocina) {
+        return Thread.ofPlatform().name(nombre).start(() -> {
+            try {
+                if (cocina) {
+                    cocinar();
+                } else {
+                    servir();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        Thread[] hilos = {arrancar("cocinero", true), arrancar("camarero-1", false),
+                          arrancar("camarero-2", false)};
+        for (Thread hilo : hilos) {
+            hilo.join();
+        }
+        System.out.printf("   %4d ms  se cierra la cocina%n", ahora());
+    }
+}
+```
+
+Una ejecución:
+
+```text
+    118 ms  cocinero deja el plato 1
+    137 ms  camarero-1 recoge el plato 1  (ha esperado 131 ms)
+    249 ms  cocinero deja el plato 2
+    249 ms  camarero-2 recoge el plato 2  (ha esperado 242 ms)
+    350 ms  cocinero deja el plato 3
+    451 ms  cocinero deja el plato 4
+    552 ms  cocinero deja el plato 5
+    649 ms  camarero-1 recoge el plato 3
+    652 ms  cocinero deja el plato 6
+    750 ms  camarero-2 recoge el plato 4
+    753 ms  cocinero deja el plato 7
+   1150 ms  camarero-1 recoge el plato 5
+   1150 ms  cocinero deja el plato 8  (ha esperado 297 ms)
+   1251 ms  camarero-2 recoge el plato 6
+   1651 ms  camarero-1 recoge el plato 7
+   1751 ms  camarero-2 recoge el plato 8
+   2252 ms  se cierra la cocina
+```
+:::
+
+La salida cuenta la historia de un servicio:
+
+- **Al principio esperan los camareros.** El pasaplatos está vacío, y el `take` de cada uno se
+  bloquea hasta que llega un plato: algo más de 100 ms el primero, y más de 200 el segundo, que
+  tiene que esperar al plato 2 porque el primero ya está cogido.
+- **Después se acumulan platos.** Los platos 3 a 7 se dejan cada 100 ms, pero los camareros solo
+  recogen uno cada 250 ms entre los dos. El pasaplatos absorbe la diferencia.
+- **Al final espera el cocinero.** Con tres platos ya en el pasaplatos, el `put` del plato 8 se
+  bloquea casi 300 ms, hasta que un camarero recoge uno y deja sitio.
+- **El servicio termina con la píldora venenosa.** Cuando cada camarero acaba su último plato, saca
+  un `FIN` del pasaplatos y termina; el programa espera a los tres hilos y cierra la cocina.
+
+Dos detalles más. Cuando dos líneas comparten el mismo milisegundo, como «recoge el plato 5» y «deja
+el plato 8», su orden puede cambiar de una ejecución a otra: el `take` de uno y el `put` del otro
+ocurren prácticamente a la vez, y cada hilo escribe cuando le toca. Y el servicio dura más de dos
+segundos aunque el cocinero acaba de cocinar en algo más de uno: el ritmo lo marca la parte más
+lenta, los camareros. La cola no hace más rápido a nadie; solo evita que el rápido tenga que esperar
+al lento **en cada plato**.
+
+El límite de tres es una decisión de diseño. Con una `LinkedBlockingQueue` sin límite, el cocinero
+no esperaría nunca y los platos se acumularían en el pasaplatos. Si el productor fuera **siempre**
+más rápido, la cola crecería sin fin hasta agotar la memoria. Qué hacer cuando el productor es más
+rápido que el consumidor tiene nombre, **contrapresión**, y es el tema central de la sección 3.4.
+
+:::: {.ampliacion}
+#### **Un notificador que no frena al monitor**
+
+**En el monitor.** Queda un problema que ninguna de las herramientas anteriores resuelve: la alerta.
+El `Monitor` del Tema 1 avisa a sus notificadores **dentro** de `comprobar`, en el mismo hilo que
+hace la comprobación. Si el notificador manda un correo y el servidor de correo tarda medio segundo,
+la sonda que ha detectado la caída se queda medio segundo parada esperando a un servidor que no
+tiene nada que ver con lo que ella comprueba. La solución es el patrón productor-consumidor
+(@imp-productor-consumidor).
+
+El `NotificadorAsincrono` es un notificador más —implementa la interfaz `Notificador` del Tema 1, de
+modo que el `Monitor` no sabe que es distinto— que en lugar de avisar deja la alerta en una cola. Un
+único hilo, el repartidor, las va sacando y se las entrega al notificador de verdad. Las
+comprobaciones son los productores; el repartidor, el consumidor.
 
 ```java
 // NotificadorAsincrono.java
@@ -2794,7 +3017,8 @@ Tres decisiones del diseño se apoyan en lo visto en el tema. El atributo `cerra
 porque lo escribe el hilo que cierra y lo lee el repartidor, y es exactamente el caso del aviso
 de @tip-visibilidad. El repartidor saca con `poll` y un plazo de 100 ms en lugar de con `take`, para
 volver a mirar `cerrado` de vez en cuando aunque no lleguen alertas; con `take` se quedaría
-esperando para siempre en una cola vacía. Y el método `close` no declara `InterruptedException`
+esperando para siempre en una cola vacía. Es la alternativa a la píldora venenosa de @nte-pasaplatos
+cuando el consumidor tiene que poder pararse aunque no lleguen elementos. Y el método `close` no declara `InterruptedException`
 —la interfaz `AutoCloseable` recomienda expresamente que no lo haga—, así que restaura la marca de
 interrupción, como pedía @cau-tragarse-interrupcion.
 
@@ -2880,13 +3104,11 @@ el notificador asíncrono, la ronda vuelve a durar un segundo, y los correos sal
 repartidor los procesa. Y el `try` con recursos garantiza que el programa no termina hasta que se
 ha enviado el último.
 
-La cola de este notificador no tiene límite, y eso es una decisión, no un descuido: si se cayeran
-cien servicios a la vez, la cola guardaría cien alertas y el repartidor las enviaría a su ritmo.
-Pero si las alertas llegaran **siempre** más deprisa de lo que se pueden enviar, la cola crecería
-sin fin hasta agotar la memoria. Qué hacer cuando el productor es más rápido que el consumidor
-tiene nombre, **contrapresión**, y es el tema central de la sección 3.4. Y si las alertas tuvieran
-que salir por orden de gravedad, como en la `ColaDeAlertas` del Tema 2, la cola sería una
-`PriorityBlockingQueue` con el mismo comparador.
+La cola de este notificador no tiene límite, a propósito: si se cayeran cien servicios a la vez,
+guardaría cien alertas y el repartidor las enviaría a su ritmo. Y si las alertas tuvieran que salir
+por orden de gravedad, como en la `ColaDeAlertas` del Tema 2, sería una `PriorityBlockingQueue` con
+el mismo comparador.
+::::
 
 ### 3.2.6 Cerrojos explícitos
 
