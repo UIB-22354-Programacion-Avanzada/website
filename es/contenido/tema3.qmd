@@ -3567,7 +3567,7 @@ llamada. Es raro en programas como los de este curso.
 ### 3.3.3 Limitar la concurrencia con semáforos
 
 Los hilos virtuales plantean una pregunta que no resuelven: si se pueden lanzar mil esperas a la
-vez, **¿se deben** lanzar? Mil conexiones simultáneas desde la misma máquina pueden saturar su
+vez, **¿se deben lanzar?** Mil conexiones simultáneas desde la misma máquina pueden saturar su
 enlace de red, agotar los puertos locales disponibles, o hacer que el servidor del otro lado las
 tome por un ataque. El límite existe, pero ya no lo pone el número de hilos: lo pone el recurso que
 se comparte.
@@ -3582,6 +3582,20 @@ Un cerrojo es, en ese sentido, un semáforo de un solo permiso. La diferencia pr
 semáforo no pertenece a ningún hilo: cualquiera puede devolver un permiso, y se usa para limitar
 cuántos, no para garantizar exclusión.
 :::
+
+En Java, el semáforo es la clase `Semaphore`, del paquete `java.util.concurrent`, y sus métodos
+principales son:
+
+| Método | Qué hace |
+|---|---|
+| `new Semaphore(n)` | Crea un semáforo con `n` permisos. Con `new Semaphore(n, true)` es **justo**: los permisos se dan por orden de llegada. |
+| `acquire()` | Pide un permiso. Si no queda ninguno, **espera** a que otro hilo devuelva uno. Lanza `InterruptedException` si interrumpen al hilo mientras espera. |
+| `acquire(k)` | Pide `k` permisos de una vez. |
+| `release()` | Devuelve un permiso y, si había hilos esperando, despierta a uno. |
+| `release(k)` | Devuelve `k` permisos. |
+| `tryAcquire()` | **Intenta** tomar un permiso sin esperar, y devuelve si lo ha conseguido. |
+| `tryAcquire(plazo, unidad)` | Lo intenta esperando como mucho ese tiempo. |
+| `availablePermits()` | Cuántos permisos quedan libres en este momento. |
 
 El ejemplo lanza diez descargas simuladas de 200 ms, cada una en su hilo virtual, y anota cuántas
 hay en curso a la vez: primero sin límite, y después pidiendo antes un permiso a un semáforo de tres.
