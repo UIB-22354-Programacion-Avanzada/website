@@ -1965,13 +1965,37 @@ para ejecutarlos. Para tareas limitadas por la entrada/salida, la respuesta la d
 (@tip-little), y suele ser un número mucho mayor que el de núcleos. Cuánto mayor puede llegar a ser
 es la pregunta de la sección 3.3.
 
-### 3.2.2 Futuros y `CompletableFuture`
+### 3.2.2 Programación asíncrona con `CompletableFuture`
 
-Un `Future` tiene un defecto: lo único que se puede hacer con él es esperar. Si hay que combinar dos
-resultados que se calculan a la vez, o hacer algo con un resultado cuando llegue sin bloquear al
-hilo que lo pidió, el `Future` no ayuda. Para eso existe `CompletableFuture`, desde Java 8: un
+El futuro de 3.2.1 separa pedir de recibir, pero solo a medias. **Pedir** es asíncrono: `submit`
+vuelve al instante. **Recibir**, no: lo único que se puede hacer con un `Future` es esperar con
+`get`, y mientras espera, el hilo no hace nada más. Si hay que combinar dos resultados que se
+calculan a la vez, o hacer algo con un resultado cuando llegue sin que nadie se quede esperándolo,
+el `Future` no ayuda.
+
+::: {#imp-programacion-asincrona .callout-important title="Programación asíncrona"}
+Una operación es **asíncrona** cuando quien la pide no espera a que termine: la lanza, sigue con lo
+suyo y deja dicho qué hay que hacer con el resultado cuando llegue. Ese «qué hacer después» es una
+**continuación**, también llamada **retrollamada** (*callback*): un trozo de código que no se
+ejecuta en el orden en que está escrito, sino cuando el resultado está disponible.
+
+No es lo mismo que la concurrencia. Un programa puede tener muchos hilos y ser síncrono, si cada uno
+se queda esperando cada respuesta; y puede ser asíncrono con muy pocos hilos, si ninguno espera.
+:::
+
+En Java, la herramienta para programar así es `CompletableFuture`, disponible desde Java 8: un
 futuro al que se le pueden **encadenar** operaciones que se ejecutan cuando el resultado esté
 disponible.
+
+| | Lanzar la tarea | Usar el resultado |
+|---|---|---|
+| `Future` | asíncrono: `submit` vuelve al instante | síncrono: `get` bloquea hasta que llega |
+| `CompletableFuture` | asíncrono: `supplyAsync` vuelve al instante | asíncrono: los métodos `then…` dicen qué hacer cuando llegue, sin bloquear a nadie |
+
+El nombre viene de que se puede **completar a mano**, desde cualquier hilo, con `complete(valor)` o
+`completeExceptionally(error)`. Eso permite convertir en un futuro cualquier cosa que avise cuando
+termina, como una respuesta de red o un temporizador. Por eso es la pieza sobre la que se
+construyen las bibliotecas asíncronas de Java, como el cliente HTTP de la biblioteca estándar.
 
 El ejemplo comprueba dos cosas del mismo servidor a la vez —que su nombre se resuelve en el
 [DNS]{.glos} y que su puerto [TCP]{.glos} contesta— y combina las dos respuestas en un veredicto.
@@ -2026,7 +2050,7 @@ public final class DemoFuturoCompletable {
     }
 
     public static void main(String[] args) {
-        try (ExecutorService ejecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+        try (ExecutorService ejecutor = Executors.newFixedThreadPool(2)) {
             System.out.println("--- el puerto TCP contesta en 200 ms");
             comprobar(ejecutor, 200);
             System.out.println("--- el puerto TCP tardaria 2 s; el plazo es de 300 ms");
@@ -2040,7 +2064,7 @@ public final class DemoFuturoCompletable {
 --- el puerto TCP contesta en 200 ms
    termina la consulta DNS
    termina la consulta TCP
-   veredicto: disponible, en unos 232 ms
+   veredicto: disponible, en unos 214 ms
 --- el puerto TCP tardaria 2 s; el plazo es de 300 ms
    termina la consulta DNS
    veredicto: con problemas, en unos 300 ms
@@ -2048,17 +2072,30 @@ public final class DemoFuturoCompletable {
 ```
 :::
 
-Las cuatro operaciones del ejemplo cubren casi todo lo que se usa en la práctica:
+En el ejemplo, `supplyAsync` lanza las dos consultas. Los métodos `orTimeout` y `exceptionally`
+hacen que una consulta TCP que no llega a tiempo cuente como un puerto que no responde, y
+`thenCombine` junta las dos respuestas en el veredicto. Son cuatro métodos de una interfaz amplia,
+cuyos métodos principales caben en una tabla:
 
-- El método `supplyAsync(tarea, ejecutor)` lanza la tarea en el ejecutor y devuelve el
-  `CompletableFuture` de su resultado.
-- El método `thenCombine(otro, función)` espera a los dos futuros y combina sus resultados con la función:
-  aquí, el veredicto. Hay una familia entera de métodos `then…` —`thenApply` para transformar un
-  resultado, `thenCompose` para encadenar otra operación asíncrona— que siguen la misma idea.
-- El método `orTimeout(plazo, unidad)` hace que el futuro termine con una `TimeoutException` si el resultado
-  no llega a tiempo.
-- El método `exceptionally(función)` convierte un fallo en un valor: aquí, una consulta que no llega a
-  tiempo cuenta como que el puerto no responde.
+| Para… | Método | Qué hace |
+|---|---|---|
+| Lanzar | `supplyAsync(tarea, ejecutor)` *(estático)* | Ejecuta en el ejecutor una tarea que devuelve un valor, y devuelve el futuro de ese valor. La tarea es un `Supplier`: una lambda sin parámetros que devuelve algo. |
+| | `runAsync(tarea, ejecutor)` *(estático)* | Igual, para una tarea sin resultado, un `Runnable`. |
+| Transformar | `thenApply(función)` | Cuando llegue el resultado, le aplica la función: de un futuro de `T` a uno de `U`. |
+| Encadenar | `thenCompose(función)` | Cuando llegue, lanza **otra** operación asíncrona que depende de él. |
+| Combinar | `thenCombine(otro, función)` | Cuando lleguen los dos, combina sus resultados. |
+| | `allOf(f1, f2, …)`, `anyOf(f1, f2, …)` *(estáticos)* | Un futuro que se completa cuando terminan todos, o cuando termina el primero. |
+| Consumir | `thenAccept(acción)` | Cuando llegue, hace algo con el resultado sin devolver nada; por ejemplo, imprimirlo. |
+| Tratar errores | `exceptionally(función)` | Si algo falló antes en la cadena, convierte el error en un valor. |
+| | `handle((valor, error) -> …)` | Recibe el resultado o el error, y devuelve un valor en los dos casos. |
+| Poner plazos | `orTimeout(plazo, unidad)` | Si no termina a tiempo, el futuro termina con una `TimeoutException`. |
+| | `completeOnTimeout(valor, plazo, unidad)` | Si no termina a tiempo, se completa con ese valor. |
+| Esperar | `join()` | Espera y devuelve el resultado. Es como `get`, pero sin excepciones comprobadas. |
+
+Cada método `then…` añade una continuación, que normalmente se ejecuta en el hilo que completa el
+paso anterior. Sus versiones terminadas en `Async`, como `thenApplyAsync`, la ejecutan en un
+ejecutor. Y `join` es el único método de la tabla que espera: en cuanto se llama, ese punto del
+programa vuelve a ser síncrono. En el ejemplo se usa al final, para poder imprimir el veredicto.
 
 Y el ejemplo esconde una sorpresa en su última línea. En el segundo caso, el veredicto sale a los
 300 ms, como manda el plazo, y **la consulta TCP termina después**: el método `orTimeout` ha dado el
@@ -3487,7 +3524,7 @@ resolvía, cuál es su idea central y cuándo sigue siendo la elección correcta
 La sección 3.3.1 terminaba con los dos caminos que el sector tomó cuando los hilos de plataforma no
 daban para atender a todos los clientes. El segundo consistía en **no bloquear nunca**: en lugar de
 que un hilo pida un dato a la red y espere, el hilo pide el dato, deja dicho qué hacer cuando llegue
-—una **retrollamada** (*callback*)— y se va a atender otra cosa. Un puñado de hilos, a veces uno solo
+—una retrollamada (3.2.2)— y se va a atender otra cosa. Un puñado de hilos, a veces uno solo
 por núcleo, gira en un **bucle de eventos** (*event loop*) que reparte las respuestas a medida que
 llegan. Es el modelo de los servidores de alto rendimiento de la década de 2010, como Netty en Java
 o Node.js en JavaScript, y con él un solo ordenador atiende cientos de miles de conexiones.
