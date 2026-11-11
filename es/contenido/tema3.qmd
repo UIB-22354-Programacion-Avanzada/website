@@ -108,11 +108,12 @@ anteriores que no se tocan —`Monitor`, `SondaBase`, `Resultado`, `FallosConsec
 demás— se dan por heredadas y no se vuelven a listar.
 
 ::: {.callout-tip appearance="simple"}
-**Una palabra con dos sentidos.** En la bibliografía de concurrencia, *monitor* es el nombre
-técnico de un mecanismo de sincronización que inventaron Hoare y Brinch Hansen en los años setenta
+**Una palabra con dos sentidos.** En la bibliografía de concurrencia, *monitor* es el nombre técnico
+de un mecanismo de sincronización que inventaron Hoare y Brinch Hansen en los años setenta
 [@hoare1974], y Java lo usa: cuando la máquina virtual escribe que un hilo está «*waiting to lock
 monitor*», se refiere a eso. En este tema, para no confundirlo con el ejemplo, ese mecanismo se
-llama siempre **cerrojo intrínseco**, y «el monitor» a secas es siempre el monitor de servicios.
+llama siempre **cerrojo intrínseco** (3.1.4 y 3.1.5), y «el monitor» a secas es siempre el monitor
+de servicios.
 :::
 
 ## 3.1. Fundamentos de la concurrencia
@@ -382,9 +383,8 @@ varios hilos aparecen dos clases de métodos:
   empiece. «Al instante» no significa «en tiempo cero», sino «sin esperar a la tarea»: tarda lo
   mismo si la tarea dura un milisegundo que si dura una hora.
 - Un método **bloqueante** no vuelve hasta que ocurre algo que no depende de él: que termine otro
-  hilo (`join`), que pase un tiempo (`sleep`), que llegue un resultado o que quede libre un
-  cerrojo (3.1.5). Mientras tanto, el hilo que lo llamó está **bloqueado**: parado, sin usar el procesador,
-  esperando.
+  hilo (`join`), que pase un tiempo (`sleep`) o que llegue un resultado. Mientras tanto, el hilo que
+  lo llamó está **bloqueado**: parado, sin usar el procesador, esperando.
 
 Para leer un programa concurrente hay que saber de cada llamada si bloquea o no. Lo que va después
 de una llamada no bloqueante se ejecuta **a la vez** que el trabajo que esa llamada ha encargado; lo
@@ -999,6 +999,14 @@ En el ejemplo, la sección crítica es `contador++`. Es una sola línea de Java 
 operaciones del procesador, y precisamente por eso no parece una sección crítica.
 :::
 
+La exclusión mutua se consigue con una pieza que tienen todos los lenguajes con hilos:
+
+::: {#imp-cerrojo .callout-important title="Cerrojo"}
+Un **cerrojo** (*lock*) es un mecanismo de exclusión mutua: un objeto que en cada momento solo
+puede tener un hilo. El hilo lo **toma** antes de entrar en una sección crítica y lo **suelta** al
+salir; si otro hilo intenta tomarlo mientras tanto, **se bloquea** hasta que quede libre.
+:::
+
 ::: {#wrn-provocar-carrera .callout-warning title="Provocar una condición de carrera para poder verla"}
 Una carrera que aparece una vez de cada mil ejecuciones no se puede depurar: hay que conseguir que
 aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (@nte-carrera):
@@ -1007,7 +1015,7 @@ aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (
    crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo
    pequeña; un programa real que toca el dato compartido solo de vez en cuando rara vez da con el
    choque, y por eso parece funcionar.
-2. **Nada de imprimir dentro del bucle.** El método `println` toma un cerrojo interno (3.1.5) para que las
+2. **Nada de imprimir dentro del bucle.** El método `println` toma un cerrojo interno para que las
    líneas no se mezclen, y con eso **sincroniza sin querer** a los hilos que escriben: la carrera
    desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta
    registrar algo, se acumula y se imprime al final.
@@ -1028,13 +1036,9 @@ esfuerzo y con razonamiento, no paso a paso.
 La herramienta básica para que una sección crítica se ejecute en exclusión mutua está en el propio
 lenguaje, y es la palabra reservada `synchronized`.
 
-::: {#imp-cerrojo-intrinseco .callout-important title="Cerrojo"}
-Un **cerrojo** (*lock*) es un mecanismo de exclusión mutua: un objeto que en cada momento solo
-puede tener un hilo. El hilo lo **toma** antes de entrar en una sección crítica y lo **suelta** al
-salir; si otro hilo intenta tomarlo mientras tanto, **se bloquea** hasta que quede libre.
-
-En Java, **todo objeto tiene un cerrojo**, llamado su **cerrojo intrínseco**, y la palabra
-`synchronized` es la forma de usarlo, de dos maneras:
+::: {#imp-cerrojo-intrinseco .callout-important title="Cerrojo intrínseco y `synchronized`"}
+En Java, **todo objeto tiene un cerrojo** (@imp-cerrojo), llamado su **cerrojo intrínseco**, y la
+palabra `synchronized` es la forma de usarlo, de dos maneras:
 
 - Un **método `synchronized`** toma el cerrojo del objeto sobre el que se llama al entrar y lo
   suelta al salir, también si sale por una excepción. Dos métodos `synchronized` del mismo objeto
