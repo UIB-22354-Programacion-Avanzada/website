@@ -4002,6 +4002,157 @@ las tres. El segundo caso enseña las tres garantías de @imp-concurrencia-estru
 El orden entre «vuelo: cancelada» y «coche: cancelada» puede cambiar de una ejecución a otra; lo
 que no cambia es que las dos salen antes de que el bloque termine.
 
+Un ámbito no sirve solo para consultas que devuelven un valor. Sus subtareas pueden ser también
+hilos que trabajan juntos durante todo el programa, como el cocinero y los camareros del pasaplatos
+de @nte-pasaplatos. La cola sigue siendo la que los comunica; lo que cambia es quién los lanza, los
+espera y, si algo va mal, los para.
+
+Con hilos sueltos, un fallo en un consumidor tiene una consecuencia seria. Si el único camarero
+lanza una excepción, su hilo muere, nadie vacía el pasaplatos, y el cocinero se queda esperando en
+`put` para siempre: el `join` de `main` no vuelve, y el programa no termina. Nadie se ha enterado
+del fallo, porque la excepción murió con el hilo que la lanzó.
+
+En el ejemplo, el camarero tiene un accidente con el tercer plato:
+
+```java
+// Fragmento
+if (plato.equals("plato 3")) {
+    anotar("camarero: se le cae el plato 3");
+    throw new IllegalStateException("se ha caido el plato 3");
+}
+```
+
+El cocinero, por su parte, avisa si lo cancelan mientras cocina o mientras espera en el pasaplatos:
+`sleep` y `put` responden a la interrupción lanzando `InterruptedException`.
+
+```java
+// Fragmento
+} catch (InterruptedException e) {
+    anotar("cocinero: cancelado");
+    throw e;
+}
+```
+
+Y `main` ya no arranca hilos ni los espera uno a uno: abre un ámbito, con el `Joiner`
+`awaitAllSuccessfulOrThrow`, porque cocinar y servir no devuelven nada que haga falta recoger, y
+lanza las dos subtareas.
+
+```java
+// Fragmento
+try (var cocina = StructuredTaskScope.open(Joiner.<Integer>awaitAllSuccessfulOrThrow())) {
+    cocina.fork(() -> cocinar());
+    cocina.fork(() -> servir());
+    cocina.join();
+    anotar("servicio completo");
+} catch (StructuredTaskScope.FailedException e) {
+    anotar("se cierra la cocina: " + e.getCause().getMessage());
+}
+```
+
+Antes de ejecutarlo se puede prever lo que va a pasar. Al principio, todo es
+como en @nte-pasaplatos: el cocinero llena el pasaplatos y el camarero va recogiendo. Cuando el camarero
+recoja el tercer plato, lo romperá, y el ámbito debería cancelar en ese momento al cocinero y hacer
+que `join` lance la excepción.
+
+::: {#nte-cocina-estructurada .callout-note title="El pasaplatos en un ámbito estructurado: si el camarero falla, se cierra la cocina"}
+```java
+// DemoCocinaEstructurada.java
+package es.uib.prgava.tema3.virtuales;
+
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Joiner;
+
+/** El pasaplatos de 3.2.5 como ámbito estructurado: si el camarero falla, se cierra la cocina. */
+public final class DemoCocinaEstructurada {
+
+    private static final BlockingQueue<String> PASAPLATOS = new ArrayBlockingQueue<>(3);
+    private static final String FIN = "fin del servicio";
+    private static final long INICIO = System.nanoTime();
+
+    private DemoCocinaEstructurada() { }
+
+    private static void anotar(String que) {
+        System.out.printf("   %4d ms  %s%n", (System.nanoTime() - INICIO) / 1_000_000, que);
+    }
+
+    private static int cocinar() throws InterruptedException {
+        try {
+            for (int i = 1; i <= 8; i++) {
+                Thread.sleep(100);                              // cocinar cuesta 100 ms
+                PASAPLATOS.put("plato " + i);                   // espera si esta lleno
+                anotar("cocinero deja el plato " + i);
+            }
+            PASAPLATOS.put(FIN);
+            return 8;
+        } catch (InterruptedException e) {
+            anotar("cocinero: cancelado");
+            throw e;
+        }
+    }
+
+    private static int servir() throws InterruptedException {
+        int servidos = 0;
+        while (true) {
+            String plato = PASAPLATOS.take();                   // espera si esta vacio
+            if (plato.equals(FIN)) {
+                return servidos;
+            }
+            if (plato.equals("plato 3")) {
+                anotar("camarero: se le cae el plato 3");
+                throw new IllegalStateException("se ha caido el plato 3");
+            }
+            anotar("camarero recoge el " + plato);
+            Thread.sleep(500);                                  // servirlo cuesta 500 ms
+            servidos++;
+        }
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        try (var cocina = StructuredTaskScope.open(Joiner.<Integer>awaitAllSuccessfulOrThrow())) {
+            cocina.fork(() -> cocinar());
+            cocina.fork(() -> servir());
+            cocina.join();
+            anotar("servicio completo");
+        } catch (StructuredTaskScope.FailedException e) {
+            anotar("se cierra la cocina: " + e.getCause().getMessage());
+        }
+    }
+}
+```
+
+Una ejecución:
+
+```text
+    147 ms  cocinero deja el plato 1
+    149 ms  camarero recoge el plato 1
+    287 ms  cocinero deja el plato 2
+    389 ms  cocinero deja el plato 3
+    490 ms  cocinero deja el plato 4
+    688 ms  camarero recoge el plato 2
+    688 ms  cocinero deja el plato 5
+   1189 ms  camarero: se le cae el plato 3
+   1189 ms  cocinero deja el plato 6
+   1194 ms  cocinero: cancelado
+   1195 ms  se cierra la cocina: se ha caido el plato 3
+```
+:::
+
+Hasta el tercer plato, la salida es la de @nte-pasaplatos con un solo camarero: el pasaplatos se
+llena a los 500 ms y el cocinero tiene que esperar a que se libere un sitio. Al recoger el plato 3,
+el camarero deja un hueco, que el cocinero aprovecha para dejar el plato 6, y en ese momento falla.
+Lo que pasa después son las tres garantías otra vez: el fallo **sube** hasta `main`, que lo recibe
+dentro de una `FailedException`; la cancelación **baja** hasta el cocinero, que estaba cocinando el
+plato 7; y la cocina se cierra **después** de que el cocinero haya terminado, no antes. Con hilos
+sueltos, el mismo fallo deja el programa colgado.
+
+La concurrencia estructurada no hace todo el trabajo. El final **normal** del servicio sigue
+necesitando la píldora venenosa de 3.2.5, porque el ámbito sabe parar cuando algo falla, pero no
+sabe cuándo se ha acabado el trabajo: eso solo lo sabe el cocinero, y solo puede decirlo por la
+cola. Tampoco un consumidor puede lanzar subtareas en el ámbito de la cocina, porque solo el hilo
+que lo abrió puede hacer `fork`; si las necesita, abre su propio ámbito dentro.
+
 :::: {.ampliacion}
 #### **La ronda del monitor como ámbito estructurado**
 
