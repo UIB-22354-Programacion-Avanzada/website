@@ -2504,6 +2504,37 @@ Para el caso más simple, un número que varios hilos actualizan, ni siquiera ha
 colección: el paquete `java.util.concurrent.atomic` trae `AtomicInteger`, `AtomicLong` y
 `AtomicReference`, que ofrecen operaciones compuestas que se ejecutan **de una vez**.
 
+Una **variable atómica** es un objeto que envuelve un valor —un `int`, un `long` o una referencia— y
+solo deja modificarlo con métodos que leen, calculan y escriben en **un único paso indivisible**:
+ningún otro hilo puede colarse a mitad. Los métodos de `AtomicLong` son estos; los de
+`AtomicInteger` son iguales, con `int`:
+
+| Método | Qué hace |
+|---|---|
+| `get()` | Devuelve el valor. |
+| `set(valor)` | Lo cambia. |
+| `incrementAndGet()` | Suma 1 y devuelve el valor **nuevo**. Es el `++contador` atómico. |
+| `getAndIncrement()` | Suma 1 y devuelve el valor **anterior**. Es el `contador++` atómico. |
+| `decrementAndGet()`, `getAndDecrement()` | Lo mismo, restando 1. |
+| `addAndGet(n)`, `getAndAdd(n)` | Suman `n` y devuelven el valor nuevo o el anterior. |
+| `updateAndGet(función)` | Aplica una función al valor, por ejemplo `v -> v * 2`, y devuelve el resultado. |
+| `compareAndSet(esperado, nuevo)` | Si el valor es `esperado`, lo cambia por `nuevo` y devuelve `true`; si no, no toca nada y devuelve `false`. Es la operación sobre la que están hechas todas las demás (@tip-cas). |
+
+El ejemplo repite el experimento del contador de @nte-carrera de tres maneras, y para cada una
+mide si el resultado es correcto y cuánto tarda. Cuatro hilos incrementan 5.000.000 de veces cada
+uno, así que el resultado correcto es 20.000.000. Los tres contadores son:
+
+- `sinProteger`, un `long` incrementado con `++` sin ninguna protección, como en 3.1.4.
+- `conCerrojo`, otro `long`, incrementado dentro de un bloque `synchronized (CERROJO)`. El objeto
+  `CERROJO` no guarda nada: solo presta su cerrojo intrínseco.
+- `atomico`, un `AtomicLong` incrementado con su método `incrementAndGet`.
+
+Los tres son atributos `static` y no variables locales de `main`, porque una lambda no puede
+modificar una variable local, pero sí un atributo. El método `cronometrar` lanza los cuatro hilos,
+los espera y devuelve cuánto han tardado. Recibe como un `Runnable` qué hacer en cada incremento, y
+`main` se lo da de tres formas. La tercera, `atomico::incrementAndGet`, es una referencia a método:
+equivale a la lambda `() -> atomico.incrementAndGet()`.
+
 ::: {#nte-contadores .callout-note title="Tres formas de contar desde cuatro hilos"}
 ```java
 // DemoContadores.java
@@ -2574,9 +2605,19 @@ Una ejecución, en la misma máquina de dos núcleos:
 ```
 :::
 
-La primera fila es la rápida y la que está mal: la mitad de los incrementos se han perdido. Las dos
-siguientes son correctas, y la variable atómica tarda la mitad que el cerrojo. La razón de la
-diferencia está en cómo funciona por dentro.
+La salida da tres resultados distintos:
+
+- **Sin proteger es lo más rápido y está mal.** Se ha perdido la mitad de los incrementos. Va
+  deprisa porque no coordina nada, pero un resultado incorrecto obtenido deprisa no sirve de nada.
+- **Con el cerrojo es correcto y lento.** Cada hilo toma el cerrojo antes de incrementar y, si lo
+  tiene otro, se bloquea: los cuatro pasan buena parte del tiempo esperándose.
+- **Con la variable atómica es correcto y tarda la mitad que con el cerrojo.** Ningún hilo espera
+  a otro: si dos chocan, el que pierde reintenta en el acto.
+
+Los tiempos hay que tomarlos como un orden de magnitud. Son de una ejecución en una máquina de dos
+núcleos, sin calentar antes la máquina virtual, y con muchos más núcleos la ventaja de la variable
+atómica se reduce. Lo que no cambia de una máquina a otra es la columna «obtenido». La razón de la
+diferencia de tiempos está en cómo funciona la variable atómica por dentro.
 
 ::: {#tip-cas .callout-tip title="Comparar y sustituir: una sección crítica de una sola instrucción"}
 Los procesadores actuales tienen una instrucción que hace en un solo paso indivisible lo que
