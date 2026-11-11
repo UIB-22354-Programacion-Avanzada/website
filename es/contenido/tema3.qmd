@@ -3340,14 +3340,56 @@ virtual **desmonta** el hilo virtual: guarda su pila en el montón de memoria, c
 deja al portador libre para ejecutar otro hilo virtual. Cuando la espera termina, el hilo virtual se
 vuelve a montar en el primer portador libre y continúa donde estaba.
 
-Para quien programa, un hilo virtual es un `Thread` como cualquier otro: se crea con
-`Thread.ofVirtual().start(tarea)`, o, lo más habitual, con un ejecutor que crea uno nuevo para cada
-tarea, `Executors.newVirtualThreadPerTaskExecutor()`. Todo lo visto en 3.1 y 3.2 —`synchronized`,
-`join`, las colecciones concurrentes, las colas bloqueantes— funciona igual.
+Para quien programa, un hilo virtual es un `Thread` como cualquier otro, y todo lo visto en 3.1 y
+3.2 —`synchronized`, `join`, las colecciones concurrentes, las colas bloqueantes— funciona igual.
 :::
 
-El efecto se ve con el experimento más simple posible: diez mil tareas que esperan cien
-milisegundos cada una, que es lo que hace una sonda.
+Hay varias formas de crear hilos virtuales, y todas dan un `Thread` normal:
+
+| Forma | Qué hace |
+|---|---|
+| `Thread.ofVirtual().start(tarea)` | Crea un hilo virtual y lo arranca. |
+| `Thread.ofVirtual().unstarted(tarea)` | Lo crea sin arrancarlo; se arranca después con `start()`. |
+| `Thread.ofVirtual().name("sonda-", 0).start(tarea)` | Le da un nombre numerado: `sonda-0`, `sonda-1`… Sin nombre, `getName()` devuelve una cadena vacía. |
+| `Thread.startVirtualThread(tarea)` | Atajo de la primera forma. |
+| `Executors.newVirtualThreadPerTaskExecutor()` | Un ejecutor que crea un hilo virtual nuevo para cada tarea. Es la forma más habitual. |
+| `Thread.ofVirtual().factory()` | Una fábrica de hilos virtuales (`ThreadFactory`), para las bibliotecas que piden una. |
+
+Los métodos `ofVirtual` y `ofPlatform` son el mismo constructor de hilos de 3.1.2 con dos destinos
+distintos, y por eso se escriben igual. Un hilo virtual se diferencia de uno de plataforma en
+pocas cosas:
+
+- El método `isVirtual()` devuelve `true`.
+- Es siempre **demonio**: no impide que el programa termine, y `setDaemon(false)` lanza una
+  `IllegalArgumentException`.
+- Su prioridad es siempre la normal; `setPriority` no tiene efecto.
+- No tiene nombre salvo que se le dé uno con `name(…)`.
+
+El ejemplo compara las dos clases de hilo con el experimento más simple posible: diez mil tareas
+que esperan cien milisegundos cada una, que es lo que hace una sonda. Se ejecutan primero en un
+conjunto de doscientos hilos de plataforma y después en un ejecutor de hilos virtuales, y de cada
+versión se mide cuánto tarda y **cuántos hilos del sistema operativo** ha necesitado.
+
+Lo segundo hay que preguntárselo a la propia máquina virtual. La clase `ManagementFactory`, del
+paquete `java.lang.management`, da acceso a la información de gestión de la máquina virtual en
+marcha (memoria, recolector de basura, compilador, hilos) a través de unos objetos llamados
+**MXBeans** (*managed beans*). Son los mismos que consultan herramientas como `jcmd` o JConsole. El
+de los hilos se obtiene con `ManagementFactory.getThreadMXBean()`, y sus métodos principales son:
+
+| Método | Qué devuelve |
+|---|---|
+| `getThreadCount()` | Cuántos hilos de plataforma están vivos ahora. |
+| `getPeakThreadCount()` | El máximo de hilos de plataforma vivos a la vez, desde el arranque o desde la última puesta a cero. |
+| `resetPeakThreadCount()` | Pone ese máximo al valor actual. |
+| `getDaemonThreadCount()` | Cuántos de los hilos vivos son demonio. |
+| `findDeadlockedThreads()` | Los identificadores de los hilos que están en un interbloqueo, o `null` si no hay ninguno. Es la detección de 3.1.6 hecha desde el propio programa. |
+
+Lo importante para el ejemplo es que estos recuentos **solo incluyen hilos de plataforma**: los
+hilos virtuales no cuentan, porque no son hilos del sistema operativo. Así, la columna «hilos del
+sistema» mide justo lo que interesa. El método `medir` del ejemplo pone el máximo a cero con
+`resetPeakThreadCount()` antes de empezar, entrega las diez mil tareas al ejecutor, espera a que
+terminen al cerrarlo con el `try` y escribe el tiempo y el máximo de hilos del sistema que ha
+habido a la vez.
 
 ::: {#nte-mil-hilos .callout-note title="Diez mil esperas con hilos de plataforma y con hilos virtuales"}
 ```java
