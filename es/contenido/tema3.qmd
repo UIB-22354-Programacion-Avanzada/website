@@ -2268,6 +2268,36 @@ paquete `java.util.concurrent` trae una versión concurrente de casi cada colecc
 | `ArrayList` que casi solo se lee | `CopyOnWriteArrayList` | cada modificación copia el array entero; las lecturas no se sincronizan nunca |
 | `ArrayDeque` o `PriorityQueue` entre productores y consumidores | `LinkedBlockingQueue`, `PriorityBlockingQueue` | colas que además **bloquean** al que saca si están vacías (3.2.5) |
 
+De todas, la que más se usa es `ConcurrentHashMap`. Tiene los mismos métodos que cualquier `Map`
+del Tema 2, y su interés está en un grupo de ellos que hacen de **una vez** lo que con un mapa
+normal serían dos pasos:
+
+| Método | Qué hace |
+|---|---|
+| `get(clave)`, `put(clave, valor)`, `remove(clave)` | Como en cualquier `Map`. Cada uno, por separado, es seguro. |
+| `getOrDefault(clave, porDefecto)` | Devuelve el valor de la clave, o `porDefecto` si no está. |
+| `putIfAbsent(clave, valor)` | Guarda el valor **solo si la clave no está**. Devuelve el valor que había, o `null` si no había ninguno. |
+| `computeIfAbsent(clave, función)` | Si la clave no está, calcula su valor con la función y lo guarda. En cualquier caso devuelve el valor de la clave. Es la forma de crear algo **una sola vez**, como la lista de cada servicio. |
+| `computeIfPresent(clave, función)` | Si la clave está, calcula un valor nuevo a partir del que tiene. |
+| `compute(clave, función)` | Calcula el valor nuevo a partir del que hay, o de `null` si no hay ninguno. |
+| `merge(clave, valor, función)` | Si la clave no está, guarda `valor`; si está, la combina con el que había usando la función. Es la forma de **acumular**: `merge(palabra, 1, Integer::sum)`. |
+| `replace(clave, anterior, nuevo)` | Cambia el valor **solo si sigue siendo** `anterior`, y devuelve si lo ha cambiado. Es un comparar y sustituir sobre una clave. |
+| `remove(clave, valor)` | Borra la clave **solo si** su valor es ese. |
+
+En las cuatro operaciones que reciben una función, si la función devuelve `null`, la clave se
+borra. Y hay tres diferencias con un `HashMap` que conviene tener presentes:
+
+- **No admite `null`**, ni como clave ni como valor: `put(clave, null)` lanza una
+  `NullPointerException`. Así, que `get` devuelva `null` significa siempre «no está».
+- **Recorrerlo no falla, pero tampoco congela nada.** Un recorrido con `for` o con `forEach` no
+  lanza `ConcurrentModificationException`, pero puede ver o no ver los cambios que otros hilos hacen
+  mientras tanto. Lo mismo ocurre con `size()`: con otros hilos escribiendo, es solo una
+  aproximación.
+- **Las funciones que se pasan deben ser cortas y no tocar el propio mapa.** Mientras se ejecuta la
+  función de `computeIfAbsent`, `compute` o `merge`, el mapa tiene bloqueada esa zona, y otros
+  hilos que quieran usarla esperan. Una función lenta, o una que intente modificar otras claves del
+  mismo mapa, puede frenar a todo el programa o directamente fallar.
+
 ::: {#cau-comprobar-y-actuar .callout-caution title="Comprobar y después actuar sobre una colección concurrente"}
 Una colección concurrente garantiza que **cada una de sus operaciones** es segura. No garantiza nada
 sobre **dos** operaciones seguidas. Estas dos líneas cuentan una palabra en un `ConcurrentHashMap`,
@@ -2292,7 +2322,7 @@ Los dos hilos han visto la palabra, y la cuenta solo ha subido una vez.
 
 Es un error de la misma familia que el `contador++` de 3.1.4 —leer, decidir, escribir— a otra
 escala, y se arregla igual: haciendo que las dos operaciones sean una sola, atómica. Para eso
-existen `merge`, `compute`, `computeIfAbsent` y `putIfAbsent`, que el
+existen las operaciones compuestas de la tabla anterior, que el
 [Tema 2](tema2.qmd#las-variantes-y-los-métodos-que-ahorran-código) presentó como métodos que
 ahorran código y que aquí tienen una segunda razón de ser, más importante:
 
