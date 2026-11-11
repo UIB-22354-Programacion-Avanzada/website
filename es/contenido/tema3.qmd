@@ -369,7 +369,29 @@ Las tres ejecuciones muestran además lo esencial del tema antes de empezarlo: *
 
 Lo que aún no hace ninguna de las cuatro es **devolver un resultado**. El método `run` no devuelve nada ni puede lanzar excepciones comprobadas, y para una sonda, cuyo sentido es devolver un resultado, eso es una limitación seria. En esta sección se rodea guardando cada resultado en el repositorio del monitor, que comparten todos los hilos, y eso es justo lo que va a traer problemas en 3.1.4. La solución de verdad, `Callable` y `Future`, llega en 3.2.
 
-Crear un hilo, se haga como se haga, no lo pone en marcha: lo pone en marcha el método `start`, que vuelve inmediatamente y deja al hilo nuevo ejecutándose **a la vez** que el que lo arrancó. El método `join` hace lo contrario: bloquea al hilo que lo llama hasta que el otro termina. El ejemplo siguiente lo muestra con dos hilos que tardan distinto.
+Crear un hilo, se haga como se haga, no lo pone en marcha: lo pone en marcha el método `start`, que vuelve inmediatamente y deja al hilo nuevo ejecutándose **a la vez** que el que lo arrancó. El método `join` hace lo contrario: bloquea al hilo que lo llama hasta que el otro termina.
+
+::: {#imp-llamada-bloqueante .callout-important title="Llamadas que vuelven al instante y llamadas que bloquean"}
+Cuando un método termina, **vuelve**: devuelve el control a quien lo llamó, que sigue con la línea
+siguiente. En un programa de un solo hilo, un método vuelve cuando ha hecho todo su trabajo. Con
+varios hilos aparecen dos clases de métodos:
+
+- Un método **no bloqueante** **vuelve al instante**, o inmediatamente: no espera a que termine el
+  trabajo que pone en marcha, sino que lo encarga a otro hilo y devuelve el control enseguida. El
+  método `start` arranca el hilo y vuelve sin esperar a que la tarea termine, ni siquiera a que
+  empiece. «Al instante» no significa «en tiempo cero», sino «sin esperar a la tarea»: tarda lo
+  mismo si la tarea dura un milisegundo que si dura una hora.
+- Un método **bloqueante** no vuelve hasta que ocurre algo que no depende de él: que termine otro
+  hilo (`join`), que pase un tiempo (`sleep`), que llegue un resultado o que quede libre un
+  cerrojo. Mientras tanto, el hilo que lo llamó está **bloqueado**: parado, sin usar el procesador,
+  esperando.
+
+Para leer un programa concurrente hay que saber de cada llamada si bloquea o no. Lo que va después
+de una llamada no bloqueante se ejecuta **a la vez** que el trabajo que esa llamada ha encargado; lo
+que va después de una bloqueante, **cuando** la espera ha terminado.
+:::
+
+El ejemplo siguiente lo muestra con dos hilos que tardan distinto.
 
 ::: {#nte-hilos .callout-note title="Dos hilos a la vez, con `start` y `join`"}
 ```java
@@ -1732,8 +1754,8 @@ Lo que devuelve `submit` merece mirarse despacio, porque es lo que hace útil to
 - Con un método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como
   `String r = calcular();` no deja seguir hasta tener `r`.
 - Con un ejecutor, los dos momentos se separan:
-    - El método `submit` es **pedir**: entrega la tarea y vuelve al instante, no con el
-      resultado, sino con un objeto que vale por él.
+    - El método `submit` es **pedir**: entrega la tarea y vuelve al instante
+      (@imp-llamada-bloqueante), no con el resultado, sino con un objeto que vale por él.
     - El método `get` es **recibir**, y solo espera si el resultado todavía no está.
     - Entre uno y otro, la tarea se ejecuta en un hilo del ejecutor y el hilo que la pidió
       sigue con lo suyo.
