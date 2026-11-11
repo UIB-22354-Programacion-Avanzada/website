@@ -569,7 +569,7 @@ window.Quarto = {
   <li><a href="#herramientas-de-concurrencia-en-java" id="toc-herramientas-de-concurrencia-en-java" class="nav-link" data-scroll-target="#herramientas-de-concurrencia-en-java">3.2. Herramientas de concurrencia en Java</a>
   <ul class="collapse">
   <li><a href="#ejecutores-administrar-hilos-para-ejecutar-tareas" id="toc-ejecutores-administrar-hilos-para-ejecutar-tareas" class="nav-link" data-scroll-target="#ejecutores-administrar-hilos-para-ejecutar-tareas">3.2.1 Ejecutores: administrar hilos para ejecutar tareas</a></li>
-  <li><a href="#futuros-y-completablefuture" id="toc-futuros-y-completablefuture" class="nav-link" data-scroll-target="#futuros-y-completablefuture">3.2.2 Futuros y <code>CompletableFuture</code></a></li>
+  <li><a href="#programación-asíncrona-con-completablefuture" id="toc-programación-asíncrona-con-completablefuture" class="nav-link" data-scroll-target="#programación-asíncrona-con-completablefuture">3.2.2 Programación asíncrona con <code>CompletableFuture</code></a></li>
   <li><a href="#colecciones-concurrentes" id="toc-colecciones-concurrentes" class="nav-link" data-scroll-target="#colecciones-concurrentes">3.2.3 Colecciones concurrentes</a></li>
   <li><a href="#variables-atómicas" id="toc-variables-atómicas" class="nav-link" data-scroll-target="#variables-atómicas">3.2.4 Variables atómicas</a></li>
   <li><a href="#productor-y-consumidor" id="toc-productor-y-consumidor" class="nav-link" data-scroll-target="#productor-y-consumidor">3.2.5 Productor y consumidor</a></li>
@@ -2189,10 +2189,18 @@ Ejemplo&nbsp;7: Seis tareas sin resultado y tres hilos, con <code>execute</code>
 <span id="cb34-6"><a href="#cb34-6"></a>   tarea 5 hecha por pool-1-thread-2</span>
 <span id="cb34-7"><a href="#cb34-7"></a>   tarea 6 hecha por pool-1-thread-1</span>
 <span id="cb34-8"><a href="#cb34-8"></a>   total: unos 447 ms</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>Los nombres de hilo se repiten porque cada hilo, al terminar una tarea, saca la siguiente de la cola: seis tareas de 200 ms en tres hilos son dos tandas, unos 400 ms.</li>
+<li>El programa no tiene ni un <code>new Thread</code> ni un <code>join</code>.
+<ul>
+<li>Lo que sustituye al <code>join</code> es el bloque <code>try</code>: desde Java 19, <code>ExecutorService</code> es <code>AutoCloseable</code>, y su método <code>close</code> deja de aceptar tareas nuevas y <strong>espera a que terminen las que ya tiene</strong>.</li>
+<li>Cuando el bloque se cierra, no queda ninguna tarea a medias.</li>
+</ul></li>
+<li>El orden de las líneas, en cambio, cambia de una ejecución a otra, porque cada tarea imprime por su cuenta al terminar, como los hilos de 3.1.</li>
+<li>Aquí está el límite de esta versión: <code>main</code> no recibe nada de las tareas. Si necesitara sus resultados, habría que dejarlos en una estructura compartida, con los riesgos de 3.1.4, y si una tarea fallara, <code>main</code> no se enteraría.</li>
+</ul>
 </div>
 </div>
-<p>Los nombres de hilo se repiten porque cada hilo, al terminar una tarea, saca la siguiente de la cola: seis tareas de 200 ms en tres hilos son dos tandas, unos 400 ms. El programa no tiene ni un <code>new Thread</code> ni un <code>join</code>. Lo que sustituye al <code>join</code> es el bloque <code>try</code>: desde Java 19, <code>ExecutorService</code> es <code>AutoCloseable</code>, y su método <code>close</code> deja de aceptar tareas nuevas y <strong>espera a que terminen las que ya tiene</strong>. Cuando el bloque se cierra, no queda ninguna tarea a medias.</p>
-<p>El orden de las líneas, en cambio, cambia de una ejecución a otra, porque cada tarea imprime por su cuenta al terminar, como los hilos de 3.1. Y ahí está el límite de esta versión: <code>main</code> no recibe nada de las tareas. Si necesitara sus resultados, habría que dejarlos en una estructura compartida, con los riesgos de 3.1.4, y si una tarea fallara, <code>main</code> no se enteraría.</p>
 <p>Para recoger resultados hacen falta dos piezas más. Una tarea que devuelve un resultado es un <code>Callable&lt;T&gt;</code>, la versión de <code>Runnable</code> cuyo método, <code>call</code>, devuelve un valor de tipo <code>T</code> y puede lanzar excepciones comprobadas. Se entrega con <code>submit</code> en lugar de con <code>execute</code>, y <code>submit</code> devuelve al instante un <code>Future&lt;T&gt;</code>, el <strong>futuro</strong> de su resultado (<a href="#imp-futuro" class="quarto-xref">concepto clave&nbsp;9</a>):</p>
 <table class="caption-top table">
 <colgroup>
@@ -2286,17 +2294,29 @@ Ejemplo&nbsp;8: Seis tareas y tres hilos con un ejecutor
 <span id="cb36-6"><a href="#cb36-6"></a>   tarea 5 hecha por pool-1-thread-1</span>
 <span id="cb36-7"><a href="#cb36-7"></a>   tarea 6 hecha por pool-1-thread-2</span>
 <span id="cb36-8"><a href="#cb36-8"></a>   total: unos 443 ms</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<ul>
+<li>El reparto entre hilos y el tiempo son los de <a href="#nte-ejecutar" class="quarto-xref">ejemplo&nbsp;7</a>.</li>
+<li>Lo que cambia es quién imprime: ahora solo <code>main</code>, que recoge los resultados en el orden en que los pidió, así que las líneas salen <strong>siempre</strong> en el orden 1, 2, 3, 4, 5, 6, aunque las tareas terminen en otro.</li>
+</ul>
 </div>
 </div>
-<p>El reparto entre hilos y el tiempo son los de <a href="#nte-ejecutar" class="quarto-xref">ejemplo&nbsp;7</a>. Lo que cambia es quién imprime: ahora solo <code>main</code>, que recoge los resultados en el orden en que los pidió, así que las líneas salen <strong>siempre</strong> en el orden 1, 2, 3, 4, 5, 6, aunque las tareas terminen en otro.</p>
-<p>Lo que devuelve <code>submit</code> merece mirarse despacio, porque es lo que hace útil todo lo demás. Con un método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como <code>String r = calcular();</code> no deja seguir hasta tener <code>r</code>. Con un ejecutor, los dos momentos se separan. El método <code>submit</code> es <strong>pedir</strong>: entrega la tarea y vuelve al instante, no con el resultado, sino con un objeto que vale por él. El método <code>get</code> es <strong>recibir</strong>, y solo espera si el resultado todavía no está. Entre uno y otro, la tarea se ejecuta en un hilo del ejecutor y el hilo que la pidió sigue con lo suyo.</p>
-<div id="imp-futuro" class="callout callout-style-default callout-important no-icon callout-titled" title="Futuro">
+<p>Lo que devuelve <code>submit</code> merece mirarse despacio, porque es lo que hace útil todo lo demás:</p>
+<ul>
+<li>Con un método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como <code>String r = calcular();</code> no deja seguir hasta tener <code>r</code>.</li>
+<li>Con un ejecutor, los dos momentos se separan:
+<ul>
+<li>El método <code>submit</code> es <strong>pedir</strong>: entrega la tarea y vuelve al instante, no con el resultado, sino con un objeto que vale por él.</li>
+<li>El método <code>get</code> es <strong>recibir</strong>, y solo espera si el resultado todavía no está.</li>
+<li>Entre uno y otro, la tarea se ejecuta en un hilo del ejecutor y el hilo que la pidió sigue con lo suyo.</li>
+</ul></li>
+</ul>
+<div id="imp-futuro" class="callout callout-style-default callout-important no-icon callout-titled" title="Futuro (`Future`)">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;9: Futuro
+Concepto Clave&nbsp;9: Futuro (<code>Future</code>)
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2348,7 +2368,7 @@ Concepto Clave&nbsp;9: Futuro
 </tr>
 </tbody>
 </table>
-<p>Lo que distingue a un futuro de un hilo suelto es lo que puede pasar al llamar a <code>get</code>:</p>
+<p>Lo que distingue a una tarea entregada con <code>submit</code> de una ejecutada con <code>new Thread</code>, como las de 3.1, es lo que puede pasar al llamar a <code>get</code>:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 50%">
@@ -2383,7 +2403,7 @@ Concepto Clave&nbsp;9: Futuro
 </tr>
 </tbody>
 </table>
-<p>La segunda fila es lo que no tenía 3.1. Si el <code>run</code> de un hilo suelto lanza una excepción, el hilo muere y nadie se entera; con un futuro, el fallo <strong>cruza de un hilo a otro</strong> y llega a quien pide el resultado. Y, como <code>join</code>, el método <code>get</code> garantiza que lo que la tarea escribió en memoria es visible cuando devuelve.</p>
+<p>La segunda fila es lo que no tenía 3.1. Si el <code>run</code> de un hilo creado con <code>new Thread</code> lanza una excepción, el hilo muere y nadie se entera; con un futuro, el fallo <strong>cruza de un hilo a otro</strong> y llega a quien pide el resultado. Y, como <code>join</code>, el método <code>get</code> garantiza que lo que la tarea escribió en memoria es visible cuando devuelve.</p>
 <p>Eso explica también por qué <a href="#nte-ejecutor" class="quarto-xref">ejemplo&nbsp;8</a> tiene dos bucles: el primero solo pide, y guarda los seis futuros en una lista; el segundo recoge. Si se pidiera y se recogiera en el mismo bucle, con <code>ejecutor.submit(tarea(i)).get()</code>, cada <code>get</code> esperaría a su tarea antes de entregar la siguiente. El resultado sería el mismo, pero las seis tareas irían una detrás de otra: el programa tarda así unos 1.250 ms en lugar de 450, con dos de los tres hilos del ejecutor parados todo el tiempo. <strong>Primero se pide todo, después se recoge</strong>: es la forma de que el ejecutor tenga trabajo para todos sus hilos a la vez.</p>
 <p>Además de <code>execute</code> y <code>submit</code>, la interfaz <code>ExecutorService</code> tiene métodos para entregar tareas en grupo y para controlar cómo termina el ejecutor. Los plazos se dan con un número y una unidad de <code>TimeUnit</code>, como <code>10, TimeUnit.SECONDS</code>.</p>
 <table class="caption-top table">
@@ -2565,9 +2585,51 @@ Error Frecuente&nbsp;5: No cerrar un ejecutor
 </section>
 <p>Para elegir el tamaño del conjunto, la regla depende del tipo de tarea de 3.1.1. Para tareas limitadas por cálculo, <strong>tantos hilos como núcleos</strong>, que se obtienen con <code>Runtime.getRuntime().availableProcessors()</code>; más no sirve, porque solo hay ese número de núcleos para ejecutarlos. Para tareas limitadas por la entrada/salida, la respuesta la da la ley de Little (<a href="#tip-little" class="quarto-xref">fundamento teórico&nbsp;2</a>), y suele ser un número mucho mayor que el de núcleos. Cuánto mayor puede llegar a ser es la pregunta de la sección 3.3.</p>
 </section>
-<section id="futuros-y-completablefuture" class="level3">
-<h3 class="anchored" data-anchor-id="futuros-y-completablefuture">3.2.2 Futuros y <code>CompletableFuture</code></h3>
-<p>Un <code>Future</code> tiene un defecto: lo único que se puede hacer con él es esperar. Si hay que combinar dos resultados que se calculan a la vez, o hacer algo con un resultado cuando llegue sin bloquear al hilo que lo pidió, el <code>Future</code> no ayuda. Para eso existe <code>CompletableFuture</code>, desde Java 8: un futuro al que se le pueden <strong>encadenar</strong> operaciones que se ejecutan cuando el resultado esté disponible.</p>
+<section id="programación-asíncrona-con-completablefuture" class="level3">
+<h3 class="anchored" data-anchor-id="programación-asíncrona-con-completablefuture">3.2.2 Programación asíncrona con <code>CompletableFuture</code></h3>
+<p>El futuro de 3.2.1 separa pedir de recibir, pero solo a medias. <strong>Pedir</strong> es asíncrono: <code>submit</code> vuelve al instante. <strong>Recibir</strong>, no: lo único que se puede hacer con un <code>Future</code> es esperar con <code>get</code>, y mientras espera, el hilo no hace nada más. Si hay que combinar dos resultados que se calculan a la vez, o hacer algo con un resultado cuando llegue sin que nadie se quede esperándolo, el <code>Future</code> no ayuda.</p>
+<div id="imp-programacion-asincrona" class="callout callout-style-default callout-important no-icon callout-titled" title="Programación asíncrona">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Concepto Clave&nbsp;10: Programación asíncrona
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Una operación es <strong>asíncrona</strong> cuando quien la pide no espera a que termine: la lanza, sigue con lo suyo y deja dicho qué hay que hacer con el resultado cuando llegue. Ese «qué hacer después» es una <strong>continuación</strong>, también llamada <strong>retrollamada</strong> (<em>callback</em>): un trozo de código que no se ejecuta en el orden en que está escrito, sino cuando el resultado está disponible.</p>
+<p>No es lo mismo que la concurrencia. Un programa puede tener muchos hilos y ser síncrono, si cada uno se queda esperando cada respuesta; y puede ser asíncrono con muy pocos hilos, si ninguno espera.</p>
+</div>
+</div>
+<p>En Java, la herramienta para programar así es <code>CompletableFuture</code>, disponible desde Java 8: un futuro al que se le pueden <strong>encadenar</strong> operaciones que se ejecutan cuando el resultado esté disponible.</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Lanzar la tarea</th>
+<th>Usar el resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>Future</code></td>
+<td>asíncrono: <code>submit</code> vuelve al instante</td>
+<td>síncrono: <code>get</code> bloquea hasta que llega</td>
+</tr>
+<tr class="even">
+<td><code>CompletableFuture</code></td>
+<td>asíncrono: <code>supplyAsync</code> vuelve al instante</td>
+<td>asíncrono: los métodos <code>then…</code> dicen qué hacer cuando llegue, sin bloquear a nadie</td>
+</tr>
+</tbody>
+</table>
+<p>El nombre viene de que se puede <strong>completar a mano</strong>, desde cualquier hilo, con <code>complete(valor)</code> o <code>completeExceptionally(error)</code>. Eso permite convertir en un futuro cualquier cosa que avise cuando termina, como una respuesta de red o un temporizador. Por eso es la pieza sobre la que se construyen las bibliotecas asíncronas de Java, como el cliente HTTP de la biblioteca estándar.</p>
 <p>El ejemplo comprueba dos cosas del mismo servidor a la vez —que su nombre se resuelve en el <span class="glos">DNS</span> y que su puerto <span class="glos">TCP</span> contesta— y combina las dos respuestas en un veredicto. Para la consulta TCP hay un plazo de 300 ms.</p>
 <div id="nte-futuro-completable" class="callout callout-style-default callout-note no-icon callout-titled" title="Dos consultas a la vez, combinadas con `CompletableFuture`">
 <div class="callout-header d-flex align-content-center">
@@ -2626,7 +2688,7 @@ Ejemplo&nbsp;9: Dos consultas a la vez, combinadas con <code>CompletableFuture</
 <span id="cb40-45"><a href="#cb40-45"></a>    <span class="op">}</span></span>
 <span id="cb40-46"><a href="#cb40-46"></a></span>
 <span id="cb40-47"><a href="#cb40-47"></a>    <span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">main</span><span class="op">(</span><span class="bu">String</span><span class="op">[]</span> args<span class="op">)</span> <span class="op">{</span></span>
-<span id="cb40-48"><a href="#cb40-48"></a>        <span class="cf">try</span> <span class="op">(</span><span class="bu">ExecutorService</span> ejecutor <span class="op">=</span> <span class="bu">Executors</span><span class="op">.</span><span class="fu">newVirtualThreadPerTaskExecutor</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb40-48"><a href="#cb40-48"></a>        <span class="cf">try</span> <span class="op">(</span><span class="bu">ExecutorService</span> ejecutor <span class="op">=</span> <span class="bu">Executors</span><span class="op">.</span><span class="fu">newFixedThreadPool</span><span class="op">(</span><span class="dv">2</span><span class="op">))</span> <span class="op">{</span></span>
 <span id="cb40-49"><a href="#cb40-49"></a>            <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"--- el puerto TCP contesta en 200 ms"</span><span class="op">);</span></span>
 <span id="cb40-50"><a href="#cb40-50"></a>            <span class="fu">comprobar</span><span class="op">(</span>ejecutor<span class="op">,</span> <span class="dv">200</span><span class="op">);</span></span>
 <span id="cb40-51"><a href="#cb40-51"></a>            <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"--- el puerto TCP tardaria 2 s; el plazo es de 300 ms"</span><span class="op">);</span></span>
@@ -2637,20 +2699,91 @@ Ejemplo&nbsp;9: Dos consultas a la vez, combinadas con <code>CompletableFuture</
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb41-1"><a href="#cb41-1"></a>--- el puerto TCP contesta en 200 ms</span>
 <span id="cb41-2"><a href="#cb41-2"></a>   termina la consulta DNS</span>
 <span id="cb41-3"><a href="#cb41-3"></a>   termina la consulta TCP</span>
-<span id="cb41-4"><a href="#cb41-4"></a>   veredicto: disponible, en unos 232 ms</span>
+<span id="cb41-4"><a href="#cb41-4"></a>   veredicto: disponible, en unos 214 ms</span>
 <span id="cb41-5"><a href="#cb41-5"></a>--- el puerto TCP tardaria 2 s; el plazo es de 300 ms</span>
 <span id="cb41-6"><a href="#cb41-6"></a>   termina la consulta DNS</span>
 <span id="cb41-7"><a href="#cb41-7"></a>   veredicto: con problemas, en unos 300 ms</span>
 <span id="cb41-8"><a href="#cb41-8"></a>   termina la consulta TCP</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>Las cuatro operaciones del ejemplo cubren casi todo lo que se usa en la práctica:</p>
-<ul>
-<li>El método <code>supplyAsync(tarea, ejecutor)</code> lanza la tarea en el ejecutor y devuelve el <code>CompletableFuture</code> de su resultado.</li>
-<li>El método <code>thenCombine(otro, función)</code> espera a los dos futuros y combina sus resultados con la función: aquí, el veredicto. Hay una familia entera de métodos <code>then…</code> —<code>thenApply</code> para transformar un resultado, <code>thenCompose</code> para encadenar otra operación asíncrona— que siguen la misma idea.</li>
-<li>El método <code>orTimeout(plazo, unidad)</code> hace que el futuro termine con una <code>TimeoutException</code> si el resultado no llega a tiempo.</li>
-<li>El método <code>exceptionally(función)</code> convierte un fallo en un valor: aquí, una consulta que no llega a tiempo cuenta como que el puerto no responde.</li>
-</ul>
+<p>En el ejemplo, <code>supplyAsync</code> lanza las dos consultas. Los métodos <code>orTimeout</code> y <code>exceptionally</code> hacen que una consulta TCP que no llega a tiempo cuente como un puerto que no responde, y <code>thenCombine</code> junta las dos respuestas en el veredicto. Son cuatro métodos de una interfaz amplia, cuyos métodos principales caben en una tabla:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Para…</th>
+<th>Método</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Lanzar</td>
+<td><code>supplyAsync(tarea, ejecutor)</code> <em>(estático)</em></td>
+<td>Ejecuta en el ejecutor una tarea que devuelve un valor, y devuelve el futuro de ese valor. La tarea es un <code>Supplier</code>: una lambda sin parámetros que devuelve algo.</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>runAsync(tarea, ejecutor)</code> <em>(estático)</em></td>
+<td>Igual, para una tarea sin resultado, un <code>Runnable</code>.</td>
+</tr>
+<tr class="odd">
+<td>Transformar</td>
+<td><code>thenApply(función)</code></td>
+<td>Cuando llegue el resultado, le aplica la función: de un futuro de <code>T</code> a uno de <code>U</code>.</td>
+</tr>
+<tr class="even">
+<td>Encadenar</td>
+<td><code>thenCompose(función)</code></td>
+<td>Cuando llegue, lanza <strong>otra</strong> operación asíncrona que depende de él.</td>
+</tr>
+<tr class="odd">
+<td>Combinar</td>
+<td><code>thenCombine(otro, función)</code></td>
+<td>Cuando lleguen los dos, combina sus resultados.</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><code>allOf(f1, f2, …)</code>, <code>anyOf(f1, f2, …)</code> <em>(estáticos)</em></td>
+<td>Un futuro que se completa cuando terminan todos, o cuando termina el primero.</td>
+</tr>
+<tr class="odd">
+<td>Consumir</td>
+<td><code>thenAccept(acción)</code></td>
+<td>Cuando llegue, hace algo con el resultado sin devolver nada; por ejemplo, imprimirlo.</td>
+</tr>
+<tr class="even">
+<td>Tratar errores</td>
+<td><code>exceptionally(función)</code></td>
+<td>Si algo falló antes en la cadena, convierte el error en un valor.</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>handle((valor, error) -&gt; …)</code></td>
+<td>Recibe el resultado o el error, y devuelve un valor en los dos casos.</td>
+</tr>
+<tr class="even">
+<td>Poner plazos</td>
+<td><code>orTimeout(plazo, unidad)</code></td>
+<td>Si no termina a tiempo, el futuro termina con una <code>TimeoutException</code>.</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><code>completeOnTimeout(valor, plazo, unidad)</code></td>
+<td>Si no termina a tiempo, se completa con ese valor.</td>
+</tr>
+<tr class="even">
+<td>Esperar</td>
+<td><code>join()</code></td>
+<td>Espera y devuelve el resultado. Es como <code>get</code>, pero sin excepciones comprobadas.</td>
+</tr>
+</tbody>
+</table>
+<p>Cada método <code>then…</code> añade una continuación, que normalmente se ejecuta en el hilo que completa el paso anterior. Sus versiones terminadas en <code>Async</code>, como <code>thenApplyAsync</code>, la ejecutan en un ejecutor. Y <code>join</code> es el único método de la tabla que espera: en cuanto se llama, ese punto del programa vuelve a ser síncrono. En el ejemplo se usa al final, para poder imprimir el veredicto.</p>
 <p>Y el ejemplo esconde una sorpresa en su última línea. En el segundo caso, el veredicto sale a los 300 ms, como manda el plazo, y <strong>la consulta TCP termina después</strong>: el método <code>orTimeout</code> ha dado el futuro por fallido, pero la tarea que lo iba a completar ha seguido durmiendo sus dos segundos, ocupando su hilo, sin que nadie se lo haya pedido. No es un defecto del ejemplo: es cómo funciona la cancelación en Java, y merece explicarse aparte.</p>
 <div id="tip-cancelacion-cooperativa" class="callout callout-style-default callout-tip no-icon callout-titled" title="En Java, cancelar una tarea es pedirle que pare">
 <div class="callout-header d-flex align-content-center">
@@ -3028,7 +3161,7 @@ Fundamento Teórico&nbsp;6: Comparar y sustituir: una sección crítica de una s
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;10: Productor y consumidor
+Concepto Clave&nbsp;11: Productor y consumidor
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3317,7 +3450,7 @@ Ejemplo&nbsp;12: El interbloqueo deshecho con <code>tryLock</code>
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;11: Hilo virtual
+Concepto Clave&nbsp;12: Hilo virtual
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3495,7 +3628,7 @@ Fundamento Teórico&nbsp;7: El consejo de evitar <code>synchronized</code> con h
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;12: Semáforo
+Concepto Clave&nbsp;13: Semáforo
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3645,7 +3778,7 @@ Ejemplo&nbsp;14: Diez descargas con un semáforo de tres permisos
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;13: Concurrencia estructurada
+Concepto Clave&nbsp;14: Concurrencia estructurada
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3903,7 +4036,7 @@ Ejemplo&nbsp;15: Un identificador de ronda con <code>ScopedValue</code>
 <p><strong>En el monitor de servicios</strong> (<a href="#fig-monitor3" class="quarto-xref">Figura&nbsp;1</a>) hay una necesidad que ninguna de las rondas cubre: ver los resultados <strong>mientras llegan</strong>, en un panel que se actualice solo, sin esperar a que la ronda termine. Es un problema de otra forma que los anteriores —no se pide algo y se espera la respuesta, sino que llega un <strong>flujo</strong> continuo de datos al que alguien quiere reaccionar—, y para problemas de esa forma existe un enfoque propio. Esta sección es una panorámica: qué problema resolvía, cuál es su idea central y cuándo sigue siendo la elección correcta.</p>
 <section id="el-problema-que-resolvía" class="level3">
 <h3 class="anchored" data-anchor-id="el-problema-que-resolvía">3.4.1 El problema que resolvía</h3>
-<p>La sección 3.3.1 terminaba con los dos caminos que el sector tomó cuando los hilos de plataforma no daban para atender a todos los clientes. El segundo consistía en <strong>no bloquear nunca</strong>: en lugar de que un hilo pida un dato a la red y espere, el hilo pide el dato, deja dicho qué hacer cuando llegue —una <strong>retrollamada</strong> (<em>callback</em>)— y se va a atender otra cosa. Un puñado de hilos, a veces uno solo por núcleo, gira en un <strong>bucle de eventos</strong> (<em>event loop</em>) que reparte las respuestas a medida que llegan. Es el modelo de los servidores de alto rendimiento de la década de 2010, como Netty en Java o Node.js en JavaScript, y con él un solo ordenador atiende cientos de miles de conexiones.</p>
+<p>La sección 3.3.1 terminaba con los dos caminos que el sector tomó cuando los hilos de plataforma no daban para atender a todos los clientes. El segundo consistía en <strong>no bloquear nunca</strong>: en lugar de que un hilo pida un dato a la red y espere, el hilo pide el dato, deja dicho qué hacer cuando llegue —una retrollamada (3.2.2)— y se va a atender otra cosa. Un puñado de hilos, a veces uno solo por núcleo, gira en un <strong>bucle de eventos</strong> (<em>event loop</em>) que reparte las respuestas a medida que llegan. Es el modelo de los servidores de alto rendimiento de la década de 2010, como Netty en Java o Node.js en JavaScript, y con él un solo ordenador atiende cientos de miles de conexiones.</p>
 <p>El precio lo paga el código. Una secuencia que en el estilo bloqueante son tres líneas —pedir A, con A pedir B, con B pedir C— se convierte en tres retrollamadas anidadas, cada una dentro de la anterior, y el tratamiento de errores se reparte entre todas. La <strong>programación reactiva</strong> nació para ordenar ese código: en lugar de anidar retrollamadas, se describe el programa como <strong>flujos de datos</strong> que se transforman, se filtran y se combinan con operadores, como los <em>streams</em> del Tema 1 pero con elementos que llegan con el tiempo en lugar de estar todos en una colección. El Manifiesto Reactivo de 2014 <span class="citation" data-cites="manifiesto2014">(<a href="#ref-manifiesto2014" role="doc-biblioref">Bonér et&nbsp;al. 2014</a>)</span> le dio nombre y principios, y bibliotecas como RxJava, Project Reactor —la base de Spring WebFlux— o Mutiny la hicieron popular en Java.</p>
 </section>
 <section id="flujos-y-contrapresión" class="level3">
@@ -3915,7 +4048,7 @@ Ejemplo&nbsp;15: Un identificador de ronda con <code>ScopedValue</code>
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;14: Flujo reactivo
+Concepto Clave&nbsp;15: Flujo reactivo
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3936,7 +4069,7 @@ Concepto Clave&nbsp;14: Flujo reactivo
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;15: Contrapresión
+Concepto Clave&nbsp;16: Contrapresión
 </div>
 </div>
 <div class="callout-body-container callout-body">
