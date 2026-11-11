@@ -383,7 +383,7 @@ varios hilos aparecen dos clases de métodos:
   mismo si la tarea dura un milisegundo que si dura una hora.
 - Un método **bloqueante** no vuelve hasta que ocurre algo que no depende de él: que termine otro
   hilo (`join`), que pase un tiempo (`sleep`), que llegue un resultado o que quede libre un
-  cerrojo. Mientras tanto, el hilo que lo llamó está **bloqueado**: parado, sin usar el procesador,
+  cerrojo (3.1.5). Mientras tanto, el hilo que lo llamó está **bloqueado**: parado, sin usar el procesador,
   esperando.
 
 Para leer un programa concurrente hay que saber de cada llamada si bloquea o no. Lo que va después
@@ -1005,7 +1005,7 @@ aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (
    crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo
    pequeña; un programa real que toca el dato compartido solo de vez en cuando rara vez da con el
    choque, y por eso parece funcionar.
-2. **Nada de imprimir dentro del bucle.** El método `println` toma un cerrojo interno para que las
+2. **Nada de imprimir dentro del bucle.** El método `println` toma un cerrojo interno (3.1.5) para que las
    líneas no se mezclen, y con eso **sincroniza sin querer** a los hilos que escriben: la carrera
    desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta
    registrar algo, se acumula y se imprime al final.
@@ -1026,12 +1026,13 @@ esfuerzo y con razonamiento, no paso a paso.
 La herramienta básica para que una sección crítica se ejecute en exclusión mutua está en el propio
 lenguaje, y es la palabra reservada `synchronized`.
 
-::: {#imp-cerrojo-intrinseco .callout-important title="Cerrojo intrínseco y `synchronized`"}
-En Java, **todo objeto tiene un cerrojo** (*lock*), llamado su **cerrojo intrínseco**. Un hilo puede
-tomarlo y soltarlo; mientras lo tiene, cualquier otro hilo que intente tomarlo **se bloquea** hasta
-que lo suelte.
+::: {#imp-cerrojo-intrinseco .callout-important title="Cerrojo"}
+Un **cerrojo** (*lock*) es un mecanismo de exclusión mutua: un objeto que en cada momento solo
+puede tener un hilo. El hilo lo **toma** antes de entrar en una sección crítica y lo **suelta** al
+salir; si otro hilo intenta tomarlo mientras tanto, **se bloquea** hasta que quede libre.
 
-La palabra `synchronized` es la forma de usarlo, de dos maneras:
+En Java, **todo objeto tiene un cerrojo**, llamado su **cerrojo intrínseco**, y la palabra
+`synchronized` es la forma de usarlo, de dos maneras:
 
 - Un **método `synchronized`** toma el cerrojo del objeto sobre el que se llama al entrar y lo
   suelta al salir, también si sale por una excepción. Dos métodos `synchronized` del mismo objeto
@@ -2220,11 +2221,44 @@ volver al estilo de bloquear y esperar, que se lee y se depura mucho mejor.
 
 ### 3.2.3 Colecciones concurrentes
 
-Proteger una colección con un solo cerrojo funciona —es lo que hacen un método `synchronized` o
-`Collections.synchronizedMap`—, pero tiene un coste que con muchos hilos se nota: dos hilos que
-tocan elementos que no tienen nada que ver se esperan el uno al otro. El paquete
-`java.util.concurrent` trae versiones de las colecciones del Tema 2 diseñadas para que varios hilos
-las usen a la vez sin esperarse más de lo imprescindible:
+En casi todo programa concurrente, lo que los hilos comparten está guardado en una **colección**: el
+mapa de sesiones abiertas de un servidor, la caché de resultados que todos consultan, la cola de
+trabajos pendientes, el contador de visitas por página… Las variables sueltas compartidas son la
+excepción. Lo habitual es que muchos hilos lean y escriban a la vez en un mismo mapa o en una misma
+lista.
+
+Y las colecciones del Tema 2 no están hechas para eso. Un `HashMap` o un `ArrayList` suponen que
+solo los usa un hilo a la vez, y cuando no es así fallan de la peor manera posible: **en silencio y
+de vez en cuando**. Como se vio en 3.1.4, varios hilos que modifican la misma colección no solo
+pierden datos, sino que pueden **romper su estructura interna** y provocar excepciones desde dentro
+de la biblioteca. Además, cualquier hilo que recorra la colección mientras otro la modifica puede
+encontrarse con una `ConcurrentModificationException`.
+
+Hay tres maneras de compartir una colección entre hilos sin que eso ocurra:
+
+| Opción | Cómo | Lo que cuesta |
+|---|---|---|
+| No compartirla | Cada hilo tiene su propia colección, y los resultados se juntan al final | No siempre es posible: una caché o un registro de sesiones existen precisamente para ser compartidos. |
+| Protegerla con un cerrojo | Envolverla con `Collections.synchronizedMap(…)` o acceder a ella dentro de bloques `synchronized` (el cerrojo intrínseco de 3.1.5) | Es correcto, pero **un solo hilo a la vez** puede usarla, aunque los demás quieran tocar elementos que no tienen nada que ver. Y recorrerla sigue exigiendo un `synchronized` escrito a mano. |
+| Usar una colección concurrente | `ConcurrentHashMap`, `ConcurrentLinkedQueue`, `CopyOnWriteArrayList`… | Están diseñadas para que varios hilos las usen **a la vez**, sin esperarse más de lo imprescindible. |
+
+Las colecciones concurrentes aportan tres cosas que las otras opciones no dan juntas:
+
+- **Son correctas sin cerrojos escritos a mano.** Cada operación es segura aunque la hagan muchos
+  hilos a la vez.
+- **Escalan.** Dos hilos que escriben en zonas distintas de un `ConcurrentHashMap` no se esperan el
+  uno al otro, y las lecturas casi nunca esperan. Con un solo cerrojo, en cambio, cada hilo que se
+  añade solo alarga la cola de espera.
+- **Ofrecen operaciones compuestas atómicas**, como `merge`, `computeIfAbsent` o `putIfAbsent`.
+  Hacen de una vez lo que con una colección normal serían dos pasos («comprobar y después
+  actuar»), con un hueco en medio por el que se cuela otro hilo.
+
+Además, sus recorridos no lanzan `ConcurrentModificationException`: se puede recorrer la colección
+mientras otros hilos la modifican.
+
+Lo que no hacen es pensar por ti. Garantizan que **cada operación** es segura, pero no que lo sea
+una secuencia de operaciones, y ese es el error más frecuente al usarlas, como se verá enseguida. El
+paquete `java.util.concurrent` trae una versión concurrente de casi cada colección del Tema 2:
 
 | En lugar de | Para varios hilos | Cómo lo consigue |
 |---|---|---|
@@ -2233,9 +2267,6 @@ las usen a la vez sin esperarse más de lo imprescindible:
 | `ArrayDeque`, `LinkedList` como cola | `ConcurrentLinkedQueue` | una lista enlazada que se modifica con instrucciones atómicas, sin cerrojos |
 | `ArrayList` que casi solo se lee | `CopyOnWriteArrayList` | cada modificación copia el array entero; las lecturas no se sincronizan nunca |
 | `ArrayDeque` o `PriorityQueue` entre productores y consumidores | `LinkedBlockingQueue`, `PriorityBlockingQueue` | colas que además **bloquean** al que saca si están vacías (3.2.5) |
-
-La garantía que dan estas colecciones es más estrecha de lo que parece, y el error más frecuente al
-usarlas sale de leerla mal.
 
 ::: {#cau-comprobar-y-actuar .callout-caution title="Comprobar y después actuar sobre una colección concurrente"}
 Una colección concurrente garantiza que **cada una de sus operaciones** es segura. No garantiza nada
@@ -2773,6 +2804,15 @@ siguiente hilo que lo pida se quedará esperando, y el programa se parará en un
 nada que ver con el que falló. La forma del fragmento —`lock` justo antes del `try`, `unlock` como
 primera línea del `finally`— es la única correcta.
 :::
+
+Puestos lado a lado, los dos tipos de cerrojo se diferencian así:
+
+| | Cerrojo intrínseco (3.1.5) | Cerrojo explícito |
+|---|---|---|
+| Qué es | Un cerrojo que **todo objeto** lleva incorporado | Un objeto de una clase de `java.util.concurrent.locks`, como `ReentrantLock` |
+| Cómo se usa | Con `synchronized`: un bloque `synchronized (objeto) { … }` o un método `synchronized` | Llamando a sus métodos: `lock()` para tomarlo y `unlock()` para soltarlo |
+| Quién lo suelta | Java, automáticamente al salir del bloque, también si hay una excepción | Quien lo tomó, con `unlock()` en un `finally` |
+| Qué añade | Nada más: tomar, esperar y soltar | Intentar sin esperar (`tryLock`), esperar con plazo y cerrojos de lectura y escritura |
 
 El método que justifica todo esto es `tryLock(plazo, unidad)`: intenta tomar el cerrojo, espera
 como mucho el plazo, y devuelve si lo ha conseguido. Con él se rompe la segunda condición de
