@@ -3906,6 +3906,81 @@ Error Frecuente&nbsp;7: Soltar un <code>Lock</code> fuera de un bloque <code>fin
 </tr>
 </tbody>
 </table>
+<p>Los métodos de la interfaz <code>Lock</code> son pocos, y cada uno corresponde a una forma distinta de pedir el cerrojo:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Método</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>lock()</code></td>
+<td>Toma el cerrojo. Si lo tiene otro hilo, <strong>espera</strong> hasta que quede libre, como <code>synchronized</code>.</td>
+</tr>
+<tr class="even">
+<td><code>unlock()</code></td>
+<td>Suelta el cerrojo. Solo puede llamarlo el hilo que lo tiene, siempre en un <code>finally</code>.</td>
+</tr>
+<tr class="odd">
+<td><code>tryLock()</code></td>
+<td><strong>Intenta</strong> tomarlo sin esperar: si está libre, lo toma y devuelve <code>true</code>; si no, devuelve <code>false</code> en el acto.</td>
+</tr>
+<tr class="even">
+<td><code>tryLock(plazo, unidad)</code></td>
+<td>Intenta tomarlo esperando <strong>como mucho</strong> ese tiempo, y devuelve si lo ha conseguido.</td>
+</tr>
+<tr class="odd">
+<td><code>lockInterruptibly()</code></td>
+<td>Como <code>lock()</code>, pero la espera termina con una <code>InterruptedException</code> si interrumpen al hilo. Con <code>lock()</code>, la interrupción no corta la espera.</td>
+</tr>
+<tr class="even">
+<td><code>newCondition()</code></td>
+<td>Crea una condición asociada al cerrojo, para esperar dentro de la sección crítica a que se cumpla algo.</td>
+</tr>
+</tbody>
+</table>
+<p>La clase <code>ReentrantLock</code>, la implementación habitual, añade algunos métodos propios, útiles sobre todo para depurar:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Método</th>
+<th>Qué hace</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>new ReentrantLock(true)</code></td>
+<td>Crea un cerrojo <strong>justo</strong> (<em>fair</em>): cuando queda libre, se lo da al hilo que más tiempo lleva esperando. Sin el <code>true</code>, no hay orden garantizado, y es más rápido.</td>
+</tr>
+<tr class="even">
+<td><code>isLocked()</code></td>
+<td>Dice si algún hilo tiene el cerrojo.</td>
+</tr>
+<tr class="odd">
+<td><code>isHeldByCurrentThread()</code></td>
+<td>Dice si lo tiene el hilo que pregunta. Útil en un <code>assert</code> antes de tocar datos protegidos.</td>
+</tr>
+<tr class="even">
+<td><code>getHoldCount()</code></td>
+<td>Cuántas veces lo ha tomado el hilo actual sin soltarlo, porque es reentrante, como el intrínseco.</td>
+</tr>
+<tr class="odd">
+<td><code>hasQueuedThreads()</code></td>
+<td>Dice si hay hilos esperando para tomarlo.</td>
+</tr>
+</tbody>
+</table>
+<p>Como <code>ReentrantLock</code> es <strong>reentrante</strong>, un hilo que ya lo tiene puede volver a tomarlo, y tiene que soltarlo tantas veces como lo tomó.</p>
 <p>El método que justifica todo esto es <code>tryLock(plazo, unidad)</code>: intenta tomar el cerrojo, espera como mucho el plazo, y devuelve si lo ha conseguido. Con él se rompe la segunda condición de Coffman, la de retención y espera: el hilo que no consigue el segundo cerrojo suelta el primero. El interbloqueo de <a href="#nte-interbloqueo" class="quarto-xref">ejemplo&nbsp;6</a>, rehecho así:</p>
 <div id="nte-trylock" class="callout callout-style-default callout-note no-icon callout-titled" title="El interbloqueo deshecho con `tryLock`">
 <div class="callout-header d-flex align-content-center">
