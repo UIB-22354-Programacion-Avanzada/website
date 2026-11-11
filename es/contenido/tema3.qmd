@@ -3751,14 +3751,14 @@ no en los hilos—, y se puede cambiar sin tocar nada más.
 
 ### 3.3.4 Concurrencia estructurada
 
-Muchos programas concurrentes tienen la misma forma: una tarea reparte su trabajo en subtareas y
-no termina hasta tener sus resultados. Un servidor que, para responder a una petición, consulta a la
-vez dos bases de datos la tiene, y también la ronda del monitor, que reparte las comprobaciones.
-Esa forma es la más común en programación concurrente, y las herramientas de 3.2 no la expresan: la
-expresan **las personas**, con disciplina. Con un ejecutor, el método `invokeAll` entrega un grupo de
-tareas y espera a todas, con un plazo si se le da, pero nada en el lenguaje impide que una subtarea
-siga viva cuando la tarea que la lanzó ha terminado, y @tip-cancelacion-cooperativa enseñó que eso
-es exactamente lo que pasa cuando vence el plazo.
+Muchos programas concurrentes tienen la misma forma: una tarea reparte su trabajo en subtareas y no
+termina hasta tener sus resultados. Un servidor que, para responder a una petición, consulta a la
+vez dos bases de datos la tiene, y también un buscador de viajes que pide el precio a varios
+proveedores. Esa forma es la más común en programación concurrente, y las herramientas de 3.2 no la
+expresan: la expresan **las personas**, con disciplina. Con un ejecutor, el método `invokeAll`
+entrega un grupo de tareas y espera a todas, con un plazo si se le da, pero nada en el lenguaje
+impide que una subtarea siga viva cuando la tarea que la lanzó ha terminado, y eso es
+exactamente lo que pasa cuando vence el plazo, como enseñó @tip-cancelacion-cooperativa.
 
 ::: {#imp-concurrencia-estructurada .callout-important title="Concurrencia estructurada"}
 La **concurrencia estructurada** (*structured concurrency*) es el principio de que, si una tarea se
@@ -3824,6 +3824,187 @@ compilado con `--enable-preview` en Java 25 solo se puede ejecutar en Java 25, n
 26. Es lo que permite al JDK cambiar la API entre versiones.
 :::
 
+En Java, un ámbito es un objeto `StructuredTaskScope`, y se usa siempre con la misma forma:
+
+```java
+// Fragmento: la forma de un ámbito estructurado
+try (var ambito = StructuredTaskScope.open(joiner)) {      // 1. abrir el ámbito
+    Subtask<A> a = ambito.fork(() -> calcularA());         // 2. lanzar las subtareas
+    Subtask<B> b = ambito.fork(() -> calcularB());
+    ambito.join();                                         // 3. esperar
+    usar(a.get(), b.get());                                // 4. usar los resultados
+}                                                          // 5. cerrar: no queda nada vivo
+```
+
+El bloque `try` es el que da la estructura: las subtareas nacen dentro de él con `fork` y, al
+cerrarse, el ámbito se asegura de que han terminado todas. Cada subtarea se ejecuta en su propio
+hilo virtual. Los métodos del ámbito son pocos:
+
+| Método | Qué hace |
+|---|---|
+| `StructuredTaskScope.open(joiner)` *(estático)* | Abre un ámbito. El `Joiner` decide qué hacer con los resultados y los fallos de las subtareas. |
+| `StructuredTaskScope.open(joiner, c -> c.withTimeout(plazo))` *(estático)* | Igual, con configuración: un plazo para todo el ámbito (`withTimeout`), un nombre (`withName`) u otra fábrica de hilos (`withThreadFactory`). |
+| `StructuredTaskScope.open()` *(estático)* | Abre un ámbito con el comportamiento por omisión: esperar a que todas terminen bien, y fallar en cuanto falle una. |
+| `fork(tarea)` | Lanza una subtarea, un `Callable` o un `Runnable`, y devuelve su `Subtask`. |
+| `join()` | Espera según lo que diga el `Joiner`. Lanza `FailedException`, con la causa dentro, si el `Joiner` decide que el ámbito ha fallado; `TimeoutException` si vence el plazo; e `InterruptedException` si interrumpen al hilo que espera. |
+| `close()` | Lo llama el `try` al salir. Cancela las subtareas que queden y **espera a que terminen**. |
+
+Solo el hilo que abrió el ámbito puede llamar a `fork`, `join` y `close`. El `Joiner` es la
+**política** del ámbito, y Java trae las más habituales:
+
+| `Joiner` | Qué hace | Para qué |
+|---|---|---|
+| `allSuccessfulOrThrow()` | Si una subtarea falla, cancela las demás y `join` lanza la excepción. | Varias consultas que hacen falta **todas** para continuar. |
+| `awaitAllSuccessfulOrThrow()` | Como la anterior, pero `join` no devuelve los resultados. | Subtareas que solo producen efectos. |
+| `anySuccessfulResultOrThrow()` | Con el primer éxito, cancela las demás, y `join` devuelve ese resultado. | Preguntar a varios servidores replicados y quedarse con el que conteste antes. |
+| `awaitAll()` | Espera a todas, terminen bien o mal, sin cancelar ninguna. | Subtareas independientes, en las que cada una cuenta por sí misma. |
+
+El `Subtask` que devuelve `fork` es el asa para recoger después el resultado de cada subtarea:
+
+| Método de `Subtask` | Qué hace |
+|---|---|
+| `state()` | Dice cómo acabó: `SUCCESS` si terminó bien, `FAILED` si lanzó una excepción, `UNAVAILABLE` si no ha terminado o se canceló. |
+| `get()` | Devuelve el resultado. Solo se puede llamar si el estado es `SUCCESS`. |
+| `exception()` | Devuelve la excepción que lanzó. Solo se puede llamar si el estado es `FAILED`. |
+
+El ejemplo prepara el presupuesto de un viaje: consulta **a la vez** el precio del vuelo, del hotel
+y del coche de alquiler, y suma los tres. Si cualquiera de las consultas falla, el presupuesto no
+sirve, así que no tiene sentido esperar a las otras dos. Cada consulta está simulada con un método
+que duerme el tiempo que tardaría la respuesta y devuelve un precio, o lanza una excepción si se le
+pide que falle. Si la interrumpen mientras duerme, avisa de que la han cancelado:
+
+```java
+// Fragmento
+private static int consultar(String que, long milis, int precio, boolean falla)
+        throws InterruptedException {
+    try {
+        Thread.sleep(milis);
+    } catch (InterruptedException e) {
+        System.out.println("   " + que + ": cancelada");
+        throw e;
+    }
+    if (falla) {
+        System.out.println("   " + que + ": falla");
+        throw new IllegalStateException("no queda " + que + " disponible");
+    }
+    System.out.println("   " + que + ": " + precio + " euros");
+    return precio;
+}
+```
+
+El presupuesto es un ámbito con el `Joiner` `allSuccessfulOrThrow`, porque hacen falta las tres
+respuestas, y tres `fork`, uno por consulta:
+
+```java
+// Fragmento
+try (var ambito = StructuredTaskScope.open(Joiner.<Integer>allSuccessfulOrThrow())) {
+    Subtask<Integer> vuelo = ambito.fork(() -> consultar("vuelo", 300, 180, false));
+    Subtask<Integer> hotel = ambito.fork(() -> consultar("hotel", 100, 240, fallaHotel));
+    Subtask<Integer> coche = ambito.fork(() -> consultar("coche", 200, 90, false));
+    ambito.join();
+    System.out.println("   total: " + (vuelo.get() + hotel.get() + coche.get()) + " euros");
+} catch (StructuredTaskScope.FailedException e) {
+    System.out.println("   sin presupuesto: " + e.getCause().getMessage());
+}
+```
+
+El programa pide el presupuesto dos veces. En la primera, los tres proveedores contestan: el hotel
+a los 100 ms, el coche a los 200 y el vuelo a los 300, así que el presupuesto debería tardar lo que
+la consulta más lenta, unos 300 ms. En la segunda, el hotel **falla** a los 100 ms. Las otras dos
+consultas ya no sirven de nada, y el ámbito debería cancelarlas en ese momento, sin esperar a que
+terminen.
+
+::: {#nte-viaje .callout-note title="El presupuesto de un viaje: tres consultas en un ámbito estructurado"}
+```java
+// DemoViaje.java
+package es.uib.prgava.tema3.virtuales;
+
+import java.util.concurrent.StructuredTaskScope;
+import java.util.concurrent.StructuredTaskScope.Joiner;
+import java.util.concurrent.StructuredTaskScope.Subtask;
+
+/** El presupuesto de un viaje: tres consultas a la vez, y si una falla, ninguna sirve. */
+public final class DemoViaje {
+
+    private DemoViaje() { }
+
+    /** Simula la consulta a un proveedor: tarda {@code milis} y devuelve un precio, o falla. */
+    private static int consultar(String que, long milis, int precio, boolean falla)
+            throws InterruptedException {
+        try {
+            Thread.sleep(milis);
+        } catch (InterruptedException e) {
+            System.out.println("   " + que + ": cancelada");
+            throw e;
+        }
+        if (falla) {
+            System.out.println("   " + que + ": falla");
+            throw new IllegalStateException("no queda " + que + " disponible");
+        }
+        System.out.println("   " + que + ": " + precio + " euros");
+        return precio;
+    }
+
+    private static void presupuestar(boolean fallaHotel) throws InterruptedException {
+        long inicio = System.nanoTime();
+        try (var ambito = StructuredTaskScope.open(Joiner.<Integer>allSuccessfulOrThrow())) {
+            Subtask<Integer> vuelo = ambito.fork(() -> consultar("vuelo", 300, 180, false));
+            Subtask<Integer> hotel = ambito.fork(() -> consultar("hotel", 100, 240, fallaHotel));
+            Subtask<Integer> coche = ambito.fork(() -> consultar("coche", 200, 90, false));
+            ambito.join();
+            System.out.println("   total: " + (vuelo.get() + hotel.get() + coche.get()) + " euros");
+        } catch (StructuredTaskScope.FailedException e) {
+            System.out.println("   sin presupuesto: " + e.getCause().getMessage());
+        }
+        System.out.println("   en unos " + (System.nanoTime() - inicio) / 1_000_000 + " ms");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        System.out.println("--- los tres proveedores contestan");
+        presupuestar(false);
+        System.out.println("--- el hotel falla a los 100 ms");
+        presupuestar(true);
+    }
+}
+```
+
+Una ejecución:
+
+```text
+--- los tres proveedores contestan
+   hotel: 240 euros
+   coche: 90 euros
+   vuelo: 180 euros
+   total: 510 euros
+   en unos 345 ms
+--- el hotel falla a los 100 ms
+   hotel: falla
+   vuelo: cancelada
+   coche: cancelada
+   sin presupuesto: no queda hotel disponible
+   en unos 107 ms
+```
+:::
+
+En el primer caso, el presupuesto tarda unos 300 ms, lo de la consulta más lenta y no la suma de
+las tres. El segundo caso enseña las tres garantías de @imp-concurrencia-estructurada a la vez:
+
+- **Los fallos suben.** La excepción del hotel, lanzada en otro hilo, llega al bloque del
+  presupuesto: `join` lanza una `FailedException` con ella dentro, y `getCause()` la recupera.
+- **La cancelación baja.** En cuanto falla el hotel, el ámbito cancela el vuelo y el coche:
+  interrumpe sus hilos, y sus consultas terminan con «cancelada». Todo acaba a los 100 ms, no a los
+  300.
+- **Nada queda huérfano.** Las dos líneas «cancelada» salen **antes** que «sin presupuesto», porque
+  el `close` del `try` espera a que las subtareas canceladas terminen de verdad antes de dejar
+  salir del bloque. Es justo lo que no pasaba en @nte-futuro-completable, donde la consulta TCP
+  seguía viva después de que el programa hubiera dado su veredicto.
+
+El orden entre «vuelo: cancelada» y «coche: cancelada» puede cambiar de una ejecución a otra; lo
+que no cambia es que las dos salen antes de que el bloque termine.
+
+:::: {.ampliacion}
+#### **La ronda del monitor como ámbito estructurado**
+
 **En el monitor.** La ronda, como ámbito estructurado:
 
 ```java
@@ -3888,23 +4069,10 @@ public final class RondaEstructurada {
 }
 ```
 
-Se lee como la descripción de la ronda, y esa es la primera ventaja. El método
-`StructuredTaskScope.open` abre un **ámbito** con dos decisiones: qué hacer con los resultados de las
-subtareas, que lo decide un `Joiner`, y la configuración, que aquí es solo el plazo. Cada `fork`
-lanza una subtarea en su propio hilo virtual y devuelve un `Subtask`, que es el asa para recoger
-después su resultado. El método `join` espera a que terminen todas, o lanza una `TimeoutException`
-si vence el plazo antes. Y el `try` con recursos es el bloque que contiene la vida de todas las
-subtareas: al cerrarse, el ámbito **cancela las que queden y espera a que terminen de verdad**.
-
-El `Joiner` elegido, `awaitAll`, es el que no hace nada especial con los fallos: espera a todas y deja
-que cada `Subtask` diga cómo acabó, con su método `state`. Hay otros, según lo que la tarea necesite:
-
-| `Joiner` | Qué hace | Para qué |
-|---|---|---|
-| `awaitAll()` | espera a todas, terminen bien o mal | el monitor: cada comprobación cuenta por sí misma |
-| `allSuccessfulOrThrow()` | si una falla, cancela las demás y `join` lanza la excepción | varias consultas que hacen falta todas para continuar |
-| `anySuccessfulResultOrThrow()` | con el primer éxito, cancela las demás y `join` devuelve ese resultado | preguntar a varios servidores replicados y quedarse con el que conteste antes |
-| `awaitAllSuccessfulOrThrow()` | como el segundo, sin devolver los resultados | tareas que solo producen efectos |
+Se lee como la descripción de la ronda. Usa el `Joiner` `awaitAll`, porque cada comprobación cuenta
+por sí misma, y un plazo para la ronda entera con `withTimeout`. Si vence el plazo, `join` lanza una
+`TimeoutException`, el ámbito cancela las comprobaciones que faltan, y la ronda devuelve las que
+terminaron bien, que distingue con `state()`.
 
 El programa de prueba ejecuta la ronda con un plazo holgado y con uno de medio segundo. Usa dos
 clases auxiliares del monitor: `Escenario`, que da veinte servicios simulados con latencias fijas
@@ -3960,6 +4128,7 @@ en el repositorio al volver de la ronda ha dejado de depender del entrelazado.
 
 Esa es la segunda ventaja, y la de fondo: con `invokeAll`, para saber qué estado deja la ronda hay
 que pensar en los hilos que siguen vivos después; con un ámbito, basta con leer el bloque.
+::::
 
 ### 3.3.5 Valores con ámbito
 
