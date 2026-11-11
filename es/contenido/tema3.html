@@ -933,7 +933,7 @@ Concepto Clave&nbsp;3: Llamadas que vuelven al instante y llamadas que bloquean
 <p>Cuando un método termina, <strong>vuelve</strong>: devuelve el control a quien lo llamó, que sigue con la línea siguiente. En un programa de un solo hilo, un método vuelve cuando ha hecho todo su trabajo. Con varios hilos aparecen dos clases de métodos:</p>
 <ul>
 <li>Un método <strong>no bloqueante</strong> <strong>vuelve al instante</strong>, o inmediatamente: no espera a que termine el trabajo que pone en marcha, sino que lo encarga a otro hilo y devuelve el control enseguida. El método <code>start</code> arranca el hilo y vuelve sin esperar a que la tarea termine, ni siquiera a que empiece. «Al instante» no significa «en tiempo cero», sino «sin esperar a la tarea»: tarda lo mismo si la tarea dura un milisegundo que si dura una hora.</li>
-<li>Un método <strong>bloqueante</strong> no vuelve hasta que ocurre algo que no depende de él: que termine otro hilo (<code>join</code>), que pase un tiempo (<code>sleep</code>), que llegue un resultado o que quede libre un cerrojo. Mientras tanto, el hilo que lo llamó está <strong>bloqueado</strong>: parado, sin usar el procesador, esperando.</li>
+<li>Un método <strong>bloqueante</strong> no vuelve hasta que ocurre algo que no depende de él: que termine otro hilo (<code>join</code>), que pase un tiempo (<code>sleep</code>), que llegue un resultado o que quede libre un cerrojo (3.1.5). Mientras tanto, el hilo que lo llamó está <strong>bloqueado</strong>: parado, sin usar el procesador, esperando.</li>
 </ul>
 <p>Para leer un programa concurrente hay que saber de cada llamada si bloquea o no. Lo que va después de una llamada no bloqueante se ejecuta <strong>a la vez</strong> que el trabajo que esa llamada ha encargado; lo que va después de una bloqueante, <strong>cuando</strong> la espera ha terminado.</p>
 </div>
@@ -1519,7 +1519,7 @@ Técnica de Depuración&nbsp;1: Provocar una condición de carrera para poder ve
 <p>Una carrera que aparece una vez de cada mil ejecuciones no se puede depurar: hay que conseguir que aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (<a href="#nte-carrera" class="quarto-xref">ejemplo&nbsp;3</a>):</p>
 <ol type="1">
 <li><strong>Muchos hilos y muchas repeticiones.</strong> La probabilidad de que dos hilos coincidan en la sección crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo pequeña; un programa real que toca el dato compartido solo de vez en cuando rara vez da con el choque, y por eso parece funcionar.</li>
-<li><strong>Nada de imprimir dentro del bucle.</strong> El método <code>println</code> toma un cerrojo interno para que las líneas no se mezclen, y con eso <strong>sincroniza sin querer</strong> a los hilos que escriben: la carrera desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta registrar algo, se acumula y se imprime al final.</li>
+<li><strong>Nada de imprimir dentro del bucle.</strong> El método <code>println</code> toma un cerrojo interno (3.1.5) para que las líneas no se mezclen, y con eso <strong>sincroniza sin querer</strong> a los hilos que escriben: la carrera desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta registrar algo, se acumula y se imprime al final.</li>
 <li><strong>Repetir el experimento entero.</strong> Una sola ejecución correcta no demuestra nada. El ejemplo de 3.2.3 (<a href="#nte-contar-palabras" class="quarto-xref">ejemplo&nbsp;10</a>) repite la prueba veinte veces y cuenta en cuántas falla, que es la cifra que de verdad describe una carrera.</li>
 <li><strong>Varios núcleos.</strong> En un ordenador con un solo núcleo los hilos se turnan y las carreras son mucho más raras. Los ejemplos de este tema se ejecutaron en una máquina de dos núcleos; en un portátil de ocho los números serán todavía peores.</li>
 </ol>
@@ -1530,18 +1530,18 @@ Técnica de Depuración&nbsp;1: Provocar una condición de carrera para poder ve
 <section id="exclusión-mutua-con-synchronized" class="level3">
 <h3 class="anchored" data-anchor-id="exclusión-mutua-con-synchronized">3.1.5 Exclusión mutua con <code>synchronized</code></h3>
 <p>La herramienta básica para que una sección crítica se ejecute en exclusión mutua está en el propio lenguaje, y es la palabra reservada <code>synchronized</code>.</p>
-<div id="imp-cerrojo-intrinseco" class="callout callout-style-default callout-important no-icon callout-titled" title="Cerrojo intrínseco y `synchronized`">
+<div id="imp-cerrojo-intrinseco" class="callout callout-style-default callout-important no-icon callout-titled" title="Cerrojo">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;7: Cerrojo intrínseco y <code>synchronized</code>
+Concepto Clave&nbsp;7: Cerrojo
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>En Java, <strong>todo objeto tiene un cerrojo</strong> (<em>lock</em>), llamado su <strong>cerrojo intrínseco</strong>. Un hilo puede tomarlo y soltarlo; mientras lo tiene, cualquier otro hilo que intente tomarlo <strong>se bloquea</strong> hasta que lo suelte.</p>
-<p>La palabra <code>synchronized</code> es la forma de usarlo, de dos maneras:</p>
+<p>Un <strong>cerrojo</strong> (<em>lock</em>) es un mecanismo de exclusión mutua: un objeto que en cada momento solo puede tener un hilo. El hilo lo <strong>toma</strong> antes de entrar en una sección crítica y lo <strong>suelta</strong> al salir; si otro hilo intenta tomarlo mientras tanto, <strong>se bloquea</strong> hasta que quede libre.</p>
+<p>En Java, <strong>todo objeto tiene un cerrojo</strong>, llamado su <strong>cerrojo intrínseco</strong>, y la palabra <code>synchronized</code> es la forma de usarlo, de dos maneras:</p>
 <ul>
 <li>Un <strong>método <code>synchronized</code></strong> toma el cerrojo del objeto sobre el que se llama al entrar y lo suelta al salir, también si sale por una excepción. Dos métodos <code>synchronized</code> del mismo objeto nunca se ejecutan a la vez, aunque sean distintos.</li>
 <li>Un <strong>bloque</strong> <code>synchronized (objeto) { … }</code> toma el cerrojo del objeto indicado durante el bloque. Sirve para proteger solo una parte de un método, o para usar como cerrojo un objeto distinto de <code>this</code>.</li>
@@ -2935,7 +2935,48 @@ Fundamento Teórico&nbsp;5: En Java, cancelar una tarea es pedirle que pare
 </section>
 <section id="colecciones-concurrentes" class="level3">
 <h3 class="anchored" data-anchor-id="colecciones-concurrentes">3.2.3 Colecciones concurrentes</h3>
-<p>Proteger una colección con un solo cerrojo funciona —es lo que hacen un método <code>synchronized</code> o <code>Collections.synchronizedMap</code>—, pero tiene un coste que con muchos hilos se nota: dos hilos que tocan elementos que no tienen nada que ver se esperan el uno al otro. El paquete <code>java.util.concurrent</code> trae versiones de las colecciones del Tema 2 diseñadas para que varios hilos las usen a la vez sin esperarse más de lo imprescindible:</p>
+<p>En casi todo programa concurrente, lo que los hilos comparten está guardado en una <strong>colección</strong>: el mapa de sesiones abiertas de un servidor, la caché de resultados que todos consultan, la cola de trabajos pendientes, el contador de visitas por página… Las variables sueltas compartidas son la excepción. Lo habitual es que muchos hilos lean y escriban a la vez en un mismo mapa o en una misma lista.</p>
+<p>Y las colecciones del Tema 2 no están hechas para eso. Un <code>HashMap</code> o un <code>ArrayList</code> suponen que solo los usa un hilo a la vez, y cuando no es así fallan de la peor manera posible: <strong>en silencio y de vez en cuando</strong>. Como se vio en 3.1.4, varios hilos que modifican la misma colección no solo pierden datos, sino que pueden <strong>romper su estructura interna</strong> y provocar excepciones desde dentro de la biblioteca. Además, cualquier hilo que recorra la colección mientras otro la modifica puede encontrarse con una <code>ConcurrentModificationException</code>.</p>
+<p>Hay tres maneras de compartir una colección entre hilos sin que eso ocurra:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Opción</th>
+<th>Cómo</th>
+<th>Lo que cuesta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>No compartirla</td>
+<td>Cada hilo tiene su propia colección, y los resultados se juntan al final</td>
+<td>No siempre es posible: una caché o un registro de sesiones existen precisamente para ser compartidos.</td>
+</tr>
+<tr class="even">
+<td>Protegerla con un cerrojo</td>
+<td>Envolverla con <code>Collections.synchronizedMap(…)</code> o acceder a ella dentro de bloques <code>synchronized</code> (el cerrojo intrínseco de 3.1.5)</td>
+<td>Es correcto, pero <strong>un solo hilo a la vez</strong> puede usarla, aunque los demás quieran tocar elementos que no tienen nada que ver. Y recorrerla sigue exigiendo un <code>synchronized</code> escrito a mano.</td>
+</tr>
+<tr class="odd">
+<td>Usar una colección concurrente</td>
+<td><code>ConcurrentHashMap</code>, <code>ConcurrentLinkedQueue</code>, <code>CopyOnWriteArrayList</code>…</td>
+<td>Están diseñadas para que varios hilos las usen <strong>a la vez</strong>, sin esperarse más de lo imprescindible.</td>
+</tr>
+</tbody>
+</table>
+<p>Las colecciones concurrentes aportan tres cosas que las otras opciones no dan juntas:</p>
+<ul>
+<li><strong>Son correctas sin cerrojos escritos a mano.</strong> Cada operación es segura aunque la hagan muchos hilos a la vez.</li>
+<li><strong>Escalan.</strong> Dos hilos que escriben en zonas distintas de un <code>ConcurrentHashMap</code> no se esperan el uno al otro, y las lecturas casi nunca esperan. Con un solo cerrojo, en cambio, cada hilo que se añade solo alarga la cola de espera.</li>
+<li><strong>Ofrecen operaciones compuestas atómicas</strong>, como <code>merge</code>, <code>computeIfAbsent</code> o <code>putIfAbsent</code>. Hacen de una vez lo que con una colección normal serían dos pasos («comprobar y después actuar»), con un hueco en medio por el que se cuela otro hilo.</li>
+</ul>
+<p>Además, sus recorridos no lanzan <code>ConcurrentModificationException</code>: se puede recorrer la colección mientras otros hilos la modifican.</p>
+<p>Lo que no hacen es pensar por ti. Garantizan que <strong>cada operación</strong> es segura, pero no que lo sea una secuencia de operaciones, y ese es el error más frecuente al usarlas, como se verá enseguida. El paquete <code>java.util.concurrent</code> trae una versión concurrente de casi cada colección del Tema 2:</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -2977,7 +3018,6 @@ Fundamento Teórico&nbsp;5: En Java, cancelar una tarea es pedirle que pare
 </tr>
 </tbody>
 </table>
-<p>La garantía que dan estas colecciones es más estrecha de lo que parece, y el error más frecuente al usarlas sale de leerla mal.</p>
 <div id="cau-comprobar-y-actuar" class="callout callout-style-default callout-caution no-icon callout-titled" title="Comprobar y después actuar sobre una colección concurrente">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -2992,20 +3032,67 @@ Error Frecuente&nbsp;6: Comprobar y después actuar sobre una colección concurr
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb44-1"><a href="#cb44-1"></a><span class="co">// Fragmento</span></span>
 <span id="cb44-2"><a href="#cb44-2"></a><span class="bu">Integer</span> actual <span class="op">=</span> cuentas<span class="op">.</span><span class="fu">get</span><span class="op">(</span>palabra<span class="op">);</span></span>
 <span id="cb44-3"><a href="#cb44-3"></a>cuentas<span class="op">.</span><span class="fu">put</span><span class="op">(</span>palabra<span class="op">,</span> actual <span class="op">==</span> <span class="kw">null</span> <span class="op">?</span> <span class="dv">1</span> <span class="op">:</span> actual <span class="op">+</span> <span class="dv">1</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Entre el <code>get</code> y el <code>put</code> hay un hueco. Dos hilos que cuentan la misma palabra pueden leer los dos 7 y escribir los dos 8: la palabra ha aparecido dos veces y la cuenta solo ha subido una.</p>
+<p>Entre el <code>get</code> y el <code>put</code> hay un hueco, y otro hilo puede colarse en él:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th style="text-align: center;">Momento</th>
+<th>Hilo 1</th>
+<th>Hilo 2</th>
+<th style="text-align: right;"><code>"red"</code> en el mapa</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;">1</td>
+<td><code>get("red")</code> → 7</td>
+<td></td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">2</td>
+<td></td>
+<td><code>get("red")</code> → 7</td>
+<td style="text-align: right;">7</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;">3</td>
+<td><code>put("red", 8)</code></td>
+<td></td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;">4</td>
+<td></td>
+<td><code>put("red", 8)</code></td>
+<td style="text-align: right;">8</td>
+</tr>
+</tbody>
+</table>
+<p>Los dos hilos han visto la palabra, y la cuenta solo ha subido una vez.</p>
 <p>Es un error de la misma familia que el <code>contador++</code> de 3.1.4 —leer, decidir, escribir— a otra escala, y se arregla igual: haciendo que las dos operaciones sean una sola, atómica. Para eso existen <code>merge</code>, <code>compute</code>, <code>computeIfAbsent</code> y <code>putIfAbsent</code>, que el <a href="../../es/contenido/tema2.html#las-variantes-y-los-métodos-que-ahorran-código">Tema 2</a> presentó como métodos que ahorran código y que aquí tienen una segunda razón de ser, más importante:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb45-1"><a href="#cb45-1"></a><span class="co">// Fragmento</span></span>
 <span id="cb45-2"><a href="#cb45-2"></a>cuentas<span class="op">.</span><span class="fu">merge</span><span class="op">(</span>palabra<span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="bu">Integer</span><span class="op">::</span>sum<span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>La llamada significa: si la palabra no está, pon 1; si está, suma 1 a lo que haya. Y el mapa lo hace <strong>de una vez</strong>, sin hueco en el que se pueda colar otro hilo.</p>
 </div>
 </div>
-<p>El programa siguiente cuenta las mismas cinco palabras desde cuatro hilos, de las dos maneras, y repite cada prueba veinte veces, que es la técnica de <a href="#wrn-provocar-carrera" class="quarto-xref">técnica de depuración&nbsp;1</a>: lo que describe una carrera no es un resultado, sino una frecuencia.</p>
-<div id="nte-contar-palabras" class="callout callout-style-default callout-note no-icon callout-titled" title="Contar palabras desde cuatro hilos: `get` y `put` frente a `merge`">
+<p>El ejemplo que sigue pone a prueba las dos versiones. Lo que cuenta es <strong>cuántas veces aparece cada palabra</strong>: el mapa guarda, para cada palabra, el número de veces que se ha visto. El texto que se cuenta es artificial: cada uno de los cuatro hilos recorre 100.000 veces la lista <code>red</code>, <code>sonda</code>, <code>hilo</code>, <code>cola</code>, <code>mapa</code>, y cada vez que ve una palabra suma 1 a su cuenta en el mapa compartido. Al final, cada palabra debería valer 4 × 100.000 = 400.000, y la suma de todas, 2.000.000. Las <strong>palabras perdidas</strong> son la diferencia entre esos 2.000.000 y lo que de verdad suma el mapa: apariciones que algún hilo contó y que la carrera borró.</p>
+<p>Es lo que haría un programa que reparte un texto muy grande entre varios hilos y acumula las frecuencias en un mismo mapa. El ejemplo quita lo que no importa —leer el fichero, separar las palabras— y deja solo la parte concurrente, y elige a propósito el peor caso: pocas claves y muchos hilos sobre ellas a la vez. El programa tiene tres piezas:</p>
+<ul>
+<li>Los métodos <code>contarConGetYPut</code> y <code>contarConMerge</code> son las dos formas de contar de
+<ol class="example" type="1">
+<li></li>
+</ol></li>
+<li>El método <code>perdidas</code> hace una prueba completa: crea un mapa vacío, lanza los cuatro hilos, los espera con <code>join</code>, suma lo que hay en el mapa y devuelve cuántas palabras faltan. Recibe la forma de contar como parámetro, un <code>BiConsumer</code>: una interfaz funcional de <code>java.util.function</code>, como las del Tema 1, para algo que recibe dos datos —aquí, el mapa y la palabra— y no devuelve nada. Así sirve para las dos versiones, que se le pasan con referencias a método, como <code>DemoContarPalabras::contarConMerge</code>.</li>
+<li>El método <code>medir</code> repite la prueba veinte veces y anota en cuántas se perdió algo, que es la técnica de <a href="#wrn-provocar-carrera" class="quarto-xref">técnica de depuración&nbsp;1</a>: lo que describe una carrera no es un resultado, sino una frecuencia.</li>
+</ul>
+<div id="nte-contar-palabras" class="callout callout-style-default callout-note no-icon callout-titled" title="Contar cuántas veces aparece cada palabra desde cuatro hilos: `get` y `put` frente a `merge`">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Ejemplo&nbsp;10: Contar palabras desde cuatro hilos: <code>get</code> y <code>put</code> frente a <code>merge</code>
+Ejemplo&nbsp;10: Contar cuántas veces aparece cada palabra desde cuatro hilos: <code>get</code> y <code>put</code> frente a <code>merge</code>
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3018,9 +3105,9 @@ Ejemplo&nbsp;10: Contar palabras desde cuatro hilos: <code>get</code> y <code>pu
 <span id="cb46-7"><a href="#cb46-7"></a><span class="kw">import</span> <span class="im">java</span><span class="op">.</span><span class="im">util</span><span class="op">.</span><span class="im">function</span><span class="op">.</span><span class="im">BiConsumer</span><span class="op">;</span></span>
 <span id="cb46-8"><a href="#cb46-8"></a></span>
 <span id="cb46-9"><a href="#cb46-9"></a><span class="co">/**</span></span>
-<span id="cb46-10"><a href="#cb46-10"></a> <span class="co">*</span> Cuatro hilos cuentan las mismas palabras en un <span class="an">{@code ConcurrentHashMap}</span><span class="co">:</span> primero leyendo y</span>
-<span id="cb46-11"><a href="#cb46-11"></a> <span class="co">*</span> escribiendo por separado<span class="co">,</span> despu<span class="co">é</span>s con una sola operaci<span class="co">ó</span>n at<span class="co">ó</span>mica<span class="co">. </span>Cada forma se repite veinte</span>
-<span id="cb46-12"><a href="#cb46-12"></a> <span class="co">*</span> veces<span class="co">,</span> porque lo que describe una carrera es con qu<span class="co">é</span> frecuencia aparece<span class="co">.</span></span>
+<span id="cb46-10"><a href="#cb46-10"></a> <span class="co">*</span> Cuatro hilos cuentan cu<span class="co">á</span>ntas veces aparece cada palabra en un <span class="an">{@code ConcurrentHashMap}</span><span class="co">:</span> primero</span>
+<span id="cb46-11"><a href="#cb46-11"></a> <span class="co">*</span> leyendo y escribiendo por separado<span class="co">,</span> despu<span class="co">é</span>s con una sola operaci<span class="co">ó</span>n at<span class="co">ó</span>mica<span class="co">. </span>Cada forma se repite</span>
+<span id="cb46-12"><a href="#cb46-12"></a> <span class="co">*</span> veinte veces<span class="co">,</span> porque lo que describe una carrera es con qu<span class="co">é</span> frecuencia aparece<span class="co">.</span></span>
 <span id="cb46-13"><a href="#cb46-13"></a> <span class="co">*/</span></span>
 <span id="cb46-14"><a href="#cb46-14"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> DemoContarPalabras <span class="op">{</span></span>
 <span id="cb46-15"><a href="#cb46-15"></a></span>
@@ -3094,7 +3181,8 @@ Ejemplo&nbsp;10: Contar palabras desde cuatro hilos: <code>get</code> y <code>pu
 <span id="cb47-3"><a href="#cb47-3"></a>   merge:       0 de 20 con perdidas,        0 palabras perdidas en total</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </div>
-<p>Con <code>get</code> y <code>put</code> fallan las veinte pruebas, y en cada una se pierde casi una de cada cinco palabras; con <code>merge</code>, ninguna. Aquí el error salta a la vista porque cuatro hilos se pasan el rato contando las mismas cinco palabras y coinciden constantemente. En un programa en el que los hilos rara vez tocan la misma clave a la vez, la misma carrera falla de tarde en tarde, y por eso es mucho más peligrosa: una prueba que la ejecute una vez pasará casi siempre.</p>
+<p>La salida confirma la carrera. Con <code>get</code> y <code>put</code> fallan las veinte pruebas, y en cada una se pierden unas 365.000 palabras de 2.000.000, <strong>casi una de cada cinco</strong>; la cifra exacta cambia en cada ejecución, pero nunca es cero. Con <code>merge</code> no se pierde ninguna. Y el mapa no se rompe: con un <code>HashMap</code> normal, el mismo programa podría lanzar excepciones o dejar la estructura corrupta, como en 3.1.4, pero cada operación de un <code>ConcurrentHashMap</code> es segura, así que lo que falla es solo la secuencia de dos.</p>
+<p>Aquí el error salta a la vista porque cuatro hilos se pasan el rato contando las mismas cinco palabras y coinciden constantemente. En un programa en el que los hilos rara vez tocan la misma clave a la vez, la misma carrera falla de tarde en tarde, y por eso es mucho más peligrosa: una prueba que la ejecute una vez pasará casi siempre.</p>
 <section id="el-repositorio-del-monitor-con-colecciones-concurrentes" class="level4 ampliacion">
 <h4 class="anchored" data-anchor-id="el-repositorio-del-monitor-con-colecciones-concurrentes"><strong>El repositorio del monitor, con colecciones concurrentes</strong></h4>
 <p><strong>En el monitor.</strong> La penúltima fila de la tabla tiene un sitio claro en el monitor del Tema 1: la lista de notificadores del <code>Monitor</code>. Se lee en cada comprobación —para avisar a todos— y se modifica casi nunca —al suscribir uno—. Es el caso exacto para el que existe <code>CopyOnWriteArrayList</code>, y la estructura que se suele elegir para los observadores del patrón Observer cuando pueden suscribirse desde varios hilos.</p>
@@ -3432,6 +3520,43 @@ Error Frecuente&nbsp;7: Soltar un <code>Lock</code> fuera de un bloque <code>fin
 <p>Con <code>synchronized</code>, el cerrojo se suelta solo al salir del bloque, también por una excepción. Con un <code>Lock</code>, soltarlo es responsabilidad de quien lo tomó, y si el <code>unlock</code> no está en un <code>finally</code>, cualquier excepción dentro de la sección crítica deja el cerrojo tomado <strong>para siempre</strong>: el siguiente hilo que lo pida se quedará esperando, y el programa se parará en un sitio que no tiene nada que ver con el que falló. La forma del fragmento —<code>lock</code> justo antes del <code>try</code>, <code>unlock</code> como primera línea del <code>finally</code>— es la única correcta.</p>
 </div>
 </div>
+<p>Puestos lado a lado, los dos tipos de cerrojo se diferencian así:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th></th>
+<th>Cerrojo intrínseco (3.1.5)</th>
+<th>Cerrojo explícito</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Qué es</td>
+<td>Un cerrojo que <strong>todo objeto</strong> lleva incorporado</td>
+<td>Un objeto de una clase de <code>java.util.concurrent.locks</code>, como <code>ReentrantLock</code></td>
+</tr>
+<tr class="even">
+<td>Cómo se usa</td>
+<td>Con <code>synchronized</code>: un bloque <code>synchronized (objeto) { … }</code> o un método <code>synchronized</code></td>
+<td>Llamando a sus métodos: <code>lock()</code> para tomarlo y <code>unlock()</code> para soltarlo</td>
+</tr>
+<tr class="odd">
+<td>Quién lo suelta</td>
+<td>Java, automáticamente al salir del bloque, también si hay una excepción</td>
+<td>Quien lo tomó, con <code>unlock()</code> en un <code>finally</code></td>
+</tr>
+<tr class="even">
+<td>Qué añade</td>
+<td>Nada más: tomar, esperar y soltar</td>
+<td>Intentar sin esperar (<code>tryLock</code>), esperar con plazo y cerrojos de lectura y escritura</td>
+</tr>
+</tbody>
+</table>
 <p>El método que justifica todo esto es <code>tryLock(plazo, unidad)</code>: intenta tomar el cerrojo, espera como mucho el plazo, y devuelve si lo ha conseguido. Con él se rompe la segunda condición de Coffman, la de retención y espera: el hilo que no consigue el segundo cerrojo suelta el primero. El interbloqueo de <a href="#nte-interbloqueo" class="quarto-xref">ejemplo&nbsp;6</a>, rehecho así:</p>
 <div id="nte-trylock" class="callout callout-style-default callout-note no-icon callout-titled" title="El interbloqueo deshecho con `tryLock`">
 <div class="callout-header d-flex align-content-center">
@@ -4579,7 +4704,7 @@ Figura&nbsp;2: Mapa del tema: de los hilos y lo que se rompe al compartir datos,
 <ul>
 <li><strong>Lo que se gana.</strong> Las tareas que esperan —que en Telemática son casi todas— se aceleran sin necesidad de núcleos: una ronda concurrente dura lo que la comprobación más lenta, no lo que todas juntas (3.1.1). Las que calculan, solo hasta el número de núcleos, y la parte secuencial pone el techo (<a href="#tip-amdahl" class="quarto-xref">fundamento teórico&nbsp;1</a>).</li>
 <li><strong>Lo que se rompe.</strong> Varios hilos que comparten datos mutables sin protección producen condiciones de carrera (<a href="#imp-condicion-de-carrera" class="quarto-xref">concepto clave&nbsp;5</a>), que no solo pierden datos sino que rompen los invariantes de las estructuras, y que aparecen con una frecuencia, no siempre. Y sin sincronización, un hilo puede no ver nunca lo que escribe otro (<a href="#tip-visibilidad" class="quarto-xref">fundamento teórico&nbsp;3</a>).</li>
-<li><strong>Cómo se evita.</strong> Con exclusión mutua, <code>synchronized</code> o <code>Lock</code>, en todos los accesos y no solo en las escrituras; con colecciones concurrentes y operaciones atómicas, recordando que dos operaciones seguras no hacen una operación segura (<a href="#cau-comprobar-y-actuar" class="quarto-xref">error frecuente&nbsp;6</a>); y con los cerrojos tomados siempre en el mismo orden, para no caer en un interbloqueo (<a href="#tip-coffman" class="quarto-xref">fundamento teórico&nbsp;4</a>).</li>
+<li><strong>Cómo se evita.</strong> Con exclusión mutua, <code>synchronized</code> o <code>Lock</code>, en todos los accesos y no solo en las escrituras; con colecciones concurrentes y operaciones atómicas, recordando que dos operaciones seguras no hacen una operación segura (1); y con los cerrojos tomados siempre en el mismo orden, para no caer en un interbloqueo (<a href="#tip-coffman" class="quarto-xref">fundamento teórico&nbsp;4</a>).</li>
 <li><strong>Cómo se organiza.</strong> Separando la tarea del hilo con ejecutores, desacoplando a quien produce de quien consume con colas bloqueantes, y, con los hilos virtuales, volviendo a un hilo por tarea y poniendo el límite donde está el recurso escaso, con un semáforo.</li>
 <li><strong>Cómo se razona.</strong> Cancelar en Java es pedir (<a href="#tip-cancelacion-cooperativa" class="quarto-xref">fundamento teórico&nbsp;5</a>), y lo que la concurrencia estructurada añade es la garantía de que, cuando un bloque termina, todas sus subtareas han terminado. Es lo que permite entender un programa concurrente leyendo un método, sin pensar en los hilos que quedan vivos después.</li>
 </ul>
