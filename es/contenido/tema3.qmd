@@ -2019,9 +2019,79 @@ El nombre viene de que se puede **completar a mano**, desde cualquier hilo, con 
 termina, como una respuesta de red o un temporizador. Por eso es la pieza sobre la que se
 construyen las bibliotecas asíncronas de Java, como el cliente HTTP de la biblioteca estándar.
 
-El ejemplo comprueba dos cosas del mismo servidor a la vez —que su nombre se resuelve en el
-[DNS]{.glos} y que su puerto [TCP]{.glos} contesta— y combina las dos respuestas en un veredicto.
-Para la consulta TCP hay un plazo de 300 ms.
+Los métodos principales de `CompletableFuture` caben en una tabla:
+
+| Para… | Método | Qué hace |
+|---|---|---|
+| Lanzar | `supplyAsync(tarea, ejecutor)` *(estático)* | Ejecuta en el ejecutor una tarea que devuelve un valor, y devuelve el futuro de ese valor. La tarea es un `Supplier`: una lambda sin parámetros que devuelve algo. |
+| | `runAsync(tarea, ejecutor)` *(estático)* | Igual, para una tarea sin resultado, un `Runnable`. |
+| Transformar | `thenApply(función)` | Cuando llegue el resultado, le aplica la función: de un futuro de `T` a uno de `U`. |
+| Encadenar | `thenCompose(función)` | Cuando llegue, lanza **otra** operación asíncrona que depende de él. |
+| Combinar | `thenCombine(otro, función)` | Cuando lleguen los dos, combina sus resultados. |
+| | `allOf(f1, f2, …)`, `anyOf(f1, f2, …)` *(estáticos)* | Un futuro que se completa cuando terminan todos, o cuando termina el primero. |
+| Consumir | `thenAccept(acción)` | Cuando llegue, hace algo con el resultado sin devolver nada; por ejemplo, imprimirlo. |
+| Tratar errores | `exceptionally(función)` | Si algo falló antes en la cadena, convierte el error en un valor. |
+| | `handle((valor, error) -> …)` | Recibe el resultado o el error, y devuelve un valor en los dos casos. |
+| Poner plazos | `orTimeout(plazo, unidad)` | Si no termina a tiempo, el futuro termina con una `TimeoutException`. |
+| | `completeOnTimeout(valor, plazo, unidad)` | Si no termina a tiempo, se completa con ese valor. |
+| Esperar | `join()` | Espera y devuelve el resultado. Es como `get`, pero sin excepciones comprobadas. |
+
+Cada método `then…` añade una continuación, que normalmente se ejecuta en el hilo que completa el
+paso anterior. Sus versiones terminadas en `Async`, como `thenApplyAsync`, la ejecutan en un
+ejecutor. Y `join` es el único método de la tabla que espera: en cuanto se llama, ese punto del
+programa vuelve a ser síncrono.
+
+El ejemplo de esta sección comprueba dos cosas de un mismo servidor **a la vez**: que su nombre se
+resuelve en el [DNS]{.glos} y que su puerto [TCP]{.glos} contesta. Después combina las dos
+respuestas en un veredicto. No hay red de verdad: cada consulta duerme lo que tardaría la red y
+devuelve `true`, y al terminar escribe «termina la consulta DNS» o «termina la consulta TCP», para
+que en la salida se vea cuándo acaba cada una. La parte que importa es esta:
+
+```java
+// Fragmento
+CompletableFuture<Boolean> dns = CompletableFuture
+        .supplyAsync(() -> consultar("DNS", 150), ejecutor);              // 1
+CompletableFuture<Boolean> tcp = CompletableFuture
+        .supplyAsync(() -> consultar("TCP", milisTcp), ejecutor)          // 2
+        .orTimeout(300, TimeUnit.MILLISECONDS)                            // 3
+        .exceptionally(error -> false);                                   // 4
+
+String veredicto = dns
+        .thenCombine(tcp, (resuelve, responde) ->                         // 5
+                resuelve && responde ? "disponible" : "con problemas")
+        .join();                                                          // 6
+```
+
+1. El método `supplyAsync` lanza la consulta DNS en un hilo del ejecutor y vuelve al instante con
+   un futuro, `dns`, que tendrá un `Boolean` dentro de unos 150 ms.
+2. Lo mismo con la consulta TCP, en otro hilo. Las dos corren **a la vez**.
+3. El método `orTimeout` pone un plazo de 300 ms. Si la consulta TCP no ha terminado para entonces,
+   el futuro `tcp` termina **con un error**, una `TimeoutException`.
+4. El método `exceptionally` convierte ese error en un valor, `false`, que significa «el puerto no
+   responde». Así, `tcp` acaba siempre con un `Boolean`, llegue a tiempo o no.
+5. El método `thenCombine` deja dicho qué hacer **cuando estén los dos resultados**: juntarlos en
+   un texto. No espera nada.
+6. El método `join` es lo único que espera. El hilo principal se bloquea aquí hasta que el veredicto
+   está listo, para poder imprimirlo.
+
+Los pasos 1 a 5 se ejecutan en microsegundos: lo que dejan montado es una cadena de «cuando llegue
+esto, haz aquello», y toda la espera queda concentrada en el `join`. El programa hace la
+comprobación dos veces. En la primera, el puerto contesta en 200 ms:
+
+| Tiempo | Qué pasa |
+|---:|---|
+| 0 ms | Arrancan las dos consultas; el hilo principal llega al `join` y espera. |
+| 150 ms | Termina la consulta DNS. |
+| 200 ms | Termina la consulta TCP. Ya están los dos resultados: `thenCombine` produce «disponible», y el `join` vuelve. |
+
+En la segunda, el puerto tardaría 2 s, más que el plazo:
+
+| Tiempo | Qué pasa |
+|---:|---|
+| 0 ms | Arrancan las dos consultas; el hilo principal espera en el `join`. |
+| 150 ms | Termina la consulta DNS. |
+| 300 ms | Vence el plazo: `orTimeout` da por fallido el futuro `tcp`, `exceptionally` lo convierte en `false`, `thenCombine` produce «con problemas», y el `join` vuelve. |
+| 2.000 ms | La consulta TCP, que seguía durmiendo, termina. Su resultado ya no le importa a nadie. |
 
 ::: {#nte-futuro-completable .callout-note title="Dos consultas a la vez, combinadas con `CompletableFuture`"}
 ```java
@@ -2094,36 +2164,14 @@ public final class DemoFuturoCompletable {
 ```
 :::
 
-En el ejemplo, `supplyAsync` lanza las dos consultas. Los métodos `orTimeout` y `exceptionally`
-hacen que una consulta TCP que no llega a tiempo cuente como un puerto que no responde, y
-`thenCombine` junta las dos respuestas en el veredicto. Son cuatro métodos de una interfaz amplia,
-cuyos métodos principales caben en una tabla:
-
-| Para… | Método | Qué hace |
-|---|---|---|
-| Lanzar | `supplyAsync(tarea, ejecutor)` *(estático)* | Ejecuta en el ejecutor una tarea que devuelve un valor, y devuelve el futuro de ese valor. La tarea es un `Supplier`: una lambda sin parámetros que devuelve algo. |
-| | `runAsync(tarea, ejecutor)` *(estático)* | Igual, para una tarea sin resultado, un `Runnable`. |
-| Transformar | `thenApply(función)` | Cuando llegue el resultado, le aplica la función: de un futuro de `T` a uno de `U`. |
-| Encadenar | `thenCompose(función)` | Cuando llegue, lanza **otra** operación asíncrona que depende de él. |
-| Combinar | `thenCombine(otro, función)` | Cuando lleguen los dos, combina sus resultados. |
-| | `allOf(f1, f2, …)`, `anyOf(f1, f2, …)` *(estáticos)* | Un futuro que se completa cuando terminan todos, o cuando termina el primero. |
-| Consumir | `thenAccept(acción)` | Cuando llegue, hace algo con el resultado sin devolver nada; por ejemplo, imprimirlo. |
-| Tratar errores | `exceptionally(función)` | Si algo falló antes en la cadena, convierte el error en un valor. |
-| | `handle((valor, error) -> …)` | Recibe el resultado o el error, y devuelve un valor en los dos casos. |
-| Poner plazos | `orTimeout(plazo, unidad)` | Si no termina a tiempo, el futuro termina con una `TimeoutException`. |
-| | `completeOnTimeout(valor, plazo, unidad)` | Si no termina a tiempo, se completa con ese valor. |
-| Esperar | `join()` | Espera y devuelve el resultado. Es como `get`, pero sin excepciones comprobadas. |
-
-Cada método `then…` añade una continuación, que normalmente se ejecuta en el hilo que completa el
-paso anterior. Sus versiones terminadas en `Async`, como `thenApplyAsync`, la ejecutan en un
-ejecutor. Y `join` es el único método de la tabla que espera: en cuanto se llama, ese punto del
-programa vuelve a ser síncrono. En el ejemplo se usa al final, para poder imprimir el veredicto.
-
-Y el ejemplo esconde una sorpresa en su última línea. En el segundo caso, el veredicto sale a los
-300 ms, como manda el plazo, y **la consulta TCP termina después**: el método `orTimeout` ha dado el
-futuro por fallido, pero la tarea que lo iba a completar ha seguido durmiendo sus dos segundos,
-ocupando su hilo, sin que nadie se lo haya pedido. No es un defecto del ejemplo: es cómo funciona
-la cancelación en Java, y merece explicarse aparte.
+La salida confirma las dos tablas. En el primer caso, el veredicto sale a los 214 ms y no a los 350
+que sumarían las dos consultas, porque fueron a la vez. En el segundo, sale a los 300 ms, como manda
+el plazo, y nadie espera los dos segundos. Pero la última línea, «termina la consulta TCP», llega
+**después** del veredicto, y al ejecutarlo se nota que el programa no acaba a los 300 ms sino cerca
+de los dos segundos, retenido por el `close` del ejecutor. El método `orTimeout` ha dado por fallido
+el **futuro**, pero no ha detenido la **tarea** que lo iba a completar, que ha seguido ocupando su
+hilo sin que nadie se lo pidiera. No es un defecto del ejemplo: es cómo funciona la cancelación en
+Java, y merece explicarse aparte.
 
 ::: {#tip-cancelacion-cooperativa .callout-tip title="En Java, cancelar una tarea es pedirle que pare"}
 No hay forma segura de detener un hilo desde fuera: si se pudiera matarlo en cualquier punto,
