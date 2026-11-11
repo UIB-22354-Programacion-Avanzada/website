@@ -991,7 +991,9 @@ El fragmento de código que no debe ejecutar más de un hilo a la vez tiene nomb
 ::: {#imp-seccion-critica .callout-important title="Sección crítica"}
 Una **sección crítica** es un fragmento de código que accede a datos compartidos y que, para que el
 programa sea correcto, tiene que ejecutarse **en exclusión mutua**: mientras un hilo está dentro,
-ningún otro puede entrar en esa sección ni en ninguna otra que acceda a los mismos datos.
+ningún otro puede entrar en esa sección ni en ninguna otra que acceda a los mismos datos. Ejecutar
+algo en exclusión mutua (*mutual exclusion*) significa que nunca lo ejecutan dos hilos a la vez: si
+uno está dentro, los demás esperan a que salga.
 
 En el ejemplo, la sección crítica es `contador++`. Es una sola línea de Java y son tres
 operaciones del procesador, y precisamente por eso no parece una sección crítica.
