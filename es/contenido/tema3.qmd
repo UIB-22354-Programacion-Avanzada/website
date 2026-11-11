@@ -2318,8 +2318,8 @@ frecuencias en un mismo mapa. El ejemplo quita lo que no importa —leer el fich
 palabras— y deja solo la parte concurrente, y elige a propósito el peor caso: pocas claves y muchos
 hilos sobre ellas a la vez. El programa tiene tres piezas:
 
-- Los métodos `contarConGetYPut` y `contarConMerge` son las dos formas de contar de
-  @cau-comprobar-y-actuar.
+- Los métodos `contarConGetYPut` y `contarConMerge` son las dos formas de contar que presenta
+  el cuadro @cau-comprobar-y-actuar.
 - El método `perdidas` hace una prueba completa: crea un mapa vacío, lanza los cuatro hilos, los
   espera con `join`, suma lo que hay en el mapa y devuelve cuántas palabras faltan. Recibe la forma
   de contar como parámetro, un `BiConsumer`: una interfaz funcional de `java.util.function`, como
