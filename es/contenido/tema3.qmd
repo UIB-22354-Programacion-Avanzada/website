@@ -1640,18 +1640,16 @@ Una ejecución:
    tarea 6 hecha por pool-1-thread-1
    total: unos 447 ms
 ```
+
+- Los nombres de hilo se repiten porque cada hilo, al terminar una tarea, saca la siguiente de la
+cola: seis tareas de 200 ms en tres hilos son dos tandas, unos 400 ms.
+- El programa no tiene ni un `new Thread` ni un `join`.
+    - Lo que sustituye al `join` es el bloque `try`: desde Java 19, `ExecutorService` es `AutoCloseable`, y su método `close` deja de aceptar tareas nuevas y **espera a que terminen las que ya tiene**.
+    - Cuando el bloque se cierra, no queda ninguna tarea a medias.
+- El orden de las líneas, en cambio, cambia de una ejecución a otra, porque cada tarea imprime por su
+cuenta al terminar, como los hilos de 3.1.
+- Aquí está el límite de esta versión: `main` no recibe nada de las tareas. Si necesitara sus resultados, habría que dejarlos en una estructura compartida, con los riesgos de 3.1.4, y si una tarea fallara, `main` no se enteraría.
 :::
-
-Los nombres de hilo se repiten porque cada hilo, al terminar una tarea, saca la siguiente de la
-cola: seis tareas de 200 ms en tres hilos son dos tandas, unos 400 ms. El programa no tiene ni un
-`new Thread` ni un `join`. Lo que sustituye al `join` es el bloque `try`: desde Java 19,
-`ExecutorService` es `AutoCloseable`, y su método `close` deja de aceptar tareas nuevas y **espera a
-que terminen las que ya tiene**. Cuando el bloque se cierra, no queda ninguna tarea a medias.
-
-El orden de las líneas, en cambio, cambia de una ejecución a otra, porque cada tarea imprime por su
-cuenta al terminar, como los hilos de 3.1. Y ahí está el límite de esta versión: `main` no recibe
-nada de las tareas. Si necesitara sus resultados, habría que dejarlos en una estructura compartida,
-con los riesgos de 3.1.4, y si una tarea fallara, `main` no se enteraría.
 
 Para recoger resultados hacen falta dos piezas más. Una tarea que devuelve un resultado es un
 `Callable<T>`, la versión de `Runnable` cuyo método, `call`, devuelve un valor de tipo `T` y puede
@@ -1724,21 +1722,23 @@ Una ejecución:
    tarea 6 hecha por pool-1-thread-2
    total: unos 443 ms
 ```
+
+- El reparto entre hilos y el tiempo son los de @nte-ejecutar.
+- Lo que cambia es quién imprime: ahora solo `main`, que recoge los resultados en el orden en que los pidió, así que las líneas salen **siempre** en el orden 1, 2, 3, 4, 5, 6, aunque las tareas terminen en otro.
 :::
 
-El reparto entre hilos y el tiempo son los de @nte-ejecutar. Lo que cambia es quién imprime: ahora
-solo `main`, que recoge los resultados en el orden en que los pidió, así que las líneas salen
-**siempre** en el orden 1, 2, 3, 4, 5, 6, aunque las tareas terminen en otro.
+Lo que devuelve `submit` merece mirarse despacio, porque es lo que hace útil todo lo demás:
 
-Lo que devuelve `submit` merece mirarse despacio, porque es lo que hace útil todo lo demás. Con un
-método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como
-`String r = calcular();` no deja seguir hasta tener `r`. Con un ejecutor, los dos momentos se
-separan. El método `submit` es **pedir**: entrega la tarea y vuelve al instante, no con el
-resultado, sino con un objeto que vale por él. El método `get` es **recibir**, y solo espera si el
-resultado todavía no está. Entre uno y otro, la tarea se ejecuta en un hilo del ejecutor y el hilo
-que la pidió sigue con lo suyo.
+- Con un método normal, pedir un resultado y recibirlo ocurren a la vez: una llamada como
+  `String r = calcular();` no deja seguir hasta tener `r`.
+- Con un ejecutor, los dos momentos se separan:
+    - El método `submit` es **pedir**: entrega la tarea y vuelve al instante, no con el
+      resultado, sino con un objeto que vale por él.
+    - El método `get` es **recibir**, y solo espera si el resultado todavía no está.
+    - Entre uno y otro, la tarea se ejecuta en un hilo del ejecutor y el hilo que la pidió
+      sigue con lo suyo.
 
-::: {#imp-futuro .callout-important title="Futuro"}
+::: {#imp-futuro .callout-important title="Futuro (`Future`)"}
 Un **futuro** (*future*) es un objeto que representa el resultado de una tarea que **todavía no ha
 terminado**. En Java es la interfaz `Future<T>`, y no se crea con `new`: lo devuelve el ejecutor al
 recibir la tarea.
@@ -1766,7 +1766,7 @@ en lugar de quedarte plantado en el mostrador.
 | «Se nos ha quemado» | `get` lanza `ExecutionException` con el motivo |
 | Anular el pedido | `futuro.cancel(true)` |
 
-Lo que distingue a un futuro de un hilo suelto es lo que puede pasar al llamar a `get`:
+Lo que distingue a una tarea entregada con `submit` de una ejecutada con `new Thread`, como las de 3.1, es lo que puede pasar al llamar a `get`:
 
 | El método `get`… | cuando… |
 |---|---|
@@ -1776,10 +1776,7 @@ Lo que distingue a un futuro de un hilo suelto es lo que puede pasar al llamar a
 | lanza `InterruptedException` | alguien interrumpe al hilo que espera |
 | lanza `TimeoutException` | se usó la versión con plazo, `get(plazo, unidad)`, y se agotó; la tarea **sigue** ejecutándose |
 
-La segunda fila es lo que no tenía 3.1. Si el `run` de un hilo suelto lanza una excepción, el hilo
-muere y nadie se entera; con un futuro, el fallo **cruza de un hilo a otro** y llega a quien pide el
-resultado. Y, como `join`, el método `get` garantiza que lo que la tarea escribió en memoria es
-visible cuando devuelve.
+La segunda fila es lo que no tenía 3.1. Si el `run` de un hilo creado con `new Thread` lanza una excepción, el hilo muere y nadie se entera; con un futuro, el fallo **cruza de un hilo a otro** y llega a quien pide el resultado. Y, como `join`, el método `get` garantiza que lo que la tarea escribió en memoria es visible cuando devuelve.
 
 Eso explica también por qué @nte-ejecutor tiene dos bucles: el primero solo pide, y guarda los seis
 futuros en una lista; el segundo recoge. Si se pidiera y se recogiera en el mismo bucle, con
