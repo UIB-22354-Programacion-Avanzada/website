@@ -2321,11 +2321,8 @@ hilos sobre ellas a la vez. El programa tiene tres piezas:
 - Los métodos `contarConGetYPut` y `contarConMerge` son las dos formas de contar que presenta
   el cuadro @cau-comprobar-y-actuar.
 - El método `perdidas` hace una prueba completa: crea un mapa vacío, lanza los cuatro hilos, los
-  espera con `join`, suma lo que hay en el mapa y devuelve cuántas palabras faltan. Recibe la forma
-  de contar como parámetro, un `BiConsumer`: una interfaz funcional de `java.util.function`, como
-  las del Tema 1, para algo que recibe dos datos —aquí, el mapa y la palabra— y no devuelve nada.
-  Así sirve para las dos versiones, que se le pasan con referencias a método, como
-  `DemoContarPalabras::contarConMerge`.
+  espera con `join`, suma lo que hay en el mapa y devuelve cuántas palabras faltan. Un parámetro,
+  `conMerge`, le dice cuál de las dos formas de contar usar.
 - El método `medir` repite la prueba veinte veces y anota en cuántas se perdió algo, que es la
   técnica de @wrn-provocar-carrera: lo que describe una carrera no es un resultado, sino una
   frecuencia.
@@ -2338,7 +2335,6 @@ package es.uib.prgava.tema3.herramientas;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 
 /**
  * Cuatro hilos cuentan cuántas veces aparece cada palabra en un {@code ConcurrentHashMap}: primero
@@ -2365,16 +2361,22 @@ public final class DemoContarPalabras {
         cuentas.merge(palabra, 1, Integer::sum);
     }
 
-    /** Lanza los hilos, espera a que terminen y devuelve cuántas palabras se han perdido. */
-    private static long perdidas(BiConsumer<Map<String, Integer>, String> contar)
-            throws InterruptedException {
+    /**
+     * Lanza los hilos, espera a que terminen y devuelve cuántas palabras se han perdido. Con
+     * {@code conMerge} cuentan con merge; sin él, con get y put.
+     */
+    private static long perdidas(boolean conMerge) throws InterruptedException {
         Map<String, Integer> cuentas = new ConcurrentHashMap<>();
         Thread[] hilos = new Thread[HILOS];
         for (int h = 0; h < HILOS; h++) {
             hilos[h] = new Thread(() -> {
                 for (int i = 0; i < VUELTAS; i++) {
                     for (String palabra : PALABRAS) {
-                        contar.accept(cuentas, palabra);
+                        if (conMerge) {
+                            contarConMerge(cuentas, palabra);
+                        } else {
+                            contarConGetYPut(cuentas, palabra);
+                        }
                     }
                 }
             });
@@ -2390,12 +2392,11 @@ public final class DemoContarPalabras {
         return (long) HILOS * VUELTAS * PALABRAS.size() - contadas;
     }
 
-    private static void medir(String nombre, BiConsumer<Map<String, Integer>, String> contar)
-            throws InterruptedException {
+    private static void medir(String nombre, boolean conMerge) throws InterruptedException {
         int conPerdidas = 0;
         long total = 0;
         for (int r = 0; r < REPETICIONES; r++) {
-            long p = perdidas(contar);
+            long p = perdidas(conMerge);
             if (p > 0) {
                 conPerdidas++;
             }
@@ -2407,8 +2408,8 @@ public final class DemoContarPalabras {
 
     public static void main(String[] args) throws InterruptedException {
         System.out.println("   cada prueba cuenta " + HILOS * VUELTAS * PALABRAS.size() + " palabras");
-        medir("get y put:", DemoContarPalabras::contarConGetYPut);
-        medir("merge:", DemoContarPalabras::contarConMerge);
+        medir("get y put:", false);
+        medir("merge:", true);
     }
 }
 ```
@@ -2417,13 +2418,13 @@ Una ejecución:
 
 ```text
    cada prueba cuenta 2000000 palabras
-   get y put:  20 de 20 con perdidas,  7304214 palabras perdidas en total
+   get y put:  20 de 20 con perdidas,  7070838 palabras perdidas en total
    merge:       0 de 20 con perdidas,        0 palabras perdidas en total
 ```
 :::
 
 La salida confirma la carrera. Con `get` y `put` fallan las veinte pruebas, y en cada una se pierden
-unas 365.000 palabras de 2.000.000, **casi una de cada cinco**; la cifra exacta cambia en cada
+unas 350.000 palabras de 2.000.000, **casi una de cada cinco**; la cifra exacta cambia en cada
 ejecución, pero nunca es cero. Con `merge` no se pierde ninguna. Y el mapa no se rompe: con un
 `HashMap` normal, el mismo programa podría lanzar excepciones o dejar la estructura corrupta, como
 en 3.1.4, pero cada operación de un `ConcurrentHashMap` es segura, así que lo que falla es solo la
