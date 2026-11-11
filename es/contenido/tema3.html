@@ -674,7 +674,7 @@ Figura&nbsp;1: El monitor de servicios en paralelo. La ronda lanza todas las com
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-body-container">
-<p><strong>Una palabra con dos sentidos.</strong> En la bibliografía de concurrencia, <em>monitor</em> es el nombre técnico de un mecanismo de sincronización que inventaron Hoare y Brinch Hansen en los años setenta <span class="citation" data-cites="hoare1974">(<a href="#ref-hoare1974" role="doc-biblioref">Hoare 1974</a>)</span>, y Java lo usa: cuando la máquina virtual escribe que un hilo está «<em>waiting to lock monitor</em>», se refiere a eso. En este tema, para no confundirlo con el ejemplo, ese mecanismo se llama siempre <strong>cerrojo intrínseco</strong>, y «el monitor» a secas es siempre el monitor de servicios.</p>
+<p><strong>Una palabra con dos sentidos.</strong> En la bibliografía de concurrencia, <em>monitor</em> es el nombre técnico de un mecanismo de sincronización que inventaron Hoare y Brinch Hansen en los años setenta <span class="citation" data-cites="hoare1974">(<a href="#ref-hoare1974" role="doc-biblioref">Hoare 1974</a>)</span>, y Java lo usa: cuando la máquina virtual escribe que un hilo está «<em>waiting to lock monitor</em>», se refiere a eso. En este tema, para no confundirlo con el ejemplo, ese mecanismo se llama siempre <strong>cerrojo intrínseco</strong> (3.1.4 y 3.1.5), y «el monitor» a secas es siempre el monitor de servicios.</p>
 </div>
 </div>
 </div>
@@ -933,7 +933,7 @@ Concepto Clave&nbsp;3: Llamadas que vuelven al instante y llamadas que bloquean
 <p>Cuando un método termina, <strong>vuelve</strong>: devuelve el control a quien lo llamó, que sigue con la línea siguiente. En un programa de un solo hilo, un método vuelve cuando ha hecho todo su trabajo. Con varios hilos aparecen dos clases de métodos:</p>
 <ul>
 <li>Un método <strong>no bloqueante</strong> <strong>vuelve al instante</strong>, o inmediatamente: no espera a que termine el trabajo que pone en marcha, sino que lo encarga a otro hilo y devuelve el control enseguida. El método <code>start</code> arranca el hilo y vuelve sin esperar a que la tarea termine, ni siquiera a que empiece. «Al instante» no significa «en tiempo cero», sino «sin esperar a la tarea»: tarda lo mismo si la tarea dura un milisegundo que si dura una hora.</li>
-<li>Un método <strong>bloqueante</strong> no vuelve hasta que ocurre algo que no depende de él: que termine otro hilo (<code>join</code>), que pase un tiempo (<code>sleep</code>), que llegue un resultado o que quede libre un cerrojo (3.1.5). Mientras tanto, el hilo que lo llamó está <strong>bloqueado</strong>: parado, sin usar el procesador, esperando.</li>
+<li>Un método <strong>bloqueante</strong> no vuelve hasta que ocurre algo que no depende de él: que termine otro hilo (<code>join</code>), que pase un tiempo (<code>sleep</code>) o que llegue un resultado. Mientras tanto, el hilo que lo llamó está <strong>bloqueado</strong>: parado, sin usar el procesador, esperando.</li>
 </ul>
 <p>Para leer un programa concurrente hay que saber de cada llamada si bloquea o no. Lo que va después de una llamada no bloqueante se ejecuta <strong>a la vez</strong> que el trabajo que esa llamada ha encargado; lo que va después de una bloqueante, <strong>cuando</strong> la espera ha terminado.</p>
 </div>
@@ -1502,8 +1502,22 @@ Concepto Clave&nbsp;6: Sección crítica
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Una <strong>sección crítica</strong> es un fragmento de código que accede a datos compartidos y que, para que el programa sea correcto, tiene que ejecutarse <strong>en exclusión mutua</strong>: mientras un hilo está dentro, ningún otro puede entrar en esa sección ni en ninguna otra que acceda a los mismos datos.</p>
+<p>Una <strong>sección crítica</strong> es un fragmento de código que accede a datos compartidos y que, para que el programa sea correcto, tiene que ejecutarse <strong>en exclusión mutua</strong>: mientras un hilo está dentro, ningún otro puede entrar en esa sección ni en ninguna otra que acceda a los mismos datos. Ejecutar algo en exclusión mutua (<em>mutual exclusion</em>) significa que nunca lo ejecutan dos hilos a la vez: si uno está dentro, los demás esperan a que salga.</p>
 <p>En el ejemplo, la sección crítica es <code>contador++</code>. Es una sola línea de Java y son tres operaciones del procesador, y precisamente por eso no parece una sección crítica.</p>
+</div>
+</div>
+<p>La exclusión mutua se consigue con una pieza que tienen todos los lenguajes con hilos:</p>
+<div id="imp-cerrojo" class="callout callout-style-default callout-important no-icon callout-titled" title="Cerrojo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Concepto Clave&nbsp;7: Cerrojo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Un <strong>cerrojo</strong> (<em>lock</em>) es un mecanismo de exclusión mutua: un objeto que en cada momento solo puede tener un hilo. El hilo lo <strong>toma</strong> antes de entrar en una sección crítica y lo <strong>suelta</strong> al salir; si otro hilo intenta tomarlo mientras tanto, <strong>se bloquea</strong> hasta que quede libre.</p>
 </div>
 </div>
 <div id="wrn-provocar-carrera" class="callout callout-style-default callout-warning no-icon callout-titled" title="Provocar una condición de carrera para poder verla">
@@ -1519,7 +1533,7 @@ Técnica de Depuración&nbsp;1: Provocar una condición de carrera para poder ve
 <p>Una carrera que aparece una vez de cada mil ejecuciones no se puede depurar: hay que conseguir que aparezca siempre. Cuatro técnicas, todas presentes en el ejemplo del contador (<a href="#nte-carrera" class="quarto-xref">ejemplo&nbsp;3</a>):</p>
 <ol type="1">
 <li><strong>Muchos hilos y muchas repeticiones.</strong> La probabilidad de que dos hilos coincidan en la sección crítica crece con las dos. Cuatro hilos por un millón de incrementos es una prueba de esfuerzo pequeña; un programa real que toca el dato compartido solo de vez en cuando rara vez da con el choque, y por eso parece funcionar.</li>
-<li><strong>Nada de imprimir dentro del bucle.</strong> El método <code>println</code> toma un cerrojo interno (3.1.5) para que las líneas no se mezclen, y con eso <strong>sincroniza sin querer</strong> a los hilos que escriben: la carrera desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta registrar algo, se acumula y se imprime al final.</li>
+<li><strong>Nada de imprimir dentro del bucle.</strong> El método <code>println</code> toma un cerrojo interno para que las líneas no se mezclen, y con eso <strong>sincroniza sin querer</strong> a los hilos que escriben: la carrera desaparece mientras se está mirando y vuelve en cuanto se quita la traza. Si hace falta registrar algo, se acumula y se imprime al final.</li>
 <li><strong>Repetir el experimento entero.</strong> Una sola ejecución correcta no demuestra nada. El ejemplo de 3.2.3 (<a href="#nte-contar-palabras" class="quarto-xref">ejemplo&nbsp;10</a>) repite la prueba veinte veces y cuenta en cuántas falla, que es la cifra que de verdad describe una carrera.</li>
 <li><strong>Varios núcleos.</strong> En un ordenador con un solo núcleo los hilos se turnan y las carreras son mucho más raras. Los ejemplos de este tema se ejecutaron en una máquina de dos núcleos; en un portátil de ocho los números serán todavía peores.</li>
 </ol>
@@ -1530,18 +1544,17 @@ Técnica de Depuración&nbsp;1: Provocar una condición de carrera para poder ve
 <section id="exclusión-mutua-con-synchronized" class="level3">
 <h3 class="anchored" data-anchor-id="exclusión-mutua-con-synchronized">3.1.5 Exclusión mutua con <code>synchronized</code></h3>
 <p>La herramienta básica para que una sección crítica se ejecute en exclusión mutua está en el propio lenguaje, y es la palabra reservada <code>synchronized</code>.</p>
-<div id="imp-cerrojo-intrinseco" class="callout callout-style-default callout-important no-icon callout-titled" title="Cerrojo">
+<div id="imp-cerrojo-intrinseco" class="callout callout-style-default callout-important no-icon callout-titled" title="Cerrojo intrínseco y `synchronized`">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;7: Cerrojo
+Concepto Clave&nbsp;8: Cerrojo intrínseco y <code>synchronized</code>
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Un <strong>cerrojo</strong> (<em>lock</em>) es un mecanismo de exclusión mutua: un objeto que en cada momento solo puede tener un hilo. El hilo lo <strong>toma</strong> antes de entrar en una sección crítica y lo <strong>suelta</strong> al salir; si otro hilo intenta tomarlo mientras tanto, <strong>se bloquea</strong> hasta que quede libre.</p>
-<p>En Java, <strong>todo objeto tiene un cerrojo</strong>, llamado su <strong>cerrojo intrínseco</strong>, y la palabra <code>synchronized</code> es la forma de usarlo, de dos maneras:</p>
+<p>En Java, <strong>todo objeto tiene un cerrojo</strong> (<a href="#imp-cerrojo" class="quarto-xref">concepto clave&nbsp;7</a>), llamado su <strong>cerrojo intrínseco</strong>, y la palabra <code>synchronized</code> es la forma de usarlo, de dos maneras:</p>
 <ul>
 <li>Un <strong>método <code>synchronized</code></strong> toma el cerrojo del objeto sobre el que se llama al entrar y lo suelta al salir, también si sale por una excepción. Dos métodos <code>synchronized</code> del mismo objeto nunca se ejecutan a la vez, aunque sean distintos.</li>
 <li>Un <strong>bloque</strong> <code>synchronized (objeto) { … }</code> toma el cerrojo del objeto indicado durante el bloque. Sirve para proteger solo una parte de un método, o para usar como cerrojo un objeto distinto de <code>this</code>.</li>
@@ -1857,7 +1870,7 @@ Ejemplo&nbsp;6: Dos hilos y dos cerrojos en orden contrario
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;8: Interbloqueo
+Concepto Clave&nbsp;9: Interbloqueo
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2118,7 +2131,7 @@ Técnica de Depuración&nbsp;2: Diagnosticar un interbloqueo con <code>jcmd</cod
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;9: Ejecutor
+Concepto Clave&nbsp;10: Ejecutor
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2220,7 +2233,7 @@ Ejemplo&nbsp;7: Seis tareas sin resultado y tres hilos, con <code>execute</code>
 </ul>
 </div>
 </div>
-<p>Para recoger resultados hacen falta dos piezas más. Una tarea que devuelve un resultado es un <code>Callable&lt;T&gt;</code>, la versión de <code>Runnable</code> cuyo método, <code>call</code>, devuelve un valor de tipo <code>T</code> y puede lanzar excepciones comprobadas. Se entrega con <code>submit</code> en lugar de con <code>execute</code>, y <code>submit</code> devuelve al instante un <code>Future&lt;T&gt;</code>, el <strong>futuro</strong> de su resultado (<a href="#imp-futuro" class="quarto-xref">concepto clave&nbsp;10</a>):</p>
+<p>Para recoger resultados hacen falta dos piezas más. Una tarea que devuelve un resultado es un <code>Callable&lt;T&gt;</code>, la versión de <code>Runnable</code> cuyo método, <code>call</code>, devuelve un valor de tipo <code>T</code> y puede lanzar excepciones comprobadas. Se entrega con <code>submit</code> en lugar de con <code>execute</code>, y <code>submit</code> devuelve al instante un <code>Future&lt;T&gt;</code>, el <strong>futuro</strong> de su resultado (<a href="#imp-futuro" class="quarto-xref">concepto clave&nbsp;11</a>):</p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 33%">
@@ -2335,7 +2348,7 @@ Ejemplo&nbsp;8: Seis tareas y tres hilos con un ejecutor
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;10: Futuro (<code>Future</code>)
+Concepto Clave&nbsp;11: Futuro (<code>Future</code>)
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -2550,7 +2563,7 @@ Error Frecuente&nbsp;5: No cerrar un ejecutor
 <span id="cb37-55"><a href="#cb37-55"></a>        <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>resultados<span class="op">);</span></span>
 <span id="cb37-56"><a href="#cb37-56"></a>    <span class="op">}</span></span>
 <span id="cb37-57"><a href="#cb37-57"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
-<p>De las maneras en que puede terminar <code>get</code> (<a href="#imp-futuro" class="quarto-xref">concepto clave&nbsp;10</a>), la ronda distingue tres: con el resultado; con una <code>CancellationException</code>, si <code>invokeAll</code> canceló la tarea por el plazo; o con una <code>ExecutionException</code>, si la comprobación lanzó una excepción en el hilo del ejecutor.</p>
+<p>De las maneras en que puede terminar <code>get</code> (<a href="#imp-futuro" class="quarto-xref">concepto clave&nbsp;11</a>), la ronda distingue tres: con el resultado; con una <code>CancellationException</code>, si <code>invokeAll</code> canceló la tarea por el plazo; o con una <code>ExecutionException</code>, si la comprobación lanzó una excepción en el hilo del ejecutor.</p>
 <p>Con la ronda parametrizada por el ejecutor, el experimento de cuántos hilos hacen falta es un bucle:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb38-1"><a href="#cb38-1"></a><span class="co">// DemoRondaConEjecutor.java</span></span>
 <span id="cb38-2"><a href="#cb38-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema3</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
@@ -2613,7 +2626,7 @@ Error Frecuente&nbsp;5: No cerrar un ejecutor
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;11: Programación asíncrona
+Concepto Clave&nbsp;12: Programación asíncrona
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3464,7 +3477,7 @@ Fundamento Teórico&nbsp;6: Comparar y sustituir: una sección crítica de una s
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;12: Productor y consumidor
+Concepto Clave&nbsp;13: Productor y consumidor
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3688,7 +3701,7 @@ Ejemplo&nbsp;12: Un cocinero, dos camareros y un pasaplatos con sitio para tres
 <p>El límite de tres es una decisión de diseño. Con una <code>LinkedBlockingQueue</code> sin límite, el cocinero no esperaría nunca y los platos se acumularían en el pasaplatos. Si el productor fuera <strong>siempre</strong> más rápido, la cola crecería sin fin hasta agotar la memoria. Qué hacer cuando el productor es más rápido que el consumidor tiene nombre, <strong>contrapresión</strong>, y es el tema central de la sección 3.4.</p>
 <section id="un-notificador-que-no-frena-al-monitor" class="level4 ampliacion">
 <h4 class="anchored" data-anchor-id="un-notificador-que-no-frena-al-monitor"><strong>Un notificador que no frena al monitor</strong></h4>
-<p><strong>En el monitor.</strong> Queda un problema que ninguna de las herramientas anteriores resuelve: la alerta. El <code>Monitor</code> del Tema 1 avisa a sus notificadores <strong>dentro</strong> de <code>comprobar</code>, en el mismo hilo que hace la comprobación. Si el notificador manda un correo y el servidor de correo tarda medio segundo, la sonda que ha detectado la caída se queda medio segundo parada esperando a un servidor que no tiene nada que ver con lo que ella comprueba. La solución es el patrón productor-consumidor (<a href="#imp-productor-consumidor" class="quarto-xref">concepto clave&nbsp;12</a>).</p>
+<p><strong>En el monitor.</strong> Queda un problema que ninguna de las herramientas anteriores resuelve: la alerta. El <code>Monitor</code> del Tema 1 avisa a sus notificadores <strong>dentro</strong> de <code>comprobar</code>, en el mismo hilo que hace la comprobación. Si el notificador manda un correo y el servidor de correo tarda medio segundo, la sonda que ha detectado la caída se queda medio segundo parada esperando a un servidor que no tiene nada que ver con lo que ella comprueba. La solución es el patrón productor-consumidor (<a href="#imp-productor-consumidor" class="quarto-xref">concepto clave&nbsp;13</a>).</p>
 <p>El <code>NotificadorAsincrono</code> es un notificador más —implementa la interfaz <code>Notificador</code> del Tema 1, de modo que el <code>Monitor</code> no sabe que es distinto— que en lugar de avisar deja la alerta en una cola. Un único hilo, el repartidor, las va sacando y se las entrega al notificador de verdad. Las comprobaciones son los productores; el repartidor, el consumidor.</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb57"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb57-1"><a href="#cb57-1"></a><span class="co">// NotificadorAsincrono.java</span></span>
 <span id="cb57-2"><a href="#cb57-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema3</span><span class="op">.</span><span class="im">monitor</span><span class="op">;</span></span>
@@ -4008,7 +4021,7 @@ Ejemplo&nbsp;13: El interbloqueo deshecho con <code>tryLock</code>
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;13: Hilo virtual
+Concepto Clave&nbsp;14: Hilo virtual
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -4186,7 +4199,7 @@ Fundamento Teórico&nbsp;7: El consejo de evitar <code>synchronized</code> con h
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;14: Semáforo
+Concepto Clave&nbsp;15: Semáforo
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -4336,7 +4349,7 @@ Ejemplo&nbsp;15: Diez descargas con un semáforo de tres permisos
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;15: Concurrencia estructurada
+Concepto Clave&nbsp;16: Concurrencia estructurada
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -4606,7 +4619,7 @@ Ejemplo&nbsp;16: Un identificador de ronda con <code>ScopedValue</code>
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;16: Flujo reactivo
+Concepto Clave&nbsp;17: Flujo reactivo
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -4627,7 +4640,7 @@ Concepto Clave&nbsp;16: Flujo reactivo
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Concepto Clave&nbsp;17: Contrapresión
+Concepto Clave&nbsp;18: Contrapresión
 </div>
 </div>
 <div class="callout-body-container callout-body">
