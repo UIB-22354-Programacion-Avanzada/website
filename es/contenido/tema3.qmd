@@ -3152,6 +3152,32 @@ Puestos lado a lado, los dos tipos de cerrojo se diferencian así:
 | Quién lo suelta | Java, automáticamente al salir del bloque, también si hay una excepción | Quien lo tomó, con `unlock()` en un `finally` |
 | Qué añade | Nada más: tomar, esperar y soltar | Intentar sin esperar (`tryLock`), esperar con plazo y cerrojos de lectura y escritura |
 
+Los métodos de la interfaz `Lock` son pocos, y cada uno corresponde a una forma distinta de pedir
+el cerrojo:
+
+| Método | Qué hace |
+|---|---|
+| `lock()` | Toma el cerrojo. Si lo tiene otro hilo, **espera** hasta que quede libre, como `synchronized`. |
+| `unlock()` | Suelta el cerrojo. Solo puede llamarlo el hilo que lo tiene, siempre en un `finally`. |
+| `tryLock()` | **Intenta** tomarlo sin esperar: si está libre, lo toma y devuelve `true`; si no, devuelve `false` en el acto. |
+| `tryLock(plazo, unidad)` | Intenta tomarlo esperando **como mucho** ese tiempo, y devuelve si lo ha conseguido. |
+| `lockInterruptibly()` | Como `lock()`, pero la espera termina con una `InterruptedException` si interrumpen al hilo. Con `lock()`, la interrupción no corta la espera. |
+| `newCondition()` | Crea una condición asociada al cerrojo, para esperar dentro de la sección crítica a que se cumpla algo. |
+
+La clase `ReentrantLock`, la implementación habitual, añade algunos métodos propios, útiles sobre
+todo para depurar:
+
+| Método | Qué hace |
+|---|---|
+| `new ReentrantLock(true)` | Crea un cerrojo **justo** (*fair*): cuando queda libre, se lo da al hilo que más tiempo lleva esperando. Sin el `true`, no hay orden garantizado, y es más rápido. |
+| `isLocked()` | Dice si algún hilo tiene el cerrojo. |
+| `isHeldByCurrentThread()` | Dice si lo tiene el hilo que pregunta. Útil en un `assert` antes de tocar datos protegidos. |
+| `getHoldCount()` | Cuántas veces lo ha tomado el hilo actual sin soltarlo, porque es reentrante, como el intrínseco. |
+| `hasQueuedThreads()` | Dice si hay hilos esperando para tomarlo. |
+
+Como `ReentrantLock` es **reentrante**, un hilo que ya lo tiene puede volver a tomarlo, y tiene que
+soltarlo tantas veces como lo tomó.
+
 El método que justifica todo esto es `tryLock(plazo, unidad)`: intenta tomar el cerrojo, espera
 como mucho el plazo, y devuelve si lo ha conseguido. Con él se rompe la segunda condición de
 Coffman, la de retención y espera: el hilo que no consigue el segundo cerrojo suelta el primero. El
