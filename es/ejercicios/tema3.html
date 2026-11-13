@@ -20,6 +20,41 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
 </style>
 
 
@@ -72,6 +107,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Ejercicios — Tema 3: Programación Concurrente – Programación Avanzada (22354)">
@@ -461,8 +525,17 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#cómo-trabajar-estos-ejercicios" id="toc-cómo-trabajar-estos-ejercicios" class="nav-link active" data-scroll-target="#cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</a></li>
+  <li><a href="#fundamentos-de-la-concurrencia" id="toc-fundamentos-de-la-concurrencia" class="nav-link" data-scroll-target="#fundamentos-de-la-concurrencia">3.1. Fundamentos de la concurrencia</a></li>
+  <li><a href="#herramientas-de-concurrencia-en-java" id="toc-herramientas-de-concurrencia-en-java" class="nav-link" data-scroll-target="#herramientas-de-concurrencia-en-java">3.2. Herramientas de concurrencia en Java</a></li>
+  <li><a href="#hilos-virtuales-y-concurrencia-estructurada" id="toc-hilos-virtuales-y-concurrencia-estructurada" class="nav-link" data-scroll-target="#hilos-virtuales-y-concurrencia-estructurada">3.3. Hilos virtuales y concurrencia estructurada</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -487,9 +560,639 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><em>Contenido pendiente.</em></p>
+<section id="cómo-trabajar-estos-ejercicios" class="level2">
+<h2 class="anchored" data-anchor-id="cómo-trabajar-estos-ejercicios">Cómo trabajar estos ejercicios</h2>
+<p>Los ejercicios de esta página acompañan al <a href="../../es/contenido/tema3.html">contenido del Tema 3</a> y se numeran <code>3.X.k</code>, donde <code>X</code> es la sección del tema a la que corresponden: tres de 3.1, cinco de 3.2 y dos de 3.3. La sección 3.4, que es una panorámica, no tiene ejercicios.</p>
+<p>Todo lo que hace falta para resolverlos está en el Tema 3, y solo ahí: ningún enunciado usa nada que no se haya explicado antes, y ninguno depende de los bloques de ampliación del tema. En particular, los ejercicios de 3.1 se resuelven con <code>Thread</code> y <code>synchronized</code>, sin ejecutores ni colecciones concurrentes. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se enlaza en el propio enunciado.</p>
+<p>No empiezas desde una carpeta vacía. En la organización del curso hay <strong>una plantilla</strong> para todo el tema, con la misma estructura que <a href="https://github.com/UIB-22354-Programacion-Avanzada/t3-ejemplos"><code>t3-ejemplos</code></a>: <a href="https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios"><code>t3-ejercicios</code></a>. Que las tres secciones compartan plantilla es deliberado: los diez ejercicios viven en el mismo paquete, <code>es.uib.prgava.tema3.ejercicios</code>, no dependen del monitor de los temas anteriores, y repartirlos en tres repositorios solo obligaría a copiar tres veces la misma configuración. La plantilla trae:</p>
+<ul>
+<li>un <strong>esqueleto</strong> de cada clase que se pide, con las firmas de sus métodos y las cláusulas <code>implements</code> y <code>extends</code> del ejercicio, para que el proyecto compile y las pruebas se puedan ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los <strong>cuerpos</strong>, marcados con <code>// TODO 3.X.k</code>;</li>
+<li>el <strong>código de partida</strong> de los ejercicios 3.1.2 y 3.1.3, que consisten en arreglar un programa que está mal a propósito; ese código aparece además en el propio enunciado, para que puedas leerlo sin salir de la página;</li>
+<li>las <strong>pruebas</strong> que comprueban tu solución, en <code>src/test/java</code>;</li>
+<li>la opción <code>--enable-preview</code> ya configurada, porque el ejercicio 3.3.2 usa la concurrencia estructurada de 3.3.4, que en Java 25 es una API en vista previa.</li>
+</ul>
+<p>El esqueleto compila desde el primer momento, pero todas las pruebas fallan hasta que completas el código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual: crea tu copia con <strong>Use this template</strong>, abre un Codespace, ejecuta <code>mvn test</code>, y ve resolviendo ejercicios hasta que la construcción pase en verde. Cada ejercicio se comprueba con <strong>una clase de prueba, y solo una</strong>, y el <code>README</code> de la plantilla trae la tabla de correspondencia.</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Las pruebas de un programa concurrente.</strong> En este tema, una prueba en verde no demuestra que el código esté bien: demuestra que, en las veces que se ha ejecutado, no ha salido el error. Las pruebas de la plantilla repiten cada experimento con varios hilos, que es lo que hace aparecer una carrera casi siempre (véase la <a href="../../es/contenido/tema3.html#wrn-provocar-carrera">Técnica de Depuración sobre provocar una carrera</a>), pero «casi siempre» no es «siempre». Por eso, dos reglas:</p>
+<ul>
+<li>Si una prueba falla <strong>una sola vez</strong>, aunque después pase, <strong>hay un error</strong>. No la vuelvas a ejecutar hasta que salga verde: busca la carrera.</li>
+<li>Las pruebas que pueden quedarse colgadas —un interbloqueo, un hilo que espera algo que no va a llegar— llevan un plazo de 10 s, y al vencer fallan con un mensaje que lo dice.</li>
+</ul>
+<p>Algunas pruebas, además, <strong>miden tiempos</strong>, porque lo que comprueban es que algo ocurre a la vez. Los márgenes son amplios, pero en un ordenador muy cargado una podría fallar sin culpa tuya: cierra lo que sobre y repítela, y si sigue fallando, el problema está en el código.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p><strong>Cómo están escritos.</strong> Cada enunciado empieza explicando para qué sirve lo que se pide, sigue con los pasos, y termina con dos cosas que no puntúan pero que son la mitad del ejercicio: qué comprueban las pruebas y una pregunta para pensar. Las preguntas que aparecen <strong>dentro</strong> de los pasos tienen respuesta en el tema y se enlaza dónde; la de <strong>Para pensar</strong> no la tiene, y se responde decidiendo.</p>
+<p>La ayuda <strong>baja a lo largo de la página</strong>, y es a propósito. Los ejercicios de 3.1 dicen paso a paso qué escribir y con qué método; los de 3.2 dicen qué clases de la biblioteca usar y dejan el cómo para ti; los de 3.3 dicen qué se pide y en qué concepto se apoya, y nada más. Si al llegar a 3.3 te falta un paso, el paso está en el ejemplo del tema que se enlaza.</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión, no que el código funcione. En concurrencia eso es más cierto que nunca, porque un programa con una carrera <strong>funciona</strong> casi siempre.</p>
+</div>
+</div>
+</div>
+</section>
+<section id="fundamentos-de-la-concurrencia" class="level2">
+<h2 class="anchored" data-anchor-id="fundamentos-de-la-concurrencia">3.1. Fundamentos de la concurrencia</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema3.html#fundamentos-de-la-concurrencia">3.1 del tema</a>: crear y esperar hilos, condiciones de carrera y exclusión mutua, e interbloqueo.</p>
+<p>Los tres siguen el camino del tema. El primero crea hilos y los espera; el segundo <strong>provoca</strong> una condición de carrera, la mide y la elimina; y el tercero <strong>provoca</strong> un interbloqueo y lo elimina. En los dos últimos, el código de partida está mal a propósito, y el primer paso es verlo fallar con tus propios ojos.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.1.1 Clase `CreadorDeHilos`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.1.1 Clase <code>CreadorDeHilos</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Un hilo se puede crear de cuatro formas, y las cuatro hacen lo mismo: le dan una <strong>tarea</strong> a un objeto <code>Thread</code> (véanse los <a href="../../es/contenido/tema3.html#imp-metodos-thread">métodos principales de <code>Thread</code></a>). Este ejercicio las escribe todas, con la misma tarea, para que veas en qué se diferencian, y termina con la pareja de llamadas que aparece en todo programa con hilos: arrancar varios y esperar a que terminen. El modelo es el ejemplo de las <a href="../../es/contenido/tema3.html#nte-formas-de-crear-hilos">cuatro formas de crear un hilo</a>.</p>
+<p>La tarea de todos los hilos es la misma: <strong>anotar en una lista, el registro, el nombre del hilo que la está ejecutando</strong>. El registro lo recibe cada método, y es una lista que se puede usar desde varios hilos a la vez; por qué una lista corriente no serviría lo verás en 3.1.4.</p>
+<p>Escribe en <code>CreadorDeHilos</code> los cinco métodos</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Thread</span> <span class="fu">conSubclase</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> registro<span class="op">)</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Thread</span> <span class="fu">conClaseRunnable</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> registro<span class="op">)</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Thread</span> <span class="fu">conLambda</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> registro<span class="op">)</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Thread</span> <span class="fu">conConstructor</span><span class="op">(</span><span class="bu">String</span> nombre<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> registro<span class="op">)</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">void</span> <span class="fu">ejecutarTodos</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Thread</span><span class="op">&gt;</span> hilos<span class="op">)</span> <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Los cuatro primeros crean un hilo <strong>sin arrancarlo</strong>, con el nombre que reciben, y lo devuelven.</p>
+<ol type="1">
+<li><p><strong>Forma 1, una subclase de <code>Thread</code>.</strong> El esqueleto trae la clase anidada <code>HiloAnotador</code>, que extiende <code>Thread</code>. Guarda el registro en un atributo, y redefine <code>run</code> para que anote <code>getName()</code>. El constructor ya llama a <code>super(nombre)</code>, que es lo que le da nombre al hilo. <code>conSubclase</code> solo tiene que devolver un <code>new HiloAnotador(nombre, registro)</code>.</p></li>
+<li><p><strong>Forma 2, una clase que implementa <code>Runnable</code>.</strong> El esqueleto trae <code>TareaAnotar</code>. Aquí la clase <strong>no es un hilo</strong>, sino una tarea, así que para saber en qué hilo se ejecuta tiene que preguntarlo: <code>Thread.currentThread().getName()</code>. <code>conClaseRunnable</code> crea el hilo con el constructor <code>new Thread(tarea, nombre)</code>.</p></li>
+<li><p><strong>Forma 3, una lambda.</strong> Lo mismo que la forma 2, pero sin escribir una clase: la tarea es una lambda que hace lo que hacía <code>run</code>. <code>conLambda</code> es una sola línea.</p></li>
+<li><p><strong>Forma 4, el constructor de hilos.</strong> <code>Thread.ofPlatform().name(nombre).unstarted(tarea)</code> crea el hilo sin arrancarlo. Fíjate en <code>unstarted</code>: el mismo constructor tiene un <code>start(tarea)</code> que lo crea y lo arranca a la vez, y aquí no es lo que se pide.</p></li>
+<li><p><strong><code>ejecutarTodos</code>.</strong> Arranca todos los hilos de la lista con <code>start</code> y después espera a cada uno con <code>join</code>. ¿Por qué tienen que ser <strong>dos bucles</strong> y no uno que haga <code>start</code> y <code>join</code> a cada hilo? Repasa lo que hace <code>join</code> en el <a href="../../es/contenido/tema3.html#nte-hilos">ejemplo de los dos hilos</a>, y asegúrate también de no llamar a <code>run</code> en lugar de <code>start</code> (<a href="../../es/contenido/tema3.html#cau-llamar-run">el error frecuente de 3.1.2</a>).</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> registro <span class="op">=</span> <span class="kw">new</span> <span class="bu">CopyOnWriteArrayList</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Thread</span><span class="op">&gt;</span> hilos <span class="op">=</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>        CreadorDeHilos<span class="op">.</span><span class="fu">conSubclase</span><span class="op">(</span><span class="st">"forma-1"</span><span class="op">,</span> registro<span class="op">),</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>        CreadorDeHilos<span class="op">.</span><span class="fu">conClaseRunnable</span><span class="op">(</span><span class="st">"forma-2"</span><span class="op">,</span> registro<span class="op">),</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>        CreadorDeHilos<span class="op">.</span><span class="fu">conLambda</span><span class="op">(</span><span class="st">"forma-3"</span><span class="op">,</span> registro<span class="op">),</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>        CreadorDeHilos<span class="op">.</span><span class="fu">conConstructor</span><span class="op">(</span><span class="st">"forma-4"</span><span class="op">,</span> registro<span class="op">));</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>hilos<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="dv">0</span><span class="op">).</span><span class="fu">getState</span><span class="op">());</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>CreadorDeHilos<span class="op">.</span><span class="fu">ejecutarTodos</span><span class="op">(</span>hilos<span class="op">);</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>registro<span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime. El orden de la segunda línea puede cambiar de una ejecución a otra; lo que no cambia es que están los cuatro:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb3-1"><a href="#cb3-1"></a>NEW</span>
+<span id="cb3-2"><a href="#cb3-2"></a>[forma-1, forma-2, forma-3, forma-4]</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que los cuatro métodos devuelven un hilo <strong>sin arrancar</strong> (<code>getState()</code> es <code>NEW</code>) y con el nombre pedido; que cada hilo, al ejecutarse, anota su propio nombre; que <code>conSubclase</code> devuelve un <code>HiloAnotador</code> y <code>conConstructor</code> un hilo de plataforma; y que <code>ejecutarTodos</code> deja todos los hilos terminados. La que falla si usas un solo bucle, o si llamas a <code>run</code>, es <code>ejecutarTodosLosEjecutaALaVez</code>: lanza cuatro hilos que <strong>solo pueden terminar si están en marcha los cuatro a la vez</strong>.</p>
+<p><strong>Para pensar.</strong> La forma 1 mezcla en una sola clase <strong>qué</strong> se hace —la tarea— y <strong>quién</strong> lo hace —el hilo—. Si mañana quisieras ejecutar la misma tarea en un ejecutor de 3.2.1, en lugar de en un hilo propio, ¿qué tendrías que cambiar en cada una de las cuatro formas?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.1.2 Clases `AforoSincronizado` y `SimulacionAforo`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-4-contents" aria-controls="callout-4" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.1.2 Clases <code>AforoSincronizado</code> y <code>SimulacionAforo</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-4" class="callout-4-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Una <a href="../../es/contenido/tema3.html#imp-condicion-de-carrera">condición de carrera</a> no tiene por qué ser un <code>contador++</code>. Este ejercicio trabaja con una forma más traicionera: <strong>comprobar y después actuar</strong>. Un control de aforo deja entrar mientras quede sitio; con un solo hilo es correcto, y con varios deja entrar a más gente de la que cabe, porque entre la comprobación y la acción otro hilo puede colarse. Primero vas a escribir una simulación que lo <strong>demuestre</strong>, y después la versión que lo <strong>arregla</strong> con exclusión mutua. El modelo es el <a href="../../es/contenido/tema3.html#nte-exclusion">contador protegido con <code>synchronized</code></a>.</p>
+<p>El código de <code>Aforo</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios"><code>t3-ejercicios</code></a> junto con la interfaz <code>ControlDeAforo</code> que implementa, es el siguiente:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="co">// Aforo.java</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema3</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="co">/**</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a> <span class="co">*</span> Ejercicio <span class="co">3.1.2. </span>Un control de aforo <span class="dt">&lt;</span><span class="kw">strong</span><span class="dt">&gt;</span>con una condici<span class="co">ó</span>n de carrera<span class="dt">&lt;/</span><span class="kw">strong</span><span class="dt">&gt;</span><span class="co">.</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a> <span class="co">*</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a> <span class="co">*</span> <span class="dt">&lt;</span><span class="kw">p</span><span class="dt">&gt;</span>Con un solo hilo es correcto<span class="co">.</span> Con varios<span class="co">,</span> deja entrar a m<span class="co">á</span>s gente de la que cabe<span class="co">.</span> No lo</span>
+<span id="cb4-8"><a href="#cb4-8"></a> <span class="co">*</span> corrijas<span class="co">:</span> es el c<span class="co">ó</span>digo de partida del ejercicio<span class="co">,</span> y el que la simulaci<span class="co">ó</span>n tiene que pillar en falta<span class="co">.</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a> <span class="co">*/</span></span>
+<span id="cb4-10"><a href="#cb4-10"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> Aforo <span class="kw">implements</span> ControlDeAforo <span class="op">{</span></span>
+<span id="cb4-11"><a href="#cb4-11"></a></span>
+<span id="cb4-12"><a href="#cb4-12"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="dt">int</span> capacidad<span class="op">;</span></span>
+<span id="cb4-13"><a href="#cb4-13"></a>    <span class="kw">private</span> <span class="dt">int</span> dentro<span class="op">;</span></span>
+<span id="cb4-14"><a href="#cb4-14"></a></span>
+<span id="cb4-15"><a href="#cb4-15"></a>    <span class="kw">public</span> <span class="fu">Aforo</span><span class="op">(</span><span class="dt">int</span> capacidad<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-16"><a href="#cb4-16"></a>        <span class="cf">if</span> <span class="op">(</span>capacidad <span class="op">&lt;</span> <span class="dv">0</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-17"><a href="#cb4-17"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">"La capacidad no puede ser negativa"</span><span class="op">);</span></span>
+<span id="cb4-18"><a href="#cb4-18"></a>        <span class="op">}</span></span>
+<span id="cb4-19"><a href="#cb4-19"></a>        <span class="kw">this</span><span class="op">.</span><span class="fu">capacidad</span> <span class="op">=</span> capacidad<span class="op">;</span></span>
+<span id="cb4-20"><a href="#cb4-20"></a>    <span class="op">}</span></span>
+<span id="cb4-21"><a href="#cb4-21"></a></span>
+<span id="cb4-22"><a href="#cb4-22"></a>    <span class="at">@Override</span></span>
+<span id="cb4-23"><a href="#cb4-23"></a>    <span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">entrar</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb4-24"><a href="#cb4-24"></a>        <span class="cf">if</span> <span class="op">(</span>dentro <span class="op">&lt;</span> capacidad<span class="op">)</span> <span class="op">{</span>       <span class="co">// comprobar...</span></span>
+<span id="cb4-25"><a href="#cb4-25"></a>            <span class="bu">Thread</span><span class="op">.</span><span class="fu">yield</span><span class="op">();</span>             <span class="co">// (cede el procesador: hace la carrera más visible)</span></span>
+<span id="cb4-26"><a href="#cb4-26"></a>            dentro<span class="op">++;</span>                   <span class="co">// ...y despues actuar</span></span>
+<span id="cb4-27"><a href="#cb4-27"></a>            <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb4-28"><a href="#cb4-28"></a>        <span class="op">}</span></span>
+<span id="cb4-29"><a href="#cb4-29"></a>        <span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span>
+<span id="cb4-30"><a href="#cb4-30"></a>    <span class="op">}</span></span>
+<span id="cb4-31"><a href="#cb4-31"></a></span>
+<span id="cb4-32"><a href="#cb4-32"></a>    <span class="at">@Override</span></span>
+<span id="cb4-33"><a href="#cb4-33"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">dentro</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb4-34"><a href="#cb4-34"></a>        <span class="cf">return</span> dentro<span class="op">;</span></span>
+<span id="cb4-35"><a href="#cb4-35"></a>    <span class="op">}</span></span>
+<span id="cb4-36"><a href="#cb4-36"></a></span>
+<span id="cb4-37"><a href="#cb4-37"></a>    <span class="at">@Override</span></span>
+<span id="cb4-38"><a href="#cb4-38"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">capacidad</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb4-39"><a href="#cb4-39"></a>        <span class="cf">return</span> capacidad<span class="op">;</span></span>
+<span id="cb4-40"><a href="#cb4-40"></a>    <span class="op">}</span></span>
+<span id="cb4-41"><a href="#cb4-41"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>El <code>Thread.yield()</code> no hace nada útil: le dice al planificador que, si quiere, puede pasar el procesador a otro hilo justo en el peor momento. Ensancha la ventana de la carrera para que la simulación la pille casi siempre, como las técnicas de la <a href="../../es/contenido/tema3.html#wrn-provocar-carrera">Técnica de Depuración para provocar una carrera</a>.</p>
+<p>Escribe en <code>SimulacionAforo</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">entradasAceptadas</span><span class="op">(</span>ControlDeAforo aforo<span class="op">,</span> <span class="dt">int</span> hilos<span class="op">,</span> <span class="dt">int</span> intentosPorHilo<span class="op">)</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a>        <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que lance <code>hilos</code> hilos, cada uno de los cuales intenta entrar <code>intentosPorHilo</code> veces en <code>aforo</code>; que espere a que terminen todos, y que devuelva cuántas entradas fueron aceptadas en total. Y escribe la clase <code>AforoSincronizado</code>, con la misma interfaz que <code>Aforo</code> y sin la carrera.</p>
+<ol type="1">
+<li><p><strong>Validación.</strong> Con menos de un hilo, o con un número de intentos negativo, <code>IllegalArgumentException</code>.</p></li>
+<li><p><strong>Contar sin crear otra carrera.</strong> Cada hilo cuenta sus entradas aceptadas, y al final hay que sumarlas. Si todos sumaran en una misma variable compartida, la simulación tendría su propia condición de carrera. La forma más sencilla de evitarlo es <strong>no compartir</strong>: un array <code>int[] aceptadas = new int[hilos]</code> en el que cada hilo escribe <strong>solo en su casilla</strong>, y una suma que se hace <strong>después</strong> de los <code>join</code>, cuando ya nadie escribe. Para que la lambda de cada hilo sepa cuál es su casilla, copia el índice del bucle en una variable local, <code>int mio = i;</code>, antes de crearla: una lambda solo puede usar variables locales que no cambian.</p></li>
+<li><p><strong>Arrancar y esperar</strong>, en dos bucles, como en 3.1.1.</p></li>
+<li><p><strong>Verlo fallar.</strong> El esqueleto pide, en un <code>TODO</code>, un <code>main</code> que simule 8 hilos y 500 intentos sobre un <code>Aforo</code> de 1000 plazas e imprima cuántas entradas aceptó. Ejecútalo varias veces antes de seguir: deberían salirte más de 1000.</p></li>
+<li><p><strong><code>AforoSincronizado</code>.</strong> Los mismos atributos y el mismo cuerpo que <code>Aforo</code>, <code>Thread.yield()</code> incluido, con <code>entrar</code> declarado <code>synchronized</code>. ¿Hace falta también en <code>dentro()</code>, que solo lee? La respuesta está en el <a href="../../es/contenido/tema3.html#cau-sincronizar-escrituras">error de sincronizar solo las escrituras</a>. <code>capacidad()</code> no la necesita: es un atributo <code>final</code>.</p></li>
+<li><p><strong>Verlo arreglado.</strong> Añade al <code>main</code> la misma simulación con un <code>AforoSincronizado</code>.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="dt">int</span> conAforo <span class="op">=</span> SimulacionAforo<span class="op">.</span><span class="fu">entradasAceptadas</span><span class="op">(</span><span class="kw">new</span> <span class="fu">Aforo</span><span class="op">(</span><span class="dv">1000</span><span class="op">),</span> <span class="dv">8</span><span class="op">,</span> <span class="dv">500</span><span class="op">);</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="dt">int</span> conSincronizado <span class="op">=</span> SimulacionAforo<span class="op">.</span><span class="fu">entradasAceptadas</span><span class="op">(</span><span class="kw">new</span> <span class="fu">AforoSincronizado</span><span class="op">(</span><span class="dv">1000</span><span class="op">),</span> <span class="dv">8</span><span class="op">,</span> <span class="dv">500</span><span class="op">);</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"Aforo:             "</span> <span class="op">+</span> conAforo <span class="op">+</span> <span class="st">" entradas para 1000 plazas"</span><span class="op">);</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span><span class="st">"AforoSincronizado: "</span> <span class="op">+</span> conSincronizado <span class="op">+</span> <span class="st">" entradas para 1000 plazas"</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprimió en una ejecución. La primera cifra cambia de una vez a otra —1007, 1009, 1011 en otras tres—; la segunda es siempre 1000:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb7-1"><a href="#cb7-1"></a>Aforo:             1008 entradas para 1000 plazas</span>
+<span id="cb7-2"><a href="#cb7-2"></a>AforoSincronizado: 1000 entradas para 1000 plazas</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que la simulación lanza los hilos pedidos, que ninguno de los intentos se hace desde el hilo que llama y que se hacen todos; que la suma de aceptadas es correcta; que, con el <code>Aforo</code> original, la simulación pilla la carrera al menos una vez en veinte repeticiones; y —esta es la que falla si queda alguna carrera— que con <code>AforoSincronizado</code> entran <strong>exactamente</strong> 1000 personas en las veinte.</p>
+<p><strong>Para pensar.</strong> <code>AforoSincronizado</code> hace que la gente entre de una en una: mientras alguien está dentro de <code>entrar</code>, los demás esperan. En un estadio con cuarenta tornos, eso sería un cuello de botella. ¿Cómo repartirías el aforo entre los tornos para que casi nunca tuvieran que esperarse entre ellos, sin dejar entrar nunca a nadie de más?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.1.3 Clase `MesaOrdenada`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-6-contents" aria-controls="callout-6" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.1.3 Clase <code>MesaOrdenada</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-6" class="callout-6-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El <a href="../../es/contenido/tema3.html#imp-interbloqueo">interbloqueo</a> del tema tenía dos hilos y dos cerrojos. Este ejercicio lo lleva a <span class="math inline">\(n\)</span>, con el problema clásico que planteó Dijkstra: <strong>la cena de los filósofos</strong>. Hay <span class="math inline">\(n\)</span> filósofos sentados a una mesa redonda, con un tenedor entre cada dos; para comer, cada uno necesita los dos tenedores que tiene al lado. Si todos toman a la vez el de su izquierda, todos esperan para siempre el de su derecha. La herramienta para evitarlo es una de las <a href="../../es/contenido/tema3.html#tip-coffman">cuatro condiciones de Coffman</a>.</p>
+<p>La mesa se describe con la interfaz <code>Mesa</code>: el filósofo <code>i</code> come con el tenedor <code>i</code>, a su izquierda, y el tenedor <code>(i + 1) % comensales()</code>, a su derecha. El código de <code>MesaIngenua</code>, que viene en <a href="https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios"><code>t3-ejercicios</code></a>, es el siguiente:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="co">// MesaIngenua.java</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a><span class="kw">package</span><span class="im"> es</span><span class="op">.</span><span class="im">uib</span><span class="op">.</span><span class="im">prgava</span><span class="op">.</span><span class="im">tema3</span><span class="op">.</span><span class="im">ejercicios</span><span class="op">;</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a></span>
+<span id="cb8-4"><a href="#cb8-4"></a><span class="co">/**</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a> <span class="co">*</span> Ejercicio <span class="co">3.1.3. </span>La mesa tal como sale escrita a la primera<span class="co">:</span> <span class="dt">&lt;</span><span class="kw">strong</span><span class="dt">&gt;</span>se puede quedar parada<span class="dt">&lt;/</span><span class="kw">strong</span><span class="dt">&gt;</span><span class="co">.</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a> <span class="co">*</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a> <span class="co">*</span> <span class="dt">&lt;</span><span class="kw">p</span><span class="dt">&gt;</span>Cada fil<span class="co">ó</span>sofo toma primero el tenedor de su izquierda y despu<span class="co">é</span>s el de su derecha<span class="co">.</span> No la</span>
+<span id="cb8-8"><a href="#cb8-8"></a> <span class="co">*</span> corrijas<span class="co">:</span> es el c<span class="co">ó</span>digo de partida del ejercicio<span class="co">,</span> y la que usa <span class="an">{@code DemoCena}</span><span class="co">.</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a> <span class="co">*/</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a><span class="kw">public</span> <span class="dt">final</span> <span class="kw">class</span> MesaIngenua <span class="kw">implements</span> Mesa <span class="op">{</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a></span>
+<span id="cb8-12"><a href="#cb8-12"></a>    <span class="kw">private</span> <span class="dt">final</span> <span class="bu">Object</span><span class="op">[]</span> tenedores<span class="op">;</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a></span>
+<span id="cb8-14"><a href="#cb8-14"></a>    <span class="kw">public</span> <span class="fu">MesaIngenua</span><span class="op">(</span><span class="dt">int</span> comensales<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-15"><a href="#cb8-15"></a>        <span class="cf">if</span> <span class="op">(</span>comensales <span class="op">&lt;</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-16"><a href="#cb8-16"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">"Hace falta al menos un comensal"</span><span class="op">);</span></span>
+<span id="cb8-17"><a href="#cb8-17"></a>        <span class="op">}</span></span>
+<span id="cb8-18"><a href="#cb8-18"></a>        tenedores <span class="op">=</span> <span class="kw">new</span> <span class="bu">Object</span><span class="op">[</span>comensales<span class="op">];</span></span>
+<span id="cb8-19"><a href="#cb8-19"></a>        <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> i <span class="op">&lt;</span> comensales<span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb8-20"><a href="#cb8-20"></a>            tenedores<span class="op">[</span>i<span class="op">]</span> <span class="op">=</span> <span class="kw">new</span> <span class="bu">Object</span><span class="op">();</span></span>
+<span id="cb8-21"><a href="#cb8-21"></a>        <span class="op">}</span></span>
+<span id="cb8-22"><a href="#cb8-22"></a>    <span class="op">}</span></span>
+<span id="cb8-23"><a href="#cb8-23"></a></span>
+<span id="cb8-24"><a href="#cb8-24"></a>    <span class="at">@Override</span></span>
+<span id="cb8-25"><a href="#cb8-25"></a>    <span class="kw">public</span> <span class="dt">int</span> <span class="fu">comensales</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb8-26"><a href="#cb8-26"></a>        <span class="cf">return</span> tenedores<span class="op">.</span><span class="fu">length</span><span class="op">;</span></span>
+<span id="cb8-27"><a href="#cb8-27"></a>    <span class="op">}</span></span>
+<span id="cb8-28"><a href="#cb8-28"></a></span>
+<span id="cb8-29"><a href="#cb8-29"></a>    <span class="at">@Override</span></span>
+<span id="cb8-30"><a href="#cb8-30"></a>    <span class="kw">public</span> <span class="dt">void</span> <span class="fu">comer</span><span class="op">(</span><span class="dt">int</span> filosofo<span class="op">,</span> <span class="bu">Runnable</span> bocado<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-31"><a href="#cb8-31"></a>        <span class="bu">Object</span> izquierdo <span class="op">=</span> tenedores<span class="op">[</span>filosofo<span class="op">];</span></span>
+<span id="cb8-32"><a href="#cb8-32"></a>        <span class="bu">Object</span> derecho <span class="op">=</span> tenedores<span class="op">[(</span>filosofo <span class="op">+</span> <span class="dv">1</span><span class="op">)</span> <span class="op">%</span> tenedores<span class="op">.</span><span class="fu">length</span><span class="op">];</span></span>
+<span id="cb8-33"><a href="#cb8-33"></a>        <span class="kw">synchronized</span> <span class="op">(</span>izquierdo<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-34"><a href="#cb8-34"></a>            <span class="kw">synchronized</span> <span class="op">(</span>derecho<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-35"><a href="#cb8-35"></a>                bocado<span class="op">.</span><span class="fu">run</span><span class="op">();</span></span>
+<span id="cb8-36"><a href="#cb8-36"></a>            <span class="op">}</span></span>
+<span id="cb8-37"><a href="#cb8-37"></a>        <span class="op">}</span></span>
+<span id="cb8-38"><a href="#cb8-38"></a>    <span class="op">}</span></span>
+<span id="cb8-39"><a href="#cb8-39"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Cada tenedor es un <code>Object</code> que solo sirve como cerrojo, y <code>bocado</code> es lo que el filósofo hace mientras tiene los dos. La plantilla trae también <code>DemoCena</code>, que sienta a cinco filósofos y los hace comer cien mil veces cada uno.</p>
+<p>Escribe la clase <code>MesaOrdenada</code>, que implementa <code>Mesa</code> igual que <code>MesaIngenua</code> pero <strong>no se puede quedar parada</strong>.</p>
+<ol type="1">
+<li><p><strong>Verlo fallar.</strong> Ejecuta <code>DemoCena</code> varias veces. Lo normal es que se quede parada a los pocos segundos, sin escribir nada. Mientras está parada, confirma el diagnóstico con <code>jcmd</code>, como en la <a href="../../es/contenido/tema3.html#wrn-diagnosticar-interbloqueo">Técnica de Depuración para diagnosticar un interbloqueo</a>: verás a los cinco filósofos esperando cada uno un cerrojo que tiene otro.</p></li>
+<li><p><strong>El constructor y <code>comensales</code></strong>, como en <code>MesaIngenua</code>.</p></li>
+<li><p><strong><code>comer</code>.</strong> Valida que <code>filosofo</code> esté entre 0 y <code>comensales() - 1</code>, o <code>IllegalArgumentException</code>. Después, en lugar de tomar primero el tenedor de la izquierda, toma primero el de <strong>número menor</strong>, sea el de la izquierda o el de la derecha, y después el de número mayor. <code>Math.min</code> y <code>Math.max</code> te dan los dos números en orden.</p></li>
+<li><p><strong>El porqué, en un comentario.</strong> El esqueleto pide, al final de la clase, un comentario de pocas líneas: cuál de las cuatro condiciones de Coffman rompe tu mesa, y por qué el ciclo de la mesa ingenua ya no puede cerrarse.</p></li>
+<li><p><strong>Verlo arreglado.</strong> Cambia <code>DemoCena</code> para que use <code>new MesaOrdenada(5)</code> y ejecútala otra vez.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a>Mesa mesa <span class="op">=</span> <span class="kw">new</span> <span class="fu">MesaOrdenada</span><span class="op">(</span><span class="dv">5</span><span class="op">);</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="dt">int</span><span class="op">[]</span> comidas <span class="op">=</span> <span class="kw">new</span> <span class="dt">int</span><span class="op">[</span><span class="dv">1</span><span class="op">];</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>mesa<span class="op">.</span><span class="fu">comer</span><span class="op">(</span><span class="dv">4</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> comidas<span class="op">[</span><span class="dv">0</span><span class="op">]++);</span>   <span class="co">// el filósofo 4 toma el tenedor 0 y después el 4</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>comidas<span class="op">[</span><span class="dv">0</span><span class="op">]);</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a>mesa<span class="op">.</span><span class="fu">comer</span><span class="op">(</span><span class="dv">5</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span> <span class="op">});</span>            <span class="co">// IllegalArgumentException: no hay filósofo 5</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime, y lo que imprime <code>DemoCena</code> con la mesa nueva:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb10-1"><a href="#cb10-1"></a>1</span>
+<span id="cb10-2"><a href="#cb10-2"></a>   todos han comido 100000 veces</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el número de comensales y el rechazo de un filósofo que no existe; que el bocado se ejecuta; que dos vecinos <strong>nunca</strong> comen a la vez, porque eso significaría que comparten un tenedor; y —esta es la que se queda colgada y falla a los 10 s con la mesa ingenua— que una cena de doscientos mil bocados por filósofo termina, con 1, 2, 5 y 7 comensales.</p>
+<p><strong>Para pensar.</strong> Una solución clásica del problema es sentar a la mesa <strong>un filósofo zurdo</strong>: todos toman primero el tenedor de su izquierda, menos uno, que toma primero el de su derecha. ¿Es la misma solución que la tuya o es otra distinta? ¿Qué condición de Coffman rompe cada una?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="herramientas-de-concurrencia-en-java" class="level2">
+<h2 class="anchored" data-anchor-id="herramientas-de-concurrencia-en-java">3.2. Herramientas de concurrencia en Java</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema3.html#herramientas-de-concurrencia-en-java">3.2 del tema</a>: ejecutores y futuros, <code>CompletableFuture</code>, colecciones concurrentes y variables atómicas, y el esquema productor-consumidor.</p>
+<p>Aquí cambia la forma de trabajar. En 3.1 cada hilo se creaba y se esperaba a mano, y cada sección crítica se protegía con <code>synchronized</code>. En estos cinco ejercicios <strong>no se escribe ningún <code>synchronized</code></strong>: el trabajo lo hacen las clases de <code>java.util.concurrent</code>, y lo que se pide es elegir la adecuada y usarla bien. Los enunciados dicen qué clase usar, pero ya no qué método llamar en cada línea: las tablas de métodos del tema están para eso.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.2.1 Método `contar` de `PrimosEnParalelo`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-8-contents" aria-controls="callout-8" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.2.1 Método <code>contar</code> de <code>PrimosEnParalelo</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-8" class="callout-8-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Un cálculo largo que se puede partir en trozos independientes es el caso más sencillo de paralelismo, y un <a href="../../es/contenido/tema3.html#imp-ejecutor">ejecutor</a> es la forma de repartirlo sin gestionar hilos a mano: se le entregan tareas, cada una devuelve su parte del resultado en un <a href="../../es/contenido/tema3.html#imp-futuro">futuro</a>, y al final se suman. El modelo es el <a href="../../es/contenido/tema3.html#nte-ejecutor">ejemplo de las seis tareas con un ejecutor</a>.</p>
+<p>El cálculo es contar cuántos números primos hay en un intervalo. La plantilla trae ya escritos <code>esPrimo(n)</code> y <code>contarSecuencial(desde, hasta)</code>, que cuenta los primos de <code>[desde, hasta)</code> en un solo hilo. Escribe en <code>PrimosEnParalelo</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">contar</span><span class="op">(</span><span class="dt">int</span> desde<span class="op">,</span> <span class="dt">int</span> hasta<span class="op">,</span> <span class="dt">int</span> partes<span class="op">,</span> <span class="bu">ExecutorService</span> ejecutor<span class="op">)</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>        <span class="kw">throws</span> <span class="bu">InterruptedException</span><span class="op">,</span> <span class="bu">ExecutionException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que cuente los primos de <code>[desde, hasta)</code> repartiendo el intervalo en <code>partes</code> tareas, que entrega al <code>ejecutor</code> que recibe.</p>
+<ol type="1">
+<li><p><strong>Validación.</strong> Si <code>desde &gt; hasta</code> o <code>partes &lt; 1</code>, <code>IllegalArgumentException</code>. Un intervalo vacío, <code>desde == hasta</code>, es válido y tiene 0 primos.</p></li>
+<li><p><strong>El reparto.</strong> La parte <code>k</code>, de 0 a <code>partes - 1</code>, va de <code>desde + longitud * k / partes</code> a <code>desde + longitud * (k + 1) / partes</code>, donde <code>longitud = hasta - desde</code>. Con esa fórmula los trozos son contiguos, no se solapan, cubren el intervalo entero aunque <code>longitud</code> no sea múltiplo de <code>partes</code>, y algunos pueden quedar vacíos si hay más partes que números. Haz la multiplicación en <code>long</code> para que no se desborde con intervalos grandes.</p></li>
+<li><p><strong>Las tareas.</strong> Cada parte es un <code>Callable&lt;Long&gt;</code> que llama a <code>contarSecuencial</code> con sus límites. Guárdalas en una lista y entrégalas de una vez con <code>invokeAll</code>, que espera a que terminen todas y devuelve sus futuros.</p></li>
+<li><p><strong>El resultado.</strong> Suma lo que devuelve <code>get()</code> de cada futuro.</p></li>
+<li><p><strong>El ejecutor no es tuyo.</strong> Lo ha creado quien llama, que puede querer usarlo después: no lo cierres. Es la otra cara del <a href="../../es/contenido/tema3.html#cau-no-cerrar-ejecutor">error frecuente de no cerrar un ejecutor</a>: lo cierra quien lo crea.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="cf">try</span> <span class="op">(</span><span class="bu">ExecutorService</span> ejecutor <span class="op">=</span> <span class="bu">Executors</span><span class="op">.</span><span class="fu">newFixedThreadPool</span><span class="op">(</span><span class="dv">4</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PrimosEnParalelo<span class="op">.</span><span class="fu">contar</span><span class="op">(</span><span class="dv">0</span><span class="op">,</span> <span class="dv">100</span><span class="op">,</span> <span class="dv">3</span><span class="op">,</span> ejecutor<span class="op">));</span></span>
+<span id="cb12-3"><a href="#cb12-3"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>PrimosEnParalelo<span class="op">.</span><span class="fu">contar</span><span class="op">(</span><span class="dv">0</span><span class="op">,</span> <span class="dv">10_000_000</span><span class="op">,</span> <span class="dv">4</span><span class="op">,</span> ejecutor<span class="op">));</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb13-1"><a href="#cb13-1"></a>25</span>
+<span id="cb13-2"><a href="#cb13-2"></a>664579</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comparan el resultado con el de <code>contarSecuencial</code> en varios intervalos; repiten la cuenta de <code>[0, 100)</code> con entre 1 y 12 partes, con más partes que números y con un intervalo vacío, que es donde se nota un reparto que pierde o repite números; comprueban con un ejecutor espía que le llega <strong>exactamente una tarea por parte</strong> y que no se cierra; y rechazan los argumentos sin sentido.</p>
+<p><strong>Para pensar.</strong> Con un ejecutor de 4 hilos, contar hasta diez millones con 16 partes puede ir más rápido que con 4, aunque solo haya 4 hilos para ejecutarlas. ¿Por qué? Y si 16 es mejor que 4, ¿por qué no lo sería un millón de partes?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.2.2 Método `informe` de `EstacionMeteo`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-10-contents" aria-controls="callout-10" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.2.2 Método <code>informe</code> de <code>EstacionMeteo</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-10" class="callout-10-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Un informe que se construye con varias consultas lentas es el caso de uso de la <a href="../../es/contenido/tema3.html#imp-programacion-asincrona">programación asíncrona</a>: se lanzan las consultas, se describe qué hacer con sus resultados cuando lleguen, y nadie se queda bloqueado esperando. El modelo es el ejemplo de las <a href="../../es/contenido/tema3.html#nte-futuro-completable">dos consultas combinadas con <code>CompletableFuture</code></a>, que hace casi lo mismo con dos consultas de red.</p>
+<p>Una estación meteorológica tiene dos sensores, de temperatura y de humedad, que se consultan por red y a veces fallan o no contestan. Escribe en <code>EstacionMeteo</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1"></a><span class="kw">public</span> <span class="dt">static</span> CompletableFuture<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">informe</span><span class="op">(</span>Supplier<span class="op">&lt;</span><span class="bu">Double</span><span class="op">&gt;</span> temperatura<span class="op">,</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>        Supplier<span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> humedad<span class="op">,</span> <span class="bu">Duration</span> plazo<span class="op">,</span> <span class="bu">Executor</span> ejecutor<span class="op">)</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que devuelva <strong>el futuro</strong> de un informe como <code>"temperatura 21.5, humedad 60"</code>. Los dos sensores se consultan a la vez, en el <code>ejecutor</code> que se recibe; el que falle, o no conteste dentro de <code>plazo</code>, aparece como <code>?</code>.</p>
+<ol type="1">
+<li><p><strong>Un futuro por sensor</strong>, lanzado con <code>supplyAsync</code> en el ejecutor recibido.</p></li>
+<li><p><strong>Convertido en texto</strong> con <code>thenApply</code>. La temperatura se escribe con un decimal y con punto, sea cual sea la configuración regional del ordenador: <code>String.format(Locale.ROOT, "%.1f", grados)</code>. La humedad, con <code>String.valueOf</code>.</p></li>
+<li><p><strong>Con plazo y con repuesto.</strong> Si el futuro no termina a tiempo, <code>orTimeout</code> lo da por fallido; y si ha fallado, por el plazo o porque el sensor lanzó una excepción, <code>exceptionally</code> lo convierte en <code>"?"</code>. El orden importa: el repuesto tiene que ir <strong>después</strong> del plazo, para que también lo cubra.</p></li>
+<li><p><strong>Combinados</strong> con <code>thenCombine</code> en el texto final.</p></li>
+<li><p><strong>Ningún <code>join</code> dentro del método.</strong> El método devuelve el futuro sin esperar a nada: quien lo llama decide si espera, y cuándo. Esperar dentro convertiría un método asíncrono en uno síncrono con más líneas.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="cf">try</span> <span class="op">(</span><span class="bu">ExecutorService</span> ejecutor <span class="op">=</span> <span class="bu">Executors</span><span class="op">.</span><span class="fu">newFixedThreadPool</span><span class="op">(</span><span class="dv">2</span><span class="op">))</span> <span class="op">{</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a>    <span class="bu">Duration</span> plazo <span class="op">=</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">500</span><span class="op">);</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>    <span class="dt">var</span> informe <span class="op">=</span> EstacionMeteo<span class="op">.</span><span class="fu">informe</span><span class="op">(()</span> <span class="op">-&gt;</span> <span class="fl">21.5</span><span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="dv">60</span><span class="op">,</span> plazo<span class="op">,</span> ejecutor<span class="op">);</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>informe<span class="op">.</span><span class="fu">join</span><span class="op">());</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a></span>
+<span id="cb15-6"><a href="#cb15-6"></a>    Supplier<span class="op">&lt;</span><span class="bu">Double</span><span class="op">&gt;</span> rota <span class="op">=</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalStateException</span><span class="op">(</span><span class="st">"sensor roto"</span><span class="op">);</span> <span class="op">};</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a>    <span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>EstacionMeteo<span class="op">.</span><span class="fu">informe</span><span class="op">(</span>rota<span class="op">,</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="dv">60</span><span class="op">,</span> plazo<span class="op">,</span> ejecutor<span class="op">).</span><span class="fu">join</span><span class="op">());</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb16-1"><a href="#cb16-1"></a>temperatura 21.5, humedad 60</span>
+<span id="cb16-2"><a href="#cb16-2"></a>temperatura ?, humedad 60</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el formato con valores negativos y con redondeo; que un sensor que lanza una excepción aparece como <code>?</code>; que un sensor que tarda tres segundos aparece como <code>?</code> y el informe llega poco después del plazo; que dos sensores de 300 ms tardan unos 300 ms y no 600; y —esta es la que falla si hay un <code>join</code> dentro— que <code>informe</code> devuelve el futuro en menos de 100 ms y que las consultas se ejecutan en los hilos del ejecutor recibido.</p>
+<p><strong>Para pensar.</strong> El informe sustituye por <code>?</code> lo que no llega. Para un panel de temperatura es una decisión razonable. ¿Para qué clase de dato sería un error hacer eso, y qué harías entonces en lugar de escribir <code>?</code>?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.2.3 Clase `Votacion`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-12-contents" aria-controls="callout-12" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.2.3 Clase <code>Votacion</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-12" class="callout-12-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Un recuento compartido entre muchos hilos es el lugar natural de las <a href="../../es/contenido/tema3.html#colecciones-concurrentes">colecciones concurrentes</a> y de las <a href="../../es/contenido/tema3.html#variables-atómicas">variables atómicas</a>: cada operación sobre ellas es segura por separado, y lo que hay que vigilar es <strong>combinar dos</strong> sin perder esa seguridad. El modelo es el ejemplo de <a href="../../es/contenido/tema3.html#nte-contar-palabras">contar palabras desde cuatro hilos</a>.</p>
+<p>Escribe la clase <code>Votacion</code>, sin ningún <code>synchronized</code>, con los métodos</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">votar</span><span class="op">(</span><span class="bu">String</span> opcion<span class="op">)</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="kw">public</span> <span class="dt">boolean</span> <span class="fu">votarUnaVez</span><span class="op">(</span><span class="bu">String</span> votante<span class="op">,</span> <span class="bu">String</span> opcion<span class="op">)</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="kw">public</span> <span class="dt">long</span> <span class="fu">votos</span><span class="op">(</span><span class="bu">String</span> opcion<span class="op">)</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="kw">public</span> <span class="dt">long</span> <span class="fu">total</span><span class="op">()</span></span>
+<span id="cb17-5"><a href="#cb17-5"></a><span class="kw">public</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">Long</span><span class="op">&gt;</span> <span class="fu">resultados</span><span class="op">()</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>votar</code> suma un voto a una opción; <code>votarUnaVez</code> lo suma solo si ese votante no ha votado todavía, y devuelve si lo ha sumado; <code>votos</code> da los de una opción, o 0 si no tiene ninguno; <code>total</code>, los de todas; y <code>resultados</code>, una copia de los votos de cada opción en ese momento.</p>
+<ol type="1">
+<li><p><strong>Los votos de cada opción</strong>, en un <code>ConcurrentHashMap&lt;String, Long&gt;</code>, acumulados con <code>merge</code>.</p></li>
+<li><p><strong>El total</strong>, en un <code>AtomicLong</code>. Se podría calcular sumando el mapa, pero entonces <code>total()</code> recorrería todas las opciones en cada llamada.</p></li>
+<li><p><strong>Quién ha votado</strong>, en otro <code>ConcurrentHashMap</code>, que guarda qué opción votó cada votante. Un votante que lo intenta dos veces desde dos hilos a la vez solo puede votar una. ¿Por qué no vale comprobar con <code>containsKey</code> y después guardar con <code>put</code>? Es el <a href="../../es/contenido/tema3.html#cau-comprobar-y-actuar">error frecuente de comprobar y después actuar</a>, y la tabla de métodos de <code>ConcurrentHashMap</code> tiene uno que hace las dos cosas de una vez.</p></li>
+<li><p><strong>La copia</strong>, con <code>Map.copyOf</code>, que además la hace inmodificable.</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="dt">var</span> votacion <span class="op">=</span> <span class="kw">new</span> <span class="fu">Votacion</span><span class="op">();</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>votacion<span class="op">.</span><span class="fu">votar</span><span class="op">(</span><span class="st">"norte"</span><span class="op">);</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>votacion<span class="op">.</span><span class="fu">votar</span><span class="op">(</span><span class="st">"sur"</span><span class="op">);</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a>votacion<span class="op">.</span><span class="fu">votar</span><span class="op">(</span><span class="st">"norte"</span><span class="op">);</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>votacion<span class="op">.</span><span class="fu">votarUnaVez</span><span class="op">(</span><span class="st">"ana"</span><span class="op">,</span> <span class="st">"este"</span><span class="op">));</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>votacion<span class="op">.</span><span class="fu">votarUnaVez</span><span class="op">(</span><span class="st">"ana"</span><span class="op">,</span> <span class="st">"oeste"</span><span class="op">));</span>   <span class="co">// ana ya ha votado</span></span>
+<span id="cb18-7"><a href="#cb18-7"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>votacion<span class="op">.</span><span class="fu">votos</span><span class="op">(</span><span class="st">"norte"</span><span class="op">)</span> <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> votacion<span class="op">.</span><span class="fu">votos</span><span class="op">(</span><span class="st">"oeste"</span><span class="op">)</span> <span class="op">+</span> <span class="st">" "</span> <span class="op">+</span> votacion<span class="op">.</span><span class="fu">total</span><span class="op">());</span></span>
+<span id="cb18-8"><a href="#cb18-8"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>votacion<span class="op">.</span><span class="fu">resultados</span><span class="op">());</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime. El orden de la última línea puede ser otro:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb19-1"><a href="#cb19-1"></a>true</span>
+<span id="cb19-2"><a href="#cb19-2"></a>false</span>
+<span id="cb19-3"><a href="#cb19-3"></a>2 0 4</span>
+<span id="cb19-4"><a href="#cb19-4"></a>{este=1, norte=2, sur=1}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban el recuento con un solo hilo, que una opción sin votos tiene 0 y que <code>resultados</code> es una copia que no cambia ni se puede modificar. Y dos pruebas con ocho hilos que arrancan a la vez, repetidas diez veces: que <strong>no se pierde ningún voto</strong> —falla si el mapa o el total tienen una carrera— y que <strong>cada votante vota una sola vez</strong> aunque lo intente desde los ocho hilos —falla si se comprueba y después se actúa—.</p>
+<p><strong>Para pensar.</strong> <code>total()</code> y la suma de <code>resultados()</code> salen de dos estructuras distintas. Mientras se está votando, ¿pueden no coincidir en un momento dado? ¿Importa? Si importara, ¿cómo lo evitarías, y qué perderías a cambio?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.2.4 Método `imprimir` de `Imprenta`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-14-contents" aria-controls="callout-14" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.2.4 Método <code>imprimir</code> de <code>Imprenta</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-14" class="callout-14-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>El esquema <a href="../../es/contenido/tema3.html#imp-productor-consumidor">productor-consumidor</a> del tema tenía un productor y varios consumidores. Este ejercicio tiene <strong>varios de cada</strong>, y eso plantea una pregunta que el ejemplo no tenía: cuándo se ha acabado el trabajo, si ningún productor por separado lo sabe. El modelo es el <a href="../../es/contenido/tema3.html#nte-pasaplatos">pasaplatos con un cocinero y dos camareros</a>.</p>
+<p>Una imprenta recibe documentos de varias oficinas y los reparte entre varias impresoras, a través de una cola con sitio limitado. Escribe en <code>Imprenta</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb20-1"><a href="#cb20-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;&gt;</span> <span class="fu">imprimir</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;&gt;</span> oficinas<span class="op">,</span> <span class="dt">int</span> impresoras<span class="op">,</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a>        <span class="dt">int</span> capacidad<span class="op">)</span> <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>con un hilo por oficina, que mete en la cola sus documentos, y un hilo por impresora, que los saca y los imprime con el método <code>imprimirUno</code>, que la plantilla trae y tarda 10 ms. La cola es una <code>ArrayBlockingQueue</code> de <code>capacidad</code> documentos. El método vuelve cuando se ha impreso todo, con lo que ha impreso cada impresora, por su nombre: <code>"impresora-1"</code>, <code>"impresora-2"</code>…</p>
+<ol type="1">
+<li><p><strong>Validación.</strong> Con menos de una impresora o una cola sin sitio, <code>IllegalArgumentException</code>.</p></li>
+<li><p><strong>Lo que imprime cada impresora</strong>, en una lista <strong>suya</strong>, que solo toca su hilo. El mapa del resultado se puede preparar antes de arrancarlas, con una lista vacía por impresora; como cada hilo solo escribe en la suya, y el método la lee después del <code>join</code>, no hay nada compartido que proteger.</p></li>
+<li><p><strong>El final del trabajo.</strong> Las impresoras terminan con una píldora venenosa, como los camareros del pasaplatos, y hace falta <strong>una por impresora</strong>. Pero ninguna oficina sabe si las demás han terminado, así que no puede ponerlas ninguna de ellas. ¿Quién sabe cuándo han terminado todas?</p></li>
+</ol>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb21"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb21-1"><a href="#cb21-1"></a><span class="dt">var</span> oficinas <span class="op">=</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"a1"</span><span class="op">,</span> <span class="st">"a2"</span><span class="op">,</span> <span class="st">"a3"</span><span class="op">),</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"b1"</span><span class="op">,</span> <span class="st">"b2"</span><span class="op">));</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>Imprenta<span class="op">.</span><span class="fu">imprimir</span><span class="op">(</span>oficinas<span class="op">,</span> <span class="dv">2</span><span class="op">,</span> <span class="dv">2</span><span class="op">));</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprimió en una ejecución. El reparto cambia de una vez a otra; lo que no cambia es que están los cinco documentos, cada uno una sola vez:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb22"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb22-1"><a href="#cb22-1"></a>{impresora-1=[a1, a3, b2], impresora-2=[a2, b1]}</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que aparecen todas las impresoras, también las que no han impreso nada; que, con distintas combinaciones de oficinas, impresoras y capacidad, se imprime <strong>cada documento una sola vez</strong>; que termina aunque no haya documentos; que con una sola impresora se respeta el orden de cada oficina; que cuatro impresoras trabajan a la vez; y rechazan los argumentos sin sentido. Si las píldoras salen antes de tiempo, o faltan, las impresoras o las oficinas se quedan esperando, y las pruebas fallan a los 10 s con un mensaje que lo dice.</p>
+<p><strong>Para pensar.</strong> Si una oficina manda mil documentos y las demás uno cada una, el documento de las demás puede esperar detrás de los mil. ¿Cómo cambiarías la imprenta para que ninguna oficina pudiera acaparar las impresoras?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.2.5 Método `procesar` de `CadenaDeMontaje`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-16-contents" aria-controls="callout-16" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.2.5 Método <code>procesar</code> de <code>CadenaDeMontaje</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-16" class="callout-16-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Cuando un trabajo se hace en varias etapas sucesivas, el esquema <a href="../../es/contenido/tema3.html#imp-productor-consumidor">productor-consumidor</a> se puede encadenar: cada etapa es consumidora de la anterior y productora de la siguiente, y todas trabajan a la vez sobre piezas distintas, como en una cadena de montaje. Mientras la tercera etapa empaqueta la primera pieza, la segunda ya está pintando la segunda y la primera cortando la tercera.</p>
+<p>Escribe en <code>CadenaDeMontaje</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb23"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb23-1"><a href="#cb23-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">procesar</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> piezas<span class="op">,</span> <span class="bu">List</span><span class="op">&lt;</span>UnaryOperator<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;&gt;</span> etapas<span class="op">,</span></span>
+<span id="cb23-2"><a href="#cb23-2"></a>        <span class="dt">int</span> capacidad<span class="op">)</span> <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que pase cada pieza por todas las etapas, en orden, con <strong>un hilo por etapa</strong> y colas de <code>capacidad</code> piezas entre una etapa y la siguiente, y devuelva las piezas terminadas en el orden en que entraron. Cada etapa es una función que recibe una pieza y devuelve la pieza transformada. Con una capacidad menor que 1, <code>IllegalArgumentException</code>.</p>
+<p>Aquí no hay pasos: el diseño es tuyo. Antes de escribir, decide y apunta cuántas colas hacen falta para <span class="math inline">\(k\)</span> etapas, quién mete las piezas en la primera, quién saca las terminadas de la última, y cómo se entera cada etapa de que no van a llegar más piezas. Comprueba también que tu diseño funciona con una lista de etapas vacía.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb24"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb24-1"><a href="#cb24-1"></a><span class="bu">List</span><span class="op">&lt;</span>UnaryOperator<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;&gt;</span> etapas <span class="op">=</span> <span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>p <span class="op">-&gt;</span> <span class="st">"cortar("</span> <span class="op">+</span> p <span class="op">+</span> <span class="st">")"</span><span class="op">,</span> p <span class="op">-&gt;</span> <span class="st">"pintar("</span> <span class="op">+</span> p <span class="op">+</span> <span class="st">")"</span><span class="op">);</span></span>
+<span id="cb24-2"><a href="#cb24-2"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>CadenaDeMontaje<span class="op">.</span><span class="fu">procesar</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="st">"p1"</span><span class="op">,</span> <span class="st">"p2"</span><span class="op">,</span> <span class="st">"p3"</span><span class="op">),</span> etapas<span class="op">,</span> <span class="dv">2</span><span class="op">));</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb25"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb25-1"><a href="#cb25-1"></a>[pintar(cortar(p1)), pintar(cortar(p2)), pintar(cortar(p3))]</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que cada pieza pasa por todas las etapas en orden; que se conserva el orden de entrada con quinientas piezas; los casos sin piezas y sin etapas; que cada etapa se ejecuta siempre en el mismo hilo, distinto del de las demás y del que llama; y —esta es la que falla si las etapas no trabajan a la vez— que diez piezas por tres etapas de 50 ms tardan bastante menos que los 1500 ms que tardarían una detrás de otra.</p>
+<p><strong>Para pensar.</strong> ¿Qué etapa marca el ritmo de la cadena? Si una etapa tarda el doble que las demás, ¿de qué sirve hacer más grandes las colas? ¿Y poner dos hilos en esa etapa, qué ganarías y qué podrías romper?</p>
+</div>
+</div>
+</div>
+</section>
+<section id="hilos-virtuales-y-concurrencia-estructurada" class="level2">
+<h2 class="anchored" data-anchor-id="hilos-virtuales-y-concurrencia-estructurada">3.3. Hilos virtuales y concurrencia estructurada</h2>
+<p>Ejercicios sobre <a href="../../es/contenido/tema3.html#hilos-virtuales-y-concurrencia-estructurada">3.3 del tema</a>: hilos virtuales, semáforos y concurrencia estructurada.</p>
+<p>Son los dos últimos y los que menos ayuda traen: dicen qué hay que conseguir y en qué concepto se apoya, y el cómo lo decides tú. Los dos son cortos de escribir —una docena de líneas cada uno— y largos de pensar.</p>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.3.1 Método `descargarTodas` de `Descargador`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-18-contents" aria-controls="callout-18" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.3.1 Método <code>descargarTodas</code> de <code>Descargador</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-18" class="callout-18-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Los <a href="../../es/contenido/tema3.html#imp-hilo-virtual">hilos virtuales</a> permiten dedicar un hilo a cada espera sin preocuparse de cuántas hay, y un <a href="../../es/contenido/tema3.html#imp-semaforo">semáforo</a> limita cuántas de ellas hacen a la vez la parte que tiene que estar limitada. Este ejercicio junta las dos cosas, que es como se usan en la práctica. El modelo es el <a href="../../es/contenido/tema3.html#nte-semaforo">ejemplo de las diez descargas</a>.</p>
+<p>Escribe en <code>Descargador</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb26"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb26-1"><a href="#cb26-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> <span class="fu">descargarTodas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> direcciones<span class="op">,</span> <span class="dt">int</span> simultaneas<span class="op">,</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a>        Function<span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> descargar<span class="op">)</span> <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que descargue todas las direcciones llamando a <code>descargar</code>, <strong>cada una en su propio hilo virtual</strong>, y <strong>nunca más de <code>simultaneas</code> a la vez</strong>, y que devuelva el contenido de cada dirección. Si una descarga lanza una excepción, su contenido es <code>"error: "</code> seguido del mensaje de la excepción, y las demás siguen. Con un límite menor que 1, <code>IllegalArgumentException</code>. El método no vuelve hasta que han terminado todas.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb27-1"><a href="#cb27-1"></a>Function<span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> descargar <span class="op">=</span> direccion <span class="op">-&gt;</span> <span class="op">{</span></span>
+<span id="cb27-2"><a href="#cb27-2"></a>    <span class="fu">dormir</span><span class="op">(</span><span class="dv">100</span><span class="op">);</span>              <span class="co">// Thread.sleep(100) con su try/catch: una descarga de 100 ms</span></span>
+<span id="cb27-3"><a href="#cb27-3"></a>    <span class="cf">return</span> <span class="st">"contenido de "</span> <span class="op">+</span> direccion<span class="op">;</span></span>
+<span id="cb27-4"><a href="#cb27-4"></a><span class="op">};</span></span>
+<span id="cb27-5"><a href="#cb27-5"></a><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> direcciones <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb27-6"><a href="#cb27-6"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> i <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> i <span class="op">&lt;=</span> <span class="dv">10</span><span class="op">;</span> i<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb27-7"><a href="#cb27-7"></a>    direcciones<span class="op">.</span><span class="fu">add</span><span class="op">(</span><span class="st">"https://ejemplo.org/"</span> <span class="op">+</span> i<span class="op">);</span></span>
+<span id="cb27-8"><a href="#cb27-8"></a><span class="op">}</span></span>
+<span id="cb27-9"><a href="#cb27-9"></a><span class="dt">long</span> inicio <span class="op">=</span> <span class="bu">System</span><span class="op">.</span><span class="fu">nanoTime</span><span class="op">();</span></span>
+<span id="cb27-10"><a href="#cb27-10"></a><span class="bu">Map</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> contenidos <span class="op">=</span> Descargador<span class="op">.</span><span class="fu">descargarTodas</span><span class="op">(</span>direcciones<span class="op">,</span> <span class="dv">3</span><span class="op">,</span> descargar<span class="op">);</span></span>
+<span id="cb27-11"><a href="#cb27-11"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>contenidos<span class="op">.</span><span class="fu">get</span><span class="op">(</span><span class="st">"https://ejemplo.org/7"</span><span class="op">));</span></span>
+<span id="cb27-12"><a href="#cb27-12"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>contenidos<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">+</span> <span class="st">" descargas en "</span> <span class="op">+</span> <span class="op">(</span><span class="bu">System</span><span class="op">.</span><span class="fu">nanoTime</span><span class="op">()</span> <span class="op">-</span> inicio<span class="op">)</span> <span class="op">/</span> <span class="dv">1_000_000</span> <span class="op">+</span> <span class="st">" ms"</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime. Diez descargas de 100 ms de tres en tres son cuatro tandas:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb28"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb28-1"><a href="#cb28-1"></a>contenido de https://ejemplo.org/7</span>
+<span id="cb28-2"><a href="#cb28-2"></a>10 descargas en 428 ms</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que se descargan todas las direcciones; que cada descarga se ejecuta en un hilo virtual; que el número de descargas en curso a la vez llega <strong>exactamente</strong> al límite, con límites de 1, 3 y 10, y nunca lo supera; que mil descargas de 200 ms con un límite de mil tardan poco más que una; que una descarga que falla no tumba a las demás; y que se rechaza un límite sin sentido.</p>
+<p><strong>Para pensar.</strong> El límite está en el descargador. Si dos descargadores trabajan a la vez contra el mismo servidor, cada uno con un límite de 10, ¿cuántas conexiones ve el servidor? ¿Dónde pondrías el semáforo para que el límite fuera del servidor, y no de cada descargador?</p>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note no-icon callout-titled" title="3.3.2 Método `primeraRespuesta` de `Replicas`">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-20-contents" aria-controls="callout-20" aria-expanded="false" aria-label="Toggle callout">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>3.3.2 Método <code>primeraRespuesta</code> de <code>Replicas</code>
+</div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
+</div>
+<div id="callout-20" class="callout-20-contents callout-collapse collapse">
+<div class="callout-body-container callout-body">
+<p>Un servicio replicado en varios servidores admite una forma sencilla de reducir la espera: preguntar a todas las réplicas a la vez y quedarse con la primera que conteste bien. La <a href="../../es/contenido/tema3.html#imp-concurrencia-estructurada">concurrencia estructurada</a> tiene un <code>Joiner</code> hecho para eso, y además garantiza lo que con las herramientas de 3.2 había que vigilar a mano: que al volver, las réplicas que no han ganado han sido canceladas <strong>y han terminado</strong>. El modelo es el <a href="../../es/contenido/tema3.html#nte-viaje">presupuesto de un viaje</a>, con otra política.</p>
+<p>Escribe en <code>Replicas</code> el método</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb29"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb29-1"><a href="#cb29-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="op">&lt;</span>T<span class="op">&gt;</span> T <span class="fu">primeraRespuesta</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">Callable</span><span class="op">&lt;</span>T<span class="op">&gt;&gt;</span> replicas<span class="op">,</span> <span class="bu">Duration</span> plazo<span class="op">)</span></span>
+<span id="cb29-2"><a href="#cb29-2"></a>        <span class="kw">throws</span> <span class="bu">InterruptedException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>que consulte todas las réplicas a la vez en un ámbito estructurado con plazo, y devuelva la primera respuesta correcta. Si fallan todas, lanza la <code>StructuredTaskScope.FailedException</code> del ámbito; si ninguna contesta bien dentro del plazo, su <code>StructuredTaskScope.TimeoutException</code>. Con una lista vacía, <code>IllegalArgumentException</code>. Cuando el método vuelve, por cualquiera de los caminos, ninguna consulta sigue en marcha.</p>
+<div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Ejemplo de uso
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb30"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb30-1"><a href="#cb30-1"></a><span class="bu">Callable</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> lenta <span class="op">=</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span> <span class="bu">Thread</span><span class="op">.</span><span class="fu">sleep</span><span class="op">(</span><span class="dv">300</span><span class="op">);</span> <span class="cf">return</span> <span class="st">"replica lenta"</span><span class="op">;</span> <span class="op">};</span></span>
+<span id="cb30-2"><a href="#cb30-2"></a><span class="bu">Callable</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> rapida <span class="op">=</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span> <span class="bu">Thread</span><span class="op">.</span><span class="fu">sleep</span><span class="op">(</span><span class="dv">100</span><span class="op">);</span> <span class="cf">return</span> <span class="st">"replica rapida"</span><span class="op">;</span> <span class="op">};</span></span>
+<span id="cb30-3"><a href="#cb30-3"></a><span class="bu">Callable</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> caida <span class="op">=</span> <span class="op">()</span> <span class="op">-&gt;</span> <span class="op">{</span> <span class="bu">Thread</span><span class="op">.</span><span class="fu">sleep</span><span class="op">(</span><span class="dv">20</span><span class="op">);</span> <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalStateException</span><span class="op">(</span><span class="st">"replica caida"</span><span class="op">);</span> <span class="op">};</span></span>
+<span id="cb30-4"><a href="#cb30-4"></a></span>
+<span id="cb30-5"><a href="#cb30-5"></a><span class="bu">System</span><span class="op">.</span><span class="fu">out</span><span class="op">.</span><span class="fu">println</span><span class="op">(</span>Replicas<span class="op">.</span><span class="fu">primeraRespuesta</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>lenta<span class="op">,</span> rapida<span class="op">,</span> caida<span class="op">),</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofSeconds</span><span class="op">(</span><span class="dv">1</span><span class="op">)));</span></span>
+<span id="cb30-6"><a href="#cb30-6"></a>Replicas<span class="op">.</span><span class="fu">primeraRespuesta</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>caida<span class="op">,</span> caida<span class="op">),</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofSeconds</span><span class="op">(</span><span class="dv">1</span><span class="op">));</span>   <span class="co">// FailedException</span></span>
+<span id="cb30-7"><a href="#cb30-7"></a>Replicas<span class="op">.</span><span class="fu">primeraRespuesta</span><span class="op">(</span><span class="bu">List</span><span class="op">.</span><span class="fu">of</span><span class="op">(</span>lenta<span class="op">),</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">100</span><span class="op">));</span>         <span class="co">// TimeoutException</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Lo que imprime la primera llamada. La réplica caída falla antes que nadie, y no importa:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb31"><pre class="sourceCode numberSource text number-lines code-with-copy"><code class="sourceCode"><span id="cb31-1"><a href="#cb31-1"></a>replica rapida</span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</div>
+<p><strong>Cómo saber si va bien.</strong> Las pruebas comprueban que se devuelve la respuesta más rápida; que las réplicas que fallan se ignoran mientras alguna conteste; las dos excepciones; el rechazo de una lista vacía; y —esta es la que falla si se queda alguna consulta viva— que, al volver con una réplica de 50 ms y dos de tres segundos, las dos lentas han sido canceladas, ninguna sigue en marcha y el método ha tardado mucho menos de un segundo.</p>
+<p><strong>Para pensar.</strong> Preguntar a tres réplicas a la vez triplica la carga del servicio para ganar tiempo. ¿En qué casos crees que merece la pena? ¿Se te ocurre una variante que pague menos, a cambio de esperar un poco más?</p>
+</div>
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
