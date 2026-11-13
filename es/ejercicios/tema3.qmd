@@ -4,4 +4,840 @@ lang: es
 sidebar: barra-es
 ---
 
-*Contenido pendiente.*
+## Cómo trabajar estos ejercicios
+
+Los ejercicios de esta página acompañan al [contenido del Tema 3](../contenido/tema3.qmd) y se
+numeran `3.X.k`, donde `X` es la sección del tema a la que corresponden: tres de 3.1, cinco de 3.2
+y dos de 3.3. La sección 3.4, que es una panorámica, no tiene ejercicios.
+
+Todo lo que hace falta para resolverlos está en el Tema 3, y solo ahí: ningún enunciado usa nada
+que no se haya explicado antes, y ninguno depende de los bloques de ampliación del tema. En
+particular, los ejercicios de 3.1 se resuelven con `Thread` y `synchronized`, sin ejecutores ni
+colecciones concurrentes. Si un ejercicio te pide algo que no reconoces, vuelve al apartado que se
+enlaza en el propio enunciado.
+
+No empiezas desde una carpeta vacía. En la organización del curso hay **una plantilla** para todo
+el tema, con la misma estructura que
+[`t3-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t3-ejemplos):
+[`t3-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios). Que las tres
+secciones compartan plantilla es deliberado: los diez ejercicios viven en el mismo paquete,
+`es.uib.prgava.tema3.ejercicios`, no dependen del monitor de los temas anteriores, y repartirlos en
+tres repositorios solo obligaría a copiar tres veces la misma configuración. La plantilla trae:
+
+- un **esqueleto** de cada clase que se pide, con las firmas de sus métodos y las cláusulas
+  `implements` y `extends` del ejercicio, para que el proyecto compile y las pruebas se puedan
+  ejecutar desde el primer momento; lo que falta, y lo que tienes que escribir, son los
+  **cuerpos**, marcados con `// TODO 3.X.k`;
+- el **código de partida** de los ejercicios 3.1.2 y 3.1.3, que consisten en arreglar un
+  programa que está mal a propósito; ese código aparece además en el propio enunciado, para que
+  puedas leerlo sin salir de la página;
+- las **pruebas** que comprueban tu solución, en `src/test/java`;
+- la opción `--enable-preview` ya configurada, porque el ejercicio 3.3.2 usa la concurrencia
+  estructurada de 3.3.4, que en Java 25 es una API en vista previa.
+
+El esqueleto compila desde el primer momento, pero todas las pruebas fallan hasta que completas el
+código: son la lista de tareas, no una avería. El flujo de trabajo es el habitual: crea tu copia
+con **Use this template**, abre un Codespace, ejecuta `mvn test`, y ve resolviendo ejercicios hasta
+que la construcción pase en verde. Cada ejercicio se comprueba con **una clase de prueba, y solo
+una**, y el `README` de la plantilla trae la tabla de correspondencia.
+
+::: {.callout-tip appearance="simple"}
+**Las pruebas de un programa concurrente.** En este tema, una prueba en verde no demuestra que el
+código esté bien: demuestra que, en las veces que se ha ejecutado, no ha salido el error. Las
+pruebas de la plantilla repiten cada experimento con varios hilos, que es lo que hace aparecer una
+carrera casi siempre (véase la
+[Técnica de Depuración sobre provocar una carrera](../contenido/tema3.qmd#wrn-provocar-carrera)),
+pero «casi siempre» no es «siempre». Por eso, dos reglas:
+
+- Si una prueba falla **una sola vez**, aunque después pase, **hay un error**. No la vuelvas a
+  ejecutar hasta que salga verde: busca la carrera.
+- Las pruebas que pueden quedarse colgadas —un interbloqueo, un hilo que espera algo que no va a
+  llegar— llevan un plazo de 10 s, y al vencer fallan con un mensaje que lo dice.
+
+Algunas pruebas, además, **miden tiempos**, porque lo que comprueban es que algo ocurre a la vez.
+Los márgenes son amplios, pero en un ordenador muy cargado una podría fallar sin culpa tuya: cierra
+lo que sobre y repítela, y si sigue fallando, el problema está en el código.
+:::
+
+::: {.callout-tip appearance="simple"}
+**Cómo están escritos.** Cada enunciado empieza explicando para qué sirve lo que se pide, sigue con
+los pasos, y termina con dos cosas que no puntúan pero que son la mitad del ejercicio: qué
+comprueban las pruebas y una pregunta para pensar. Las preguntas que aparecen **dentro** de los
+pasos tienen respuesta en el tema y se enlaza dónde; la de **Para pensar** no la tiene, y se
+responde decidiendo.
+
+La ayuda **baja a lo largo de la página**, y es a propósito. Los ejercicios de 3.1 dicen paso a
+paso qué escribir y con qué método; los de 3.2 dicen qué clases de la biblioteca usar y dejan el
+cómo para ti; los de 3.3 dicen qué se pide y en qué concepto se apoya, y nada más. Si al llegar a
+3.3 te falta un paso, el paso está en el ejemplo del tema que se enlaza.
+:::
+
+::: {.callout-tip appearance="simple"}
+Estos ejercicios son la base de los Talleres y del Examen Parcial. Resolverlos leyendo la solución
+de otra persona no sirve de nada: lo que se evalúa es que sepas justificar cada decisión, no que el
+código funcione. En concurrencia eso es más cierto que nunca, porque un programa con una carrera
+**funciona** casi siempre.
+:::
+
+## 3.1. Fundamentos de la concurrencia
+
+Ejercicios sobre [3.1 del tema](../contenido/tema3.qmd#fundamentos-de-la-concurrencia): crear y
+esperar hilos, condiciones de carrera y exclusión mutua, e interbloqueo.
+
+Los tres siguen el camino del tema. El primero crea hilos y los espera; el segundo **provoca** una
+condición de carrera, la mide y la elimina; y el tercero **provoca** un interbloqueo y lo elimina.
+En los dos últimos, el código de partida está mal a propósito, y el primer paso es verlo fallar con
+tus propios ojos.
+
+:::: {.callout-note title="3.1.1 Clase `CreadorDeHilos`" collapse="true"}
+Un hilo se puede crear de cuatro formas, y las cuatro hacen lo mismo: le dan una **tarea** a un
+objeto `Thread` (véanse los
+[métodos principales de `Thread`](../contenido/tema3.qmd#imp-metodos-thread)). Este ejercicio las
+escribe todas, con la misma tarea, para que veas en qué se diferencian, y termina con la pareja de
+llamadas que aparece en todo programa con hilos: arrancar varios y esperar a que terminen. El
+modelo es el ejemplo de las
+[cuatro formas de crear un hilo](../contenido/tema3.qmd#nte-formas-de-crear-hilos).
+
+La tarea de todos los hilos es la misma: **anotar en una lista, el registro, el nombre del hilo
+que la está ejecutando**. El registro lo recibe cada método, y es una lista que se puede usar desde
+varios hilos a la vez; por qué una lista corriente no serviría lo verás en 3.1.4.
+
+Escribe en `CreadorDeHilos` los cinco métodos
+
+```java
+public static Thread conSubclase(String nombre, List<String> registro)
+public static Thread conClaseRunnable(String nombre, List<String> registro)
+public static Thread conLambda(String nombre, List<String> registro)
+public static Thread conConstructor(String nombre, List<String> registro)
+public static void ejecutarTodos(List<Thread> hilos) throws InterruptedException
+```
+
+Los cuatro primeros crean un hilo **sin arrancarlo**, con el nombre que reciben, y lo devuelven.
+
+1. **Forma 1, una subclase de `Thread`.** El esqueleto trae la clase anidada `HiloAnotador`, que
+   extiende `Thread`. Guarda el registro en un atributo, y redefine `run` para que anote
+   `getName()`. El constructor ya llama a `super(nombre)`, que es lo que le da nombre al hilo.
+   `conSubclase` solo tiene que devolver un `new HiloAnotador(nombre, registro)`.
+
+2. **Forma 2, una clase que implementa `Runnable`.** El esqueleto trae `TareaAnotar`. Aquí la
+   clase **no es un hilo**, sino una tarea, así que para saber en qué hilo se ejecuta tiene que
+   preguntarlo: `Thread.currentThread().getName()`. `conClaseRunnable` crea el hilo con el
+   constructor `new Thread(tarea, nombre)`.
+
+3. **Forma 3, una lambda.** Lo mismo que la forma 2, pero sin escribir una clase: la tarea es una
+   lambda que hace lo que hacía `run`. `conLambda` es una sola línea.
+
+4. **Forma 4, el constructor de hilos.** `Thread.ofPlatform().name(nombre).unstarted(tarea)`
+   crea el hilo sin arrancarlo. Fíjate en `unstarted`: el mismo constructor tiene un `start(tarea)`
+   que lo crea y lo arranca a la vez, y aquí no es lo que se pide.
+
+5. **`ejecutarTodos`.** Arranca todos los hilos de la lista con `start` y después espera a cada
+   uno con `join`. ¿Por qué tienen que ser **dos bucles** y no uno que haga `start` y `join` a cada
+   hilo? Repasa lo que hace `join` en el
+   [ejemplo de los dos hilos](../contenido/tema3.qmd#nte-hilos), y asegúrate también de no
+   llamar a `run` en lugar de `start`
+   ([el error frecuente de 3.1.2](../contenido/tema3.qmd#cau-llamar-run)).
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+List<String> registro = new CopyOnWriteArrayList<>();
+List<Thread> hilos = List.of(
+        CreadorDeHilos.conSubclase("forma-1", registro),
+        CreadorDeHilos.conClaseRunnable("forma-2", registro),
+        CreadorDeHilos.conLambda("forma-3", registro),
+        CreadorDeHilos.conConstructor("forma-4", registro));
+System.out.println(hilos.get(0).getState());
+CreadorDeHilos.ejecutarTodos(hilos);
+System.out.println(registro);
+```
+
+Lo que imprime. El orden de la segunda línea puede cambiar de una ejecución a otra; lo que no
+cambia es que están los cuatro:
+
+```text
+NEW
+[forma-1, forma-2, forma-3, forma-4]
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que los cuatro métodos devuelven un hilo **sin
+arrancar** (`getState()` es `NEW`) y con el nombre pedido; que cada hilo, al ejecutarse, anota su
+propio nombre; que `conSubclase` devuelve un `HiloAnotador` y `conConstructor` un hilo de
+plataforma; y que `ejecutarTodos` deja todos los hilos terminados. La que falla si usas un solo
+bucle, o si llamas a `run`, es `ejecutarTodosLosEjecutaALaVez`: lanza cuatro hilos que **solo
+pueden terminar si están en marcha los cuatro a la vez**.
+
+**Para pensar.** La forma 1 mezcla en una sola clase **qué** se hace —la tarea— y **quién** lo
+hace —el hilo—. Si mañana quisieras ejecutar la misma tarea en un ejecutor de 3.2.1, en lugar de en
+un hilo propio, ¿qué tendrías que cambiar en cada una de las cuatro formas?
+::::
+
+:::: {.callout-note title="3.1.2 Clases `AforoSincronizado` y `SimulacionAforo`" collapse="true"}
+Una [condición de carrera](../contenido/tema3.qmd#imp-condicion-de-carrera) no tiene por qué ser
+un `contador++`. Este ejercicio trabaja con una forma más traicionera: **comprobar y después
+actuar**. Un control de aforo deja entrar mientras quede sitio; con un solo hilo es correcto, y con
+varios deja entrar a más gente de la que cabe, porque entre la comprobación y la acción otro hilo
+puede colarse. Primero vas a escribir una simulación que lo **demuestre**, y después la versión que
+lo **arregla** con exclusión mutua. El modelo es el
+[contador protegido con `synchronized`](../contenido/tema3.qmd#nte-exclusion).
+
+El código de `Aforo`, que viene en
+[`t3-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios) junto con la
+interfaz `ControlDeAforo` que implementa, es el siguiente:
+
+```java
+// Aforo.java
+package es.uib.prgava.tema3.ejercicios;
+
+/**
+ * Ejercicio 3.1.2. Un control de aforo <strong>con una condición de carrera</strong>.
+ *
+ * <p>Con un solo hilo es correcto. Con varios, deja entrar a más gente de la que cabe. No lo
+ * corrijas: es el código de partida del ejercicio, y el que la simulación tiene que pillar en falta.
+ */
+public final class Aforo implements ControlDeAforo {
+
+    private final int capacidad;
+    private int dentro;
+
+    public Aforo(int capacidad) {
+        if (capacidad < 0) {
+            throw new IllegalArgumentException("La capacidad no puede ser negativa");
+        }
+        this.capacidad = capacidad;
+    }
+
+    @Override
+    public boolean entrar() {
+        if (dentro < capacidad) {       // comprobar...
+            Thread.yield();             // (cede el procesador: hace la carrera más visible)
+            dentro++;                   // ...y despues actuar
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public int dentro() {
+        return dentro;
+    }
+
+    @Override
+    public int capacidad() {
+        return capacidad;
+    }
+}
+```
+
+El `Thread.yield()` no hace nada útil: le dice al planificador que, si quiere, puede pasar el
+procesador a otro hilo justo en el peor momento. Ensancha la ventana de la carrera para que la
+simulación la pille casi siempre, como las técnicas de la
+[Técnica de Depuración para provocar una carrera](../contenido/tema3.qmd#wrn-provocar-carrera).
+
+Escribe en `SimulacionAforo` el método
+
+```java
+public static int entradasAceptadas(ControlDeAforo aforo, int hilos, int intentosPorHilo)
+        throws InterruptedException
+```
+
+que lance `hilos` hilos, cada uno de los cuales intenta entrar `intentosPorHilo` veces en `aforo`;
+que espere a que terminen todos, y que devuelva cuántas entradas fueron aceptadas en total. Y
+escribe la clase `AforoSincronizado`, con la misma interfaz que `Aforo` y sin la carrera.
+
+1. **Validación.** Con menos de un hilo, o con un número de intentos negativo,
+   `IllegalArgumentException`.
+
+2. **Contar sin crear otra carrera.** Cada hilo cuenta sus entradas aceptadas, y al final hay que
+   sumarlas. Si todos sumaran en una misma variable compartida, la simulación tendría su propia
+   condición de carrera. La forma más sencilla de evitarlo es **no compartir**: un array
+   `int[] aceptadas = new int[hilos]` en el que cada hilo escribe **solo en su casilla**, y una suma
+   que se hace **después** de los `join`, cuando ya nadie escribe. Para que la lambda de cada hilo
+   sepa cuál es su casilla, copia el índice del bucle en una variable local, `int mio = i;`, antes
+   de crearla: una lambda solo puede usar variables locales que no cambian.
+
+3. **Arrancar y esperar**, en dos bucles, como en 3.1.1.
+
+4. **Verlo fallar.** El esqueleto pide, en un `TODO`, un `main` que simule 8 hilos y 500 intentos
+   sobre un `Aforo` de 1000 plazas e imprima cuántas entradas aceptó. Ejecútalo varias veces antes
+   de seguir: deberían salirte más de 1000.
+
+5. **`AforoSincronizado`.** Los mismos atributos y el mismo cuerpo que `Aforo`, `Thread.yield()`
+   incluido, con `entrar` declarado `synchronized`. ¿Hace falta también en `dentro()`, que solo lee?
+   La respuesta está en el
+   [error de sincronizar solo las escrituras](../contenido/tema3.qmd#cau-sincronizar-escrituras).
+   `capacidad()` no la necesita: es un atributo `final`.
+
+6. **Verlo arreglado.** Añade al `main` la misma simulación con un `AforoSincronizado`.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+int conAforo = SimulacionAforo.entradasAceptadas(new Aforo(1000), 8, 500);
+int conSincronizado = SimulacionAforo.entradasAceptadas(new AforoSincronizado(1000), 8, 500);
+System.out.println("Aforo:             " + conAforo + " entradas para 1000 plazas");
+System.out.println("AforoSincronizado: " + conSincronizado + " entradas para 1000 plazas");
+```
+
+Lo que imprimió en una ejecución. La primera cifra cambia de una vez a otra —1007, 1009, 1011 en
+otras tres—; la segunda es siempre 1000:
+
+```text
+Aforo:             1008 entradas para 1000 plazas
+AforoSincronizado: 1000 entradas para 1000 plazas
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que la simulación lanza los hilos pedidos, que
+ninguno de los intentos se hace desde el hilo que llama y que se hacen todos; que la suma de
+aceptadas es correcta; que, con el `Aforo` original, la simulación pilla la carrera al menos una
+vez en veinte repeticiones; y —esta es la que falla si queda alguna carrera— que con
+`AforoSincronizado` entran **exactamente** 1000 personas en las veinte.
+
+**Para pensar.** `AforoSincronizado` hace que la gente entre de una en una: mientras alguien está
+dentro de `entrar`, los demás esperan. En un estadio con cuarenta tornos, eso sería un cuello de
+botella. ¿Cómo repartirías el aforo entre los tornos para que casi nunca tuvieran que esperarse
+entre ellos, sin dejar entrar nunca a nadie de más?
+::::
+
+:::: {.callout-note title="3.1.3 Clase `MesaOrdenada`" collapse="true"}
+El [interbloqueo](../contenido/tema3.qmd#imp-interbloqueo) del tema tenía dos hilos y dos
+cerrojos. Este ejercicio lo lleva a $n$, con el problema clásico que planteó Dijkstra: **la cena de
+los filósofos**. Hay $n$ filósofos sentados a una mesa redonda, con un tenedor entre cada dos; para
+comer, cada uno necesita los dos tenedores que tiene al lado. Si todos toman a la vez el de su
+izquierda, todos esperan para siempre el de su derecha. La herramienta para evitarlo es una de las
+[cuatro condiciones de Coffman](../contenido/tema3.qmd#tip-coffman).
+
+La mesa se describe con la interfaz `Mesa`: el filósofo `i` come con el tenedor `i`, a su
+izquierda, y el tenedor `(i + 1) % comensales()`, a su derecha. El código de `MesaIngenua`, que
+viene en [`t3-ejercicios`](https://github.com/UIB-22354-Programacion-Avanzada/t3-ejercicios), es el
+siguiente:
+
+```java
+// MesaIngenua.java
+package es.uib.prgava.tema3.ejercicios;
+
+/**
+ * Ejercicio 3.1.3. La mesa tal como sale escrita a la primera: <strong>se puede quedar parada</strong>.
+ *
+ * <p>Cada filósofo toma primero el tenedor de su izquierda y después el de su derecha. No la
+ * corrijas: es el código de partida del ejercicio, y la que usa {@code DemoCena}.
+ */
+public final class MesaIngenua implements Mesa {
+
+    private final Object[] tenedores;
+
+    public MesaIngenua(int comensales) {
+        if (comensales < 1) {
+            throw new IllegalArgumentException("Hace falta al menos un comensal");
+        }
+        tenedores = new Object[comensales];
+        for (int i = 0; i < comensales; i++) {
+            tenedores[i] = new Object();
+        }
+    }
+
+    @Override
+    public int comensales() {
+        return tenedores.length;
+    }
+
+    @Override
+    public void comer(int filosofo, Runnable bocado) {
+        Object izquierdo = tenedores[filosofo];
+        Object derecho = tenedores[(filosofo + 1) % tenedores.length];
+        synchronized (izquierdo) {
+            synchronized (derecho) {
+                bocado.run();
+            }
+        }
+    }
+}
+```
+
+Cada tenedor es un `Object` que solo sirve como cerrojo, y `bocado` es lo que el filósofo hace
+mientras tiene los dos. La plantilla trae también `DemoCena`, que sienta a cinco filósofos y los
+hace comer cien mil veces cada uno.
+
+Escribe la clase `MesaOrdenada`, que implementa `Mesa` igual que `MesaIngenua` pero **no se puede
+quedar parada**.
+
+1. **Verlo fallar.** Ejecuta `DemoCena` varias veces. Lo normal es que se quede parada a los pocos
+   segundos, sin escribir nada. Mientras está parada, confirma el diagnóstico con `jcmd`, como en la
+   [Técnica de Depuración para diagnosticar un interbloqueo](../contenido/tema3.qmd#wrn-diagnosticar-interbloqueo):
+   verás a los cinco filósofos esperando cada uno un cerrojo que tiene otro.
+
+2. **El constructor y `comensales`**, como en `MesaIngenua`.
+
+3. **`comer`.** Valida que `filosofo` esté entre 0 y `comensales() - 1`, o
+   `IllegalArgumentException`. Después, en lugar de tomar primero el tenedor de la izquierda, toma
+   primero el de **número menor**, sea el de la izquierda o el de la derecha, y después el de
+   número mayor. `Math.min` y `Math.max` te dan los dos números en orden.
+
+4. **El porqué, en un comentario.** El esqueleto pide, al final de la clase, un comentario de pocas
+   líneas: cuál de las cuatro condiciones de Coffman rompe tu mesa, y por qué el ciclo de la mesa
+   ingenua ya no puede cerrarse.
+
+5. **Verlo arreglado.** Cambia `DemoCena` para que use `new MesaOrdenada(5)` y ejecútala otra vez.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+Mesa mesa = new MesaOrdenada(5);
+int[] comidas = new int[1];
+mesa.comer(4, () -> comidas[0]++);   // el filósofo 4 toma el tenedor 0 y después el 4
+System.out.println(comidas[0]);
+
+mesa.comer(5, () -> { });            // IllegalArgumentException: no hay filósofo 5
+```
+
+Lo que imprime, y lo que imprime `DemoCena` con la mesa nueva:
+
+```text
+1
+   todos han comido 100000 veces
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el número de comensales y el rechazo de un
+filósofo que no existe; que el bocado se ejecuta; que dos vecinos **nunca** comen a la vez, porque
+eso significaría que comparten un tenedor; y —esta es la que se queda colgada y falla a los 10 s
+con la mesa ingenua— que una cena de doscientos mil bocados por filósofo termina, con 1, 2, 5 y 7
+comensales.
+
+**Para pensar.** Una solución clásica del problema es sentar a la mesa **un filósofo zurdo**: todos
+toman primero el tenedor de su izquierda, menos uno, que toma primero el de su derecha. ¿Es la
+misma solución que la tuya o es otra distinta? ¿Qué condición de Coffman rompe cada una?
+::::
+
+## 3.2. Herramientas de concurrencia en Java
+
+Ejercicios sobre [3.2 del tema](../contenido/tema3.qmd#herramientas-de-concurrencia-en-java):
+ejecutores y futuros, `CompletableFuture`, colecciones concurrentes y variables atómicas, y el
+esquema productor-consumidor.
+
+Aquí cambia la forma de trabajar. En 3.1 cada hilo se creaba y se esperaba a mano, y cada sección
+crítica se protegía con `synchronized`. En estos cinco ejercicios **no se escribe ningún
+`synchronized`**: el trabajo lo hacen las clases de `java.util.concurrent`, y lo que se pide es
+elegir la adecuada y usarla bien. Los enunciados dicen qué clase usar, pero ya no qué método llamar
+en cada línea: las tablas de métodos del tema están para eso.
+
+:::: {.callout-note title="3.2.1 Método `contar` de `PrimosEnParalelo`" collapse="true"}
+Un cálculo largo que se puede partir en trozos independientes es el caso más sencillo de
+paralelismo, y un [ejecutor](../contenido/tema3.qmd#imp-ejecutor) es la forma de repartirlo sin
+gestionar hilos a mano: se le entregan tareas, cada una devuelve su parte del resultado en un
+[futuro](../contenido/tema3.qmd#imp-futuro), y al final se suman. El modelo es el
+[ejemplo de las seis tareas con un ejecutor](../contenido/tema3.qmd#nte-ejecutor).
+
+El cálculo es contar cuántos números primos hay en un intervalo. La plantilla trae ya escritos
+`esPrimo(n)` y `contarSecuencial(desde, hasta)`, que cuenta los primos de `[desde, hasta)` en un
+solo hilo. Escribe en `PrimosEnParalelo` el método
+
+```java
+public static long contar(int desde, int hasta, int partes, ExecutorService ejecutor)
+        throws InterruptedException, ExecutionException
+```
+
+que cuente los primos de `[desde, hasta)` repartiendo el intervalo en `partes` tareas, que entrega
+al `ejecutor` que recibe.
+
+1. **Validación.** Si `desde > hasta` o `partes < 1`, `IllegalArgumentException`. Un intervalo
+   vacío, `desde == hasta`, es válido y tiene 0 primos.
+
+2. **El reparto.** La parte `k`, de 0 a `partes - 1`, va de `desde + longitud * k / partes` a
+   `desde + longitud * (k + 1) / partes`, donde `longitud = hasta - desde`. Con esa fórmula los
+   trozos son contiguos, no se solapan, cubren el intervalo entero aunque `longitud` no sea múltiplo
+   de `partes`, y algunos pueden quedar vacíos si hay más partes que números. Haz la multiplicación
+   en `long` para que no se desborde con intervalos grandes.
+
+3. **Las tareas.** Cada parte es un `Callable<Long>` que llama a `contarSecuencial` con sus límites.
+   Guárdalas en una lista y entrégalas de una vez con `invokeAll`, que espera a que terminen todas
+   y devuelve sus futuros.
+
+4. **El resultado.** Suma lo que devuelve `get()` de cada futuro.
+
+5. **El ejecutor no es tuyo.** Lo ha creado quien llama, que puede querer usarlo después: no lo
+   cierres. Es la otra cara del
+   [error frecuente de no cerrar un ejecutor](../contenido/tema3.qmd#cau-no-cerrar-ejecutor): lo
+   cierra quien lo crea.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+try (ExecutorService ejecutor = Executors.newFixedThreadPool(4)) {
+    System.out.println(PrimosEnParalelo.contar(0, 100, 3, ejecutor));
+    System.out.println(PrimosEnParalelo.contar(0, 10_000_000, 4, ejecutor));
+}
+```
+
+Lo que imprime:
+
+```text
+25
+664579
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comparan el resultado con el de `contarSecuencial` en varios
+intervalos; repiten la cuenta de `[0, 100)` con entre 1 y 12 partes, con más partes que números y
+con un intervalo vacío, que es donde se nota un reparto que pierde o repite números; comprueban con
+un ejecutor espía que le llega **exactamente una tarea por parte** y que no se cierra; y
+rechazan los argumentos sin sentido.
+
+**Para pensar.** Con un ejecutor de 4 hilos, contar hasta diez millones con 16 partes puede ir más
+rápido que con 4, aunque solo haya 4 hilos para ejecutarlas. ¿Por qué? Y si 16 es mejor que 4,
+¿por qué no lo sería un millón de partes?
+::::
+
+:::: {.callout-note title="3.2.2 Método `informe` de `EstacionMeteo`" collapse="true"}
+Un informe que se construye con varias consultas lentas es el caso de uso de la
+[programación asíncrona](../contenido/tema3.qmd#imp-programacion-asincrona): se lanzan las
+consultas, se describe qué hacer con sus resultados cuando lleguen, y nadie se queda bloqueado
+esperando. El modelo es el ejemplo de las
+[dos consultas combinadas con `CompletableFuture`](../contenido/tema3.qmd#nte-futuro-completable),
+que hace casi lo mismo con dos consultas de red.
+
+Una estación meteorológica tiene dos sensores, de temperatura y de humedad, que se consultan por
+red y a veces fallan o no contestan. Escribe en `EstacionMeteo` el método
+
+```java
+public static CompletableFuture<String> informe(Supplier<Double> temperatura,
+        Supplier<Integer> humedad, Duration plazo, Executor ejecutor)
+```
+
+que devuelva **el futuro** de un informe como `"temperatura 21.5, humedad 60"`. Los dos sensores se
+consultan a la vez, en el `ejecutor` que se recibe; el que falle, o no conteste dentro de `plazo`,
+aparece como `?`.
+
+1. **Un futuro por sensor**, lanzado con `supplyAsync` en el ejecutor recibido.
+
+2. **Convertido en texto** con `thenApply`. La temperatura se escribe con un decimal y con punto,
+   sea cual sea la configuración regional del ordenador:
+   `String.format(Locale.ROOT, "%.1f", grados)`. La humedad, con `String.valueOf`.
+
+3. **Con plazo y con repuesto.** Si el futuro no termina a tiempo, `orTimeout` lo da por fallido; y
+   si ha fallado, por el plazo o porque el sensor lanzó una excepción, `exceptionally` lo convierte
+   en `"?"`. El orden importa: el repuesto tiene que ir **después** del plazo, para que también lo
+   cubra.
+
+4. **Combinados** con `thenCombine` en el texto final.
+
+5. **Ningún `join` dentro del método.** El método devuelve el futuro sin esperar a nada: quien lo
+   llama decide si espera, y cuándo. Esperar dentro convertiría un método asíncrono en uno
+   síncrono con más líneas.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+try (ExecutorService ejecutor = Executors.newFixedThreadPool(2)) {
+    Duration plazo = Duration.ofMillis(500);
+    var informe = EstacionMeteo.informe(() -> 21.5, () -> 60, plazo, ejecutor);
+    System.out.println(informe.join());
+
+    Supplier<Double> rota = () -> { throw new IllegalStateException("sensor roto"); };
+    System.out.println(EstacionMeteo.informe(rota, () -> 60, plazo, ejecutor).join());
+}
+```
+
+Lo que imprime:
+
+```text
+temperatura 21.5, humedad 60
+temperatura ?, humedad 60
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el formato con valores negativos y con redondeo;
+que un sensor que lanza una excepción aparece como `?`; que un sensor que tarda tres segundos
+aparece como `?` y el informe llega poco después del plazo; que dos sensores de 300 ms tardan unos
+300 ms y no 600; y —esta es la que falla si hay un `join` dentro— que `informe` devuelve el futuro
+en menos de 100 ms y que las consultas se ejecutan en los hilos del ejecutor recibido.
+
+**Para pensar.** El informe sustituye por `?` lo que no llega. Para un panel de temperatura es una
+decisión razonable. ¿Para qué clase de dato sería un error hacer eso, y qué harías entonces en lugar
+de escribir `?`?
+::::
+
+:::: {.callout-note title="3.2.3 Clase `Votacion`" collapse="true"}
+Un recuento compartido entre muchos hilos es el lugar natural de las
+[colecciones concurrentes](../contenido/tema3.qmd#colecciones-concurrentes) y de las
+[variables atómicas](../contenido/tema3.qmd#variables-atómicas): cada operación sobre ellas es
+segura por separado, y lo que hay que vigilar es **combinar dos** sin perder esa seguridad. El
+modelo es el ejemplo de
+[contar palabras desde cuatro hilos](../contenido/tema3.qmd#nte-contar-palabras).
+
+Escribe la clase `Votacion`, sin ningún `synchronized`, con los métodos
+
+```java
+public void votar(String opcion)
+public boolean votarUnaVez(String votante, String opcion)
+public long votos(String opcion)
+public long total()
+public Map<String, Long> resultados()
+```
+
+`votar` suma un voto a una opción; `votarUnaVez` lo suma solo si ese votante no ha votado todavía,
+y devuelve si lo ha sumado; `votos` da los de una opción, o 0 si no tiene ninguno; `total`, los de
+todas; y `resultados`, una copia de los votos de cada opción en ese momento.
+
+1. **Los votos de cada opción**, en un `ConcurrentHashMap<String, Long>`, acumulados con `merge`.
+
+2. **El total**, en un `AtomicLong`. Se podría calcular sumando el mapa, pero entonces `total()`
+   recorrería todas las opciones en cada llamada.
+
+3. **Quién ha votado**, en otro `ConcurrentHashMap`, que guarda qué opción votó cada votante. Un
+   votante que lo intenta dos veces desde dos hilos a la vez solo puede votar una. ¿Por qué no
+   vale comprobar con `containsKey` y después guardar con `put`? Es el
+   [error frecuente de comprobar y después actuar](../contenido/tema3.qmd#cau-comprobar-y-actuar), y
+   la tabla de métodos de `ConcurrentHashMap` tiene uno que hace las dos cosas de una vez.
+
+4. **La copia**, con `Map.copyOf`, que además la hace inmodificable.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var votacion = new Votacion();
+votacion.votar("norte");
+votacion.votar("sur");
+votacion.votar("norte");
+System.out.println(votacion.votarUnaVez("ana", "este"));
+System.out.println(votacion.votarUnaVez("ana", "oeste"));   // ana ya ha votado
+System.out.println(votacion.votos("norte") + " " + votacion.votos("oeste") + " " + votacion.total());
+System.out.println(votacion.resultados());
+```
+
+Lo que imprime. El orden de la última línea puede ser otro:
+
+```text
+true
+false
+2 0 4
+{este=1, norte=2, sur=1}
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban el recuento con un solo hilo, que una opción sin
+votos tiene 0 y que `resultados` es una copia que no cambia ni se puede modificar. Y dos pruebas con
+ocho hilos que arrancan a la vez, repetidas diez veces: que **no se pierde ningún voto** —falla si
+el mapa o el total tienen una carrera— y que **cada votante vota una sola vez** aunque lo intente
+desde los ocho hilos —falla si se comprueba y después se actúa—.
+
+**Para pensar.** `total()` y la suma de `resultados()` salen de dos estructuras distintas. Mientras
+se está votando, ¿pueden no coincidir en un momento dado? ¿Importa? Si importara, ¿cómo lo
+evitarías, y qué perderías a cambio?
+::::
+
+:::: {.callout-note title="3.2.4 Método `imprimir` de `Imprenta`" collapse="true"}
+El esquema [productor-consumidor](../contenido/tema3.qmd#imp-productor-consumidor) del tema tenía un
+productor y varios consumidores. Este ejercicio tiene **varios de cada**, y eso plantea una
+pregunta que el ejemplo no tenía: cuándo se ha acabado el trabajo, si ningún productor por separado
+lo sabe. El modelo es el
+[pasaplatos con un cocinero y dos camareros](../contenido/tema3.qmd#nte-pasaplatos).
+
+Una imprenta recibe documentos de varias oficinas y los reparte entre varias impresoras, a través
+de una cola con sitio limitado. Escribe en `Imprenta` el método
+
+```java
+public static Map<String, List<String>> imprimir(List<List<String>> oficinas, int impresoras,
+        int capacidad) throws InterruptedException
+```
+
+con un hilo por oficina, que mete en la cola sus documentos, y un hilo por impresora, que los saca
+y los imprime con el método `imprimirUno`, que la plantilla trae y tarda 10 ms. La cola es una
+`ArrayBlockingQueue` de `capacidad` documentos. El método vuelve cuando se ha impreso todo, con lo
+que ha impreso cada impresora, por su nombre: `"impresora-1"`, `"impresora-2"`…
+
+1. **Validación.** Con menos de una impresora o una cola sin sitio, `IllegalArgumentException`.
+
+2. **Lo que imprime cada impresora**, en una lista **suya**, que solo toca su hilo. El mapa del
+   resultado se puede preparar antes de arrancarlas, con una lista vacía por impresora; como cada
+   hilo solo escribe en la suya, y el método la lee después del `join`, no hay nada compartido que
+   proteger.
+
+3. **El final del trabajo.** Las impresoras terminan con una píldora venenosa, como los camareros
+   del pasaplatos, y hace falta **una por impresora**. Pero ninguna oficina sabe si las demás han
+   terminado, así que no puede ponerlas ninguna de ellas. ¿Quién sabe cuándo han terminado todas?
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+var oficinas = List.of(List.of("a1", "a2", "a3"), List.of("b1", "b2"));
+System.out.println(Imprenta.imprimir(oficinas, 2, 2));
+```
+
+Lo que imprimió en una ejecución. El reparto cambia de una vez a otra; lo que no cambia es que
+están los cinco documentos, cada uno una sola vez:
+
+```text
+{impresora-1=[a1, a3, b2], impresora-2=[a2, b1]}
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que aparecen todas las impresoras, también las
+que no han impreso nada; que, con distintas combinaciones de oficinas, impresoras y capacidad, se
+imprime **cada documento una sola vez**; que termina aunque no haya documentos; que con una sola
+impresora se respeta el orden de cada oficina; que cuatro impresoras trabajan a la vez; y rechazan
+los argumentos sin sentido. Si las píldoras salen antes de tiempo, o faltan, las impresoras o las
+oficinas se quedan esperando, y las pruebas fallan a los 10 s con un mensaje que lo dice.
+
+**Para pensar.** Si una oficina manda mil documentos y las demás uno cada una, el documento de las
+demás puede esperar detrás de los mil. ¿Cómo cambiarías la imprenta para que ninguna oficina
+pudiera acaparar las impresoras?
+::::
+
+:::: {.callout-note title="3.2.5 Método `procesar` de `CadenaDeMontaje`" collapse="true"}
+Cuando un trabajo se hace en varias etapas sucesivas, el esquema
+[productor-consumidor](../contenido/tema3.qmd#imp-productor-consumidor) se puede encadenar: cada
+etapa es consumidora de la anterior y productora de la siguiente, y todas trabajan a la vez sobre
+piezas distintas, como en una cadena de montaje. Mientras la tercera etapa empaqueta la primera
+pieza, la segunda ya está pintando la segunda y la primera cortando la tercera.
+
+Escribe en `CadenaDeMontaje` el método
+
+```java
+public static List<String> procesar(List<String> piezas, List<UnaryOperator<String>> etapas,
+        int capacidad) throws InterruptedException
+```
+
+que pase cada pieza por todas las etapas, en orden, con **un hilo por etapa** y colas de `capacidad`
+piezas entre una etapa y la siguiente, y devuelva las piezas terminadas en el orden en que
+entraron. Cada etapa es una función que recibe una pieza y devuelve la pieza transformada. Con una
+capacidad menor que 1, `IllegalArgumentException`.
+
+Aquí no hay pasos: el diseño es tuyo. Antes de escribir, decide y apunta cuántas colas hacen falta
+para $k$ etapas, quién mete las piezas en la primera, quién saca las terminadas de la última, y
+cómo se entera cada etapa de que no van a llegar más piezas. Comprueba también que tu diseño
+funciona con una lista de etapas vacía.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+List<UnaryOperator<String>> etapas = List.of(p -> "cortar(" + p + ")", p -> "pintar(" + p + ")");
+System.out.println(CadenaDeMontaje.procesar(List.of("p1", "p2", "p3"), etapas, 2));
+```
+
+Lo que imprime:
+
+```text
+[pintar(cortar(p1)), pintar(cortar(p2)), pintar(cortar(p3))]
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que cada pieza pasa por todas las etapas en
+orden; que se conserva el orden de entrada con quinientas piezas; los casos sin piezas y sin
+etapas; que cada etapa se ejecuta siempre en el mismo hilo, distinto del de las demás y del que
+llama; y —esta es la que falla si las etapas no trabajan a la vez— que diez piezas por tres etapas
+de 50 ms tardan bastante menos que los 1500 ms que tardarían una detrás de otra.
+
+**Para pensar.** ¿Qué etapa marca el ritmo de la cadena? Si una etapa tarda el doble que las
+demás, ¿de qué sirve hacer más grandes las colas? ¿Y poner dos hilos en esa etapa, qué ganarías y
+qué podrías romper?
+::::
+
+## 3.3. Hilos virtuales y concurrencia estructurada
+
+Ejercicios sobre
+[3.3 del tema](../contenido/tema3.qmd#hilos-virtuales-y-concurrencia-estructurada): hilos
+virtuales, semáforos y concurrencia estructurada.
+
+Son los dos últimos y los que menos ayuda traen: dicen qué hay que conseguir y en qué concepto se
+apoya, y el cómo lo decides tú. Los dos son cortos de escribir —una docena de líneas cada uno— y
+largos de pensar.
+
+:::: {.callout-note title="3.3.1 Método `descargarTodas` de `Descargador`" collapse="true"}
+Los [hilos virtuales](../contenido/tema3.qmd#imp-hilo-virtual) permiten dedicar un hilo a cada
+espera sin preocuparse de cuántas hay, y un [semáforo](../contenido/tema3.qmd#imp-semaforo) limita
+cuántas de ellas hacen a la vez la parte que tiene que estar limitada. Este ejercicio junta las dos
+cosas, que es como se usan en la práctica. El modelo es el
+[ejemplo de las diez descargas](../contenido/tema3.qmd#nte-semaforo).
+
+Escribe en `Descargador` el método
+
+```java
+public static Map<String, String> descargarTodas(List<String> direcciones, int simultaneas,
+        Function<String, String> descargar) throws InterruptedException
+```
+
+que descargue todas las direcciones llamando a `descargar`, **cada una en su propio hilo virtual**,
+y **nunca más de `simultaneas` a la vez**, y que devuelva el contenido de cada dirección. Si una
+descarga lanza una excepción, su contenido es `"error: "` seguido del mensaje de la excepción, y
+las demás siguen. Con un límite menor que 1, `IllegalArgumentException`. El método no vuelve hasta
+que han terminado todas.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+Function<String, String> descargar = direccion -> {
+    dormir(100);              // Thread.sleep(100) con su try/catch: una descarga de 100 ms
+    return "contenido de " + direccion;
+};
+List<String> direcciones = new ArrayList<>();
+for (int i = 1; i <= 10; i++) {
+    direcciones.add("https://ejemplo.org/" + i);
+}
+long inicio = System.nanoTime();
+Map<String, String> contenidos = Descargador.descargarTodas(direcciones, 3, descargar);
+System.out.println(contenidos.get("https://ejemplo.org/7"));
+System.out.println(contenidos.size() + " descargas en " + (System.nanoTime() - inicio) / 1_000_000 + " ms");
+```
+
+Lo que imprime. Diez descargas de 100 ms de tres en tres son cuatro tandas:
+
+```text
+contenido de https://ejemplo.org/7
+10 descargas en 428 ms
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que se descargan todas las direcciones; que cada
+descarga se ejecuta en un hilo virtual; que el número de descargas en curso a la vez llega
+**exactamente** al límite, con límites de 1, 3 y 10, y nunca lo supera; que mil descargas de 200 ms
+con un límite de mil tardan poco más que una; que una descarga que falla no tumba a las demás; y
+que se rechaza un límite sin sentido.
+
+**Para pensar.** El límite está en el descargador. Si dos descargadores trabajan a la vez contra el
+mismo servidor, cada uno con un límite de 10, ¿cuántas conexiones ve el servidor? ¿Dónde pondrías
+el semáforo para que el límite fuera del servidor, y no de cada descargador?
+::::
+
+:::: {.callout-note title="3.3.2 Método `primeraRespuesta` de `Replicas`" collapse="true"}
+Un servicio replicado en varios servidores admite una forma sencilla de reducir la espera:
+preguntar a todas las réplicas a la vez y quedarse con la primera que conteste bien. La
+[concurrencia estructurada](../contenido/tema3.qmd#imp-concurrencia-estructurada) tiene un `Joiner`
+hecho para eso, y además garantiza lo que con las herramientas de 3.2 había que vigilar a mano: que
+al volver, las réplicas que no han ganado han sido canceladas **y han terminado**. El modelo es el
+[presupuesto de un viaje](../contenido/tema3.qmd#nte-viaje), con otra política.
+
+Escribe en `Replicas` el método
+
+```java
+public static <T> T primeraRespuesta(List<Callable<T>> replicas, Duration plazo)
+        throws InterruptedException
+```
+
+que consulte todas las réplicas a la vez en un ámbito estructurado con plazo, y devuelva la primera
+respuesta correcta. Si fallan todas, lanza la `StructuredTaskScope.FailedException` del ámbito; si
+ninguna contesta bien dentro del plazo, su `StructuredTaskScope.TimeoutException`. Con una lista
+vacía, `IllegalArgumentException`. Cuando el método vuelve, por cualquiera de los caminos, ninguna
+consulta sigue en marcha.
+
+::: {.callout-tip title="Ejemplo de uso"}
+```java
+Callable<String> lenta = () -> { Thread.sleep(300); return "replica lenta"; };
+Callable<String> rapida = () -> { Thread.sleep(100); return "replica rapida"; };
+Callable<String> caida = () -> { Thread.sleep(20); throw new IllegalStateException("replica caida"); };
+
+System.out.println(Replicas.primeraRespuesta(List.of(lenta, rapida, caida), Duration.ofSeconds(1)));
+Replicas.primeraRespuesta(List.of(caida, caida), Duration.ofSeconds(1));   // FailedException
+Replicas.primeraRespuesta(List.of(lenta), Duration.ofMillis(100));         // TimeoutException
+```
+
+Lo que imprime la primera llamada. La réplica caída falla antes que nadie, y no importa:
+
+```text
+replica rapida
+```
+:::
+
+**Cómo saber si va bien.** Las pruebas comprueban que se devuelve la respuesta más rápida; que las
+réplicas que fallan se ignoran mientras alguna conteste; las dos excepciones; el rechazo de una
+lista vacía; y —esta es la que falla si se queda alguna consulta viva— que, al volver con una
+réplica de 50 ms y dos de tres segundos, las dos lentas han sido canceladas, ninguna sigue en
+marcha y el método ha tardado mucho menos de un segundo.
+
+**Para pensar.** Preguntar a tres réplicas a la vez triplica la carga del servicio para ganar
+tiempo. ¿En qué casos crees que merece la pena? ¿Se te ocurre una variante que pague menos, a
+cambio de esperar un poco más?
+::::
