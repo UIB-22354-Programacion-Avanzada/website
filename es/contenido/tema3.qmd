@@ -2752,7 +2752,7 @@ private static final BlockingQueue<String> PASAPLATOS = new ArrayBlockingQueue<>
 private static final String FIN = "fin del servicio";
 ```
 
-El cocinero prepara ocho platos. Cocinar cada uno cuesta 100 ms, y después lo deja en el pasaplatos
+El cocinero prepara ocho platos. Cocinar cada uno toma 100 ms, y después lo deja en el pasaplatos
 con `put`. Si el pasaplatos está lleno, el cocinero se queda **bloqueado** en esa línea hasta que un
 camarero recoja un plato y deje sitio:
 
