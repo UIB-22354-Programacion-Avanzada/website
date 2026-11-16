@@ -2266,13 +2266,13 @@ Ejemplo&nbsp;7: Seis tareas sin resultado y tres hilos, con <code>execute</code>
 </tbody>
 </table>
 <p>El segundo ejemplo es el mismo programa con las tareas convertidas en <code>Callable&lt;String&gt;</code>: cada una devuelve su texto en lugar de imprimirlo, y ya no necesita el <code>try</code> de <code>InterruptedException</code>.</p>
-<div id="nte-ejecutor" class="callout callout-style-default callout-note no-icon callout-titled" title="Seis tareas y tres hilos con un ejecutor">
+<div id="nte-ejecutor" class="callout callout-style-default callout-note no-icon callout-titled" title="Seis tareas con resultado y tres hilos, con `submit`">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon no-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Ejemplo&nbsp;8: Seis tareas y tres hilos con un ejecutor
+Ejemplo&nbsp;8: Seis tareas con resultado y tres hilos, con <code>submit</code>
 </div>
 </div>
 <div class="callout-body-container callout-body">
@@ -3481,8 +3481,12 @@ Concepto Clave&nbsp;13: Productor y consumidor
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>El patrón <strong>productor-consumidor</strong> separa a quien genera trabajo de quien lo procesa poniendo una <strong>cola</strong> entre los dos. Los productores dejan elementos en la cola y siguen con lo suyo; los consumidores los sacan y los procesan a su ritmo. Ninguno espera al otro, salvo en los dos extremos: un consumidor que encuentra la cola vacía espera a que haya algo, y un productor que la encuentra llena —si tiene capacidad limitada— espera a que haya sitio.</p>
-<p>Es uno de los problemas clásicos de la programación concurrente, y nació con ella. Dijkstra lo planteó en 1965, en el diseño de sistemas operativos, para presentar los semáforos <span class="citation" data-cites="dijkstra1965">(<a href="#ref-dijkstra1965" role="doc-biblioref">Dijkstra 1965</a>)</span>: un proceso que produce datos, otro que los consume y, entre los dos, un búfer de capacidad limitada. Por eso también se le llama el problema del <strong>búfer acotado</strong> (<em>bounded buffer</em>). Hoare lo eligió en 1974 como ejemplo para presentar los monitores <span class="citation" data-cites="hoare1974">(<a href="#ref-hoare1974" role="doc-biblioref">Hoare 1974</a>)</span>, y desde entonces se ha resuelto con cada herramienta de sincronización que ha aparecido. En Java no hace falta programarlo: la cola que lo resuelve ya está hecha, y es una <code>BlockingQueue</code>.</p>
+<p>El patrón <strong>productor-consumidor</strong> separa a quien genera un “producto” de quien lo “consume” poniendo una <strong>cola</strong> entre los dos. Los productores dejan elementos en la cola y siguen con la suyo producción; los consumidores los sacan y los procesan (consumen) a su ritmo. Ninguno espera al otro, salvo en los dos extremos:</p>
+<ul>
+<li>un consumidor que encuentra la cola vacía espera a que haya algo,</li>
+<li>un productor que la encuentra llena —si tiene capacidad limitada— espera a que haya sitio.</li>
+</ul>
+<p>Es uno de los problemas clásicos de la programación concurrente, y nació con ella. Dijkstra lo planteó en 1965, en el diseño de sistemas operativos, para presentar los semáforos <span class="citation" data-cites="dijkstra1965">(<a href="#ref-dijkstra1965" role="doc-biblioref">Dijkstra 1965</a>)</span>: un proceso que produce datos, otro que los consume y, entre los dos, un búfer de capacidad limitada. Por eso también se le llama el problema del <strong>búfer acotado</strong> (<em>bounded buffer</em>). Hoare lo eligió en 1974 como ejemplo para presentar los monitores <span class="citation" data-cites="hoare1974">(<a href="#ref-hoare1974" role="doc-biblioref">Hoare 1974</a>)</span>, y desde entonces se ha resuelto con cada herramienta de sincronización que ha aparecido. En Java la mejor herramienta que resuelve este problema de sincronización es la <code>BlockingQueue</code>.</p>
 </div>
 </div>
 <p>Una <code>BlockingQueue</code> es una cola que, además de las operaciones de siempre, <strong>sabe esperar</strong>. Sus métodos vienen en cuatro versiones, según lo que hacen cuando la operación no se puede hacer en ese momento, porque se quiere meter en una cola llena o sacar de una vacía:</p>
@@ -3554,7 +3558,7 @@ Concepto Clave&nbsp;13: Productor y consumidor
 </tr>
 </tbody>
 </table>
-<p>El ejemplo es uno de los clásicos de los ejercicios de concurrencia: la cocina de un restaurante. Un cocinero prepara platos y los deja en el <strong>pasaplatos</strong>, donde caben tres, y dos camareros los recogen y los sirven. El cocinero y los dos camareros son tres hilos, y lo único que comparten es el pasaplatos, una <code>ArrayBlockingQueue</code> de capacidad 3 que guarda los platos como textos —«plato 1», «plato 2»…—:</p>
+<p>El siguiente ejemplo es uno de los usuales ejercicios de concurrencia: la cocina de un restaurante. Un cocinero prepara platos y los deja en el <strong>pasaplatos</strong>, donde caben tres, y dos camareros los recogen y los sirven. El cocinero y los dos camareros son tres hilos, y lo único que comparten es el pasaplatos, una <code>ArrayBlockingQueue</code> de capacidad 3 que guarda los platos como textos —«plato 1», «plato 2»…—:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb52"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb52-1"><a href="#cb52-1"></a><span class="co">// Fragmento</span></span>
 <span id="cb52-2"><a href="#cb52-2"></a><span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="bu">BlockingQueue</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> PASAPLATOS <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayBlockingQueue</span><span class="op">&lt;&gt;(</span><span class="dv">3</span><span class="op">);</span></span>
 <span id="cb52-3"><a href="#cb52-3"></a><span class="kw">private</span> <span class="dt">static</span> <span class="dt">final</span> <span class="bu">String</span> FIN <span class="op">=</span> <span class="st">"fin del servicio"</span><span class="op">;</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
