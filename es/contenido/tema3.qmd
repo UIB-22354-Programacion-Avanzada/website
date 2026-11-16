@@ -1694,7 +1694,7 @@ devuelve al instante un `Future<T>`, el **futuro** de su resultado (@imp-futuro)
 El segundo ejemplo es el mismo programa con las tareas convertidas en `Callable<String>`: cada una
 devuelve su texto en lugar de imprimirlo, y ya no necesita el `try` de `InterruptedException`.
 
-::: {#nte-ejecutor .callout-note title="Seis tareas y tres hilos con un ejecutor"}
+::: {#nte-ejecutor .callout-note title="Seis tareas con resultado y tres hilos, con `submit`"}
 ```java
 // DemoEjecutor.java
 package es.uib.prgava.tema3.herramientas;
@@ -2704,19 +2704,19 @@ analiza. Si quien genera el trabajo se lo entrega en mano a quien lo procesa, el
 que esperar siempre al más lento. La solución es poner algo en medio.
 
 ::: {#imp-productor-consumidor .callout-important title="Productor y consumidor"}
-El patrón **productor-consumidor** separa a quien genera trabajo de quien lo procesa poniendo una
-**cola** entre los dos. Los productores dejan elementos en la cola y siguen con lo suyo; los
-consumidores los sacan y los procesan a su ritmo. Ninguno espera al otro, salvo en los dos extremos:
-un consumidor que encuentra la cola vacía espera a que haya algo, y un productor que la encuentra
-llena —si tiene capacidad limitada— espera a que haya sitio.
+El patrón **productor-consumidor** separa a quien genera un "producto" de quien lo "consume" poniendo una
+**cola** entre los dos. Los productores dejan elementos en la cola y siguen con la suyo producción; los
+consumidores los sacan y los procesan (consumen) a su ritmo. Ninguno espera al otro, salvo en los dos extremos:
+
+- un consumidor que encuentra la cola vacía espera a que haya algo, 
+- un productor que la encuentra llena —si tiene capacidad limitada— espera a que haya sitio.
 
 Es uno de los problemas clásicos de la programación concurrente, y nació con ella. Dijkstra lo
 planteó en 1965, en el diseño de sistemas operativos, para presentar los semáforos [@dijkstra1965]:
 un proceso que produce datos, otro que los consume y, entre los dos, un búfer de capacidad limitada.
 Por eso también se le llama el problema del **búfer acotado** (*bounded buffer*). Hoare lo eligió en
 1974 como ejemplo para presentar los monitores [@hoare1974], y desde entonces se ha resuelto con
-cada herramienta de sincronización que ha aparecido. En Java no hace falta programarlo: la cola que
-lo resuelve ya está hecha, y es una `BlockingQueue`.
+cada herramienta de sincronización que ha aparecido. En Java la mejor herramienta que resuelve este problema de sincronización es la `BlockingQueue`.
 :::
 
 Una `BlockingQueue` es una cola que, además de las operaciones de siempre, **sabe esperar**. Sus
@@ -2740,7 +2740,7 @@ siempre. Como en `ConcurrentHashMap`, ninguna admite `null`, porque `null` es lo
 | `LinkedBlockingQueue` | Sin límite, salvo que se indique una al crearla. |
 | `PriorityBlockingQueue` | Sin límite; saca los elementos por prioridad, según un comparador, como la `PriorityQueue` del Tema 2. |
 
-El ejemplo es uno de los clásicos de los ejercicios de concurrencia: la cocina de un restaurante.
+El siguiente ejemplo es uno de los usuales ejercicios de concurrencia: la cocina de un restaurante.
 Un cocinero prepara platos y los deja en el **pasaplatos**, donde caben tres, y dos camareros los
 recogen y los sirven. El cocinero y los dos camareros son tres hilos, y lo único que comparten es el
 pasaplatos, una `ArrayBlockingQueue` de capacidad 3 que guarda los platos como textos —«plato 1»,
