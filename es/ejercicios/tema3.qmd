@@ -754,6 +754,12 @@ piezas ──► [ensamblador] ──► ensambladas ──► [pintor] ──�
 
 7. **Esperar y devolver.** `join` a los tres, y devuelve `terminadas`.
 
+8. **Verlo funcionar.** La plantilla trae `DemoCadenaDeMontaje`, que fabrica las mismas piezas dos
+   veces: primero sin cadena, con una persona que hace los tres pasos de cada pieza, y después con
+   tu `fabricar`. La primera mitad funciona desde el principio, porque solo usa `Taller`, y te da la
+   referencia antes de escribir nada. Con un número como argumento fabrica esas piezas, que es lo
+   que necesitarás para la pregunta final.
+
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
 long inicio = System.nanoTime();
