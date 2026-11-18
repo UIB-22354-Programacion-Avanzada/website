@@ -1096,6 +1096,7 @@ window.Quarto = {
 <li><p><strong>El empaquetador</strong> saca piezas de <code>pintadas</code>, las empaqueta y las añade a la lista <code>terminadas</code>. Cuando saca la píldora, termina. Como solo él escribe en <code>terminadas</code> y el método la lee después del <code>join</code>, no hay nada compartido que proteger, como en la <code>Imprenta</code> de 3.2.4.</p></li>
 <li><p><strong>Los nombres.</strong> Crea los hilos con el constructor de hilos y llámalos <code>"ensamblador"</code>, <code>"pintor"</code> y <code>"empaquetador"</code>. Las pruebas los buscan por el nombre.</p></li>
 <li><p><strong>Esperar y devolver.</strong> <code>join</code> a los tres, y devuelve <code>terminadas</code>.</p></li>
+<li><p><strong>Verlo funcionar.</strong> La plantilla trae <code>DemoCadenaDeMontaje</code>, que fabrica las mismas piezas dos veces: primero sin cadena, con una persona que hace los tres pasos de cada pieza, y después con tu <code>fabricar</code>. La primera mitad funciona desde el principio, porque solo usa <code>Taller</code>, y te da la referencia antes de escribir nada. Con un número como argumento fabrica esas piezas, que es lo que necesitarás para la pregunta final.</p></li>
 </ol>
 <div class="callout callout-style-default callout-tip no-icon callout-titled" title="Ejemplo de uso">
 <div class="callout-header d-flex align-content-center">
