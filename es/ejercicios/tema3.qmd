@@ -150,6 +150,13 @@ arrancarlo**, con el nombre que reciben, y lo devuelven.
    llamar a `run` en lugar de `start`
    ([el error frecuente de 3.1.2](../contenido/tema3.qmd#cau-llamar-run)).
 
+6. **Verlo funcionar.** La plantilla trae `DemoCreadorDeHilos`, que hace lo mismo que el ejemplo de
+   uso de abajo cinco veces seguidas. Ejecútalo varias veces y fíjate en el orden de los nombres.
+   Casi siempre sale el orden en que se arrancaron los hilos, porque cada tarea es tan corta que
+   suele terminar antes de que el siguiente hilo haya empezado; pero de vez en cuando dos se
+   cruzan. Ese «de vez en cuando» es lo que hay que retener: el orden **no está garantizado**, y un
+   programa que dependa de él está mal aunque casi siempre funcione.
+
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
 List<String> registro = new CopyOnWriteArrayList<>();
@@ -691,52 +698,129 @@ demás puede esperar detrás de los mil. ¿Cómo cambiarías la imprenta para qu
 pudiera acaparar las impresoras?
 ::::
 
-:::: {.callout-note title="3.2.5 Método `procesar` de `CadenaDeMontaje`" collapse="true"}
+:::: {.callout-note title="3.2.5 Método `fabricar` de `CadenaDeMontaje`" collapse="true"}
 Cuando un trabajo se hace en varias etapas sucesivas, el esquema
 [productor-consumidor](../contenido/tema3.qmd#imp-productor-consumidor) se puede encadenar: cada
 etapa es consumidora de la anterior y productora de la siguiente, y todas trabajan a la vez sobre
-piezas distintas, como en una cadena de montaje. Mientras la tercera etapa empaqueta la primera
-pieza, la segunda ya está pintando la segunda y la primera cortando la tercera.
+piezas distintas, como en una cadena de montaje. El modelo es el
+[pasaplatos](../contenido/tema3.qmd#nte-pasaplatos), repetido dos veces.
+
+Un taller de muebles trabaja en tres pasos: **ensamblar**, **pintar** y **empaquetar**. La plantilla
+trae la clase `Taller`, ya escrita, con un método por paso. Cada uno tarda lo suyo y añade a la
+pieza lo que le ha hecho:
+
+```java
+Taller.ensamblar("silla")                       // 60 ms:  "silla: ensamblada"
+Taller.pintar("silla: ensamblada")              // 100 ms: "silla: ensamblada, pintada"
+Taller.empaquetar("silla: ensamblada, pintada") // 30 ms:  "silla: ensamblada, pintada, empaquetada"
+```
+
+Hechos uno detrás de otro, cada pieza tarda 190 ms. Con una persona en cada puesto, mientras se
+empaqueta la primera pieza ya se está pintando la segunda y ensamblando la tercera.
 
 Escribe en `CadenaDeMontaje` el método
 
 ```java
-public static List<String> procesar(List<String> piezas, List<UnaryOperator<String>> etapas,
-        int capacidad) throws InterruptedException
+public static List<String> fabricar(List<String> piezas, int capacidad)
+        throws InterruptedException
 ```
 
-que pase cada pieza por todas las etapas, en orden, con **un hilo por etapa** y colas de `capacidad`
-piezas entre una etapa y la siguiente, y devuelva las piezas terminadas en el orden en que
-entraron. Cada etapa es una función que recibe una pieza y devuelve la pieza transformada. Con una
-capacidad menor que 1, `IllegalArgumentException`.
+que fabrique todas las piezas con **tres hilos**, uno por puesto, y devuelva las piezas terminadas
+en el orden en que entraron. Entre dos puestos seguidos hay una cola de `capacidad` piezas:
 
-Aquí no hay pasos: el diseño es tuyo. Antes de escribir, decide y apunta cuántas colas hacen falta
-para $k$ etapas, quién mete las piezas en la primera, quién saca las terminadas de la última, y
-cómo se entera cada etapa de que no van a llegar más piezas. Comprueba también que tu diseño
-funciona con una lista de etapas vacía.
+```text
+piezas ──► [ensamblador] ──► ensambladas ──► [pintor] ──► pintadas ──► [empaquetador] ──► terminadas
+```
+
+1. **Validación.** Con una capacidad menor que 1, `IllegalArgumentException`.
+
+2. **Las dos colas**, `ensambladas` y `pintadas`, son `ArrayBlockingQueue` de `capacidad` piezas.
+   Hacen falta dos, no tres: el ensamblador lee las piezas directamente de la lista, y el
+   empaquetador deja las terminadas en una lista suya.
+
+3. **El ensamblador** recorre la lista de piezas, ensambla cada una y la deja en `ensambladas`. Al
+   terminar, deja en `ensambladas` una píldora venenosa, como el cocinero del pasaplatos.
+
+4. **El pintor** saca piezas de `ensambladas`, las pinta y las deja en `pintadas`. Cuando saca la
+   píldora, **antes de terminar la pasa a `pintadas`**: el empaquetador no ve la cola del
+   ensamblador, y solo se enterará del final si alguien se lo dice por la suya.
+
+5. **El empaquetador** saca piezas de `pintadas`, las empaqueta y las añade a la lista
+   `terminadas`. Cuando saca la píldora, termina. Como solo él escribe en `terminadas` y el método
+   la lee después del `join`, no hay nada compartido que proteger, como en la `Imprenta` de 3.2.4.
+
+6. **Los nombres.** Crea los hilos con el constructor de hilos y llámalos `"ensamblador"`,
+   `"pintor"` y `"empaquetador"`. Las pruebas los buscan por el nombre.
+
+7. **Esperar y devolver.** `join` a los tres, y devuelve `terminadas`.
 
 ::: {.callout-tip title="Ejemplo de uso"}
 ```java
-List<UnaryOperator<String>> etapas = List.of(p -> "cortar(" + p + ")", p -> "pintar(" + p + ")");
-System.out.println(CadenaDeMontaje.procesar(List.of("p1", "p2", "p3"), etapas, 2));
+long inicio = System.nanoTime();
+List<String> hechas = CadenaDeMontaje.fabricar(List.of("silla", "mesa", "estante", "banco"), 2);
+long milis = (System.nanoTime() - inicio) / 1_000_000;
+hechas.forEach(System.out::println);
+System.out.println(hechas.size() + " piezas en " + milis + " ms");
 ```
 
-Lo que imprime:
+Lo que imprimió en una ejecución. Una detrás de otra serían 760 ms:
 
 ```text
-[pintar(cortar(p1)), pintar(cortar(p2)), pintar(cortar(p3))]
+silla: ensamblada, pintada, empaquetada
+mesa: ensamblada, pintada, empaquetada
+estante: ensamblada, pintada, empaquetada
+banco: ensamblada, pintada, empaquetada
+4 piezas en 520 ms
 ```
 :::
 
-**Cómo saber si va bien.** Las pruebas comprueban que cada pieza pasa por todas las etapas en
-orden; que se conserva el orden de entrada con quinientas piezas; los casos sin piezas y sin
-etapas; que cada etapa se ejecuta siempre en el mismo hilo, distinto del de las demás y del que
-llama; y —esta es la que falla si las etapas no trabajan a la vez— que diez piezas por tres etapas
-de 50 ms tardan bastante menos que los 1500 ms que tardarían una detrás de otra.
+**Cómo saber si va bien.** Las pruebas comprueban que cada pieza sale ensamblada, pintada y
+empaquetada, en ese orden; que se conserva el orden de entrada; que funciona sin piezas y con una
+sola; que se rechaza una capacidad sin sentido; que cada paso lo hace siempre el hilo del puesto
+que le toca; y —esta es la que falla si los puestos no trabajan a la vez— que diez piezas tardan
+bastante menos que los 1900 ms que tardarían una detrás de otra. Si el pintor no pasa la píldora,
+el empaquetador se queda esperando, y las pruebas fallan a los 10 s con un mensaje que lo dice.
 
-**Para pensar.** ¿Qué etapa marca el ritmo de la cadena? Si una etapa tarda el doble que las
-demás, ¿de qué sirve hacer más grandes las colas? ¿Y poner dos hilos en esa etapa, qué ganarías y
-qué podrías romper?
+**Para pensar.** Las cuatro piezas del ejemplo tardaron unos 520 ms, y no 760, pero tampoco los
+190 ms de una sola. ¿De qué puesto depende ese número? Escribe cuánto debería tardar la cadena con
+$n$ piezas, en función de los tres tiempos del taller, y compruébalo con diez.
+
+**Ampliación: más de un trabajador por puesto.** Con un trabajador en cada puesto, el pintor marca
+el ritmo: el ensamblador y el empaquetador pasan parte del tiempo esperando. Escribe en la misma
+clase el método
+
+```java
+public static List<String> fabricar(List<String> piezas, int capacidad,
+        int ensambladores, int pintores, int empaquetadores) throws InterruptedException
+```
+
+que haga lo mismo con tantos hilos en cada puesto como se le pidan, llamados `"ensamblador-1"`,
+`"ensamblador-2"`… y así en cada puesto. Ahora las piezas **pueden salir en cualquier orden**:
+dos pintores no terminan necesariamente en el orden en que empezaron. Tres cosas cambian respecto a
+la versión de un trabajador por puesto, y las tres ya han salido en el tema o en esta página:
+
+- Los ensambladores se reparten las piezas. Lo más sencillo es meterlas todas en una cola de
+  entrada, de la que cada ensamblador va sacando.
+- Un trabajador ya no puede pasar la píldora al puesto siguiente: si el primer pintor que acaba la
+  pasara, los empaquetadores podrían terminar mientras el otro pintor sigue trabajando. Las
+  píldoras de cada puesto las pone **quien sabe que el puesto anterior ha terminado del todo**, como
+  en la `Imprenta` de 3.2.4, y hace falta una por cada trabajador del puesto que las recibe.
+- Cada empaquetador guarda lo suyo en su propia lista, y se juntan al final.
+
+Con diez piezas, estos son los tiempos que dio la solución:
+
+| Ensambladores | Pintores | Empaquetadores | Tiempo |
+|:---:|:---:|:---:|---:|
+| 1 | 1 | 1 | 1094 ms |
+| 1 | 1 | 3 | 1094 ms |
+| 1 | 2 | 1 | 734 ms |
+| 2 | 2 | 1 | 623 ms |
+| 2 | 3 | 1 | 492 ms |
+
+Antes de escribir el método, explica la tabla. ¿Por qué no sirve de nada poner tres empaquetadores,
+y por qué, después de poner dos pintores, el siguiente trabajador que más ayuda es un segundo
+ensamblador? Las pruebas de la ampliación están en `CadenaDeMontajeEquiposTest`, marcadas con
+`@Disabled`: quita la marca cuando quieras comprobarla.
 ::::
 
 ## 3.3. Hilos virtuales y concurrencia estructurada
