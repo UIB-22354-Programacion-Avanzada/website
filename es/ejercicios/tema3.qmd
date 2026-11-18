@@ -102,9 +102,19 @@ La tarea de todos los hilos es la misma: **anotar en una lista, el registro, el 
 que la está ejecutando**. El registro lo recibe cada método, y es una lista que se puede usar desde
 varios hilos a la vez; por qué una lista corriente no serviría lo verás en 3.1.4.
 
-Escribe en `CreadorDeHilos` los cinco métodos
+Escribe en `CreadorDeHilos` los cuerpos de dos clases anidadas y de cinco métodos:
 
 ```java
+static final class HiloAnotador extends Thread {     // forma 1
+    HiloAnotador(String nombre, List<String> registro)
+    public void run()
+}
+
+static final class TareaAnotar implements Runnable {  // forma 2
+    TareaAnotar(List<String> registro)
+    public void run()
+}
+
 public static Thread conSubclase(String nombre, List<String> registro)
 public static Thread conClaseRunnable(String nombre, List<String> registro)
 public static Thread conLambda(String nombre, List<String> registro)
@@ -112,7 +122,9 @@ public static Thread conConstructor(String nombre, List<String> registro)
 public static void ejecutarTodos(List<Thread> hilos) throws InterruptedException
 ```
 
-Los cuatro primeros crean un hilo **sin arrancarlo**, con el nombre que reciben, y lo devuelven.
+Las dos clases son las de las formas 1 y 2: `HiloAnotador` **es un hilo**, y `TareaAnotar`, **una
+tarea** que se le da a un hilo. De los cinco métodos, los cuatro primeros crean un hilo **sin
+arrancarlo**, con el nombre que reciben, y lo devuelven.
 
 1. **Forma 1, una subclase de `Thread`.** El esqueleto trae la clase anidada `HiloAnotador`, que
    extiende `Thread`. Guarda el registro en un atributo, y redefine `run` para que anote
