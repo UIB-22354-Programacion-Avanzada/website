@@ -5,4 +5,2627 @@ sidebar: barra-es
 bibliography: tema4.bib
 ---
 
-*Contenido pendiente.*
+## Introducción
+
+Todos los programas de los temas anteriores olvidan lo que han hecho en cuanto terminan. El
+historial del monitor vive en una lista dentro de la memoria del proceso: si el programa se
+cierra, o se cae, o se reinicia el servidor, el historial desaparece con él. Y aunque se guardara
+en un fichero, quedaría la mitad del problema sin resolver. ¿Cuántas veces ha estado caído el
+servidor de correo este mes? ¿Qué servicios han empeorado desde el lunes? Responder a cada pregunta
+nueva obligaría a escribir un programa nuevo que leyera el fichero entero y lo recorriera.
+
+Una **base de datos** resuelve las dos mitades a la vez. Guarda los datos de forma que sobreviven
+al programa que los escribió, y permite hacerles preguntas en un lenguaje pensado para eso, sin
+escribir un recorrido para cada una. Y hace algo más, que es lo que la convierte en una pieza
+central de casi cualquier sistema: deja que muchos programas lean y escriban los mismos datos **a
+la vez** sin estropearlos, y garantiza que un cambio de varios pasos se hace entero o no se hace,
+aunque el ordenador se apague a mitad. Son exactamente los problemas del Tema 3, resueltos una vez
+y para todos por un programa especializado.
+
+El tema tiene cuatro secciones. La primera explica **qué es una base de datos relacional** y cómo
+se pasa de una descripción en palabras a un conjunto de tablas bien diseñado. La segunda enseña el
+**lenguaje SQL**, con el que se crean las tablas, se modifican los datos y se consultan. La tercera
+conecta las dos mitades del curso: cómo un programa **Java habla con una base de datos** a través
+de JDBC. Y la cuarta es una **panorámica de las bases de datos no relacionales**, que existen
+porque hay problemas para los que las tablas no son la mejor respuesta.
+
+### Los ejemplos del tema
+
+El tema trabaja con tres ejemplos, de más a menos presencia.
+
+El principal es una **biblioteca**, con autores, libros, socios y préstamos. Es un dominio que
+todo el mundo conoce, lo que permite concentrarse en las tablas y en el SQL sin tener que explicar
+primero de qué va el problema, y tiene justo lo necesario: una relación sencilla entre autores y
+libros, una relación más rica entre socios y libros a través de los préstamos, y una operación, el
+préstamo, que tiene que hacerse entera o no hacerse.
+
+El segundo es una **red de equipos** —un router, un switch, un servidor y un punto de acceso— y
+las **mediciones de latencia** que se les hacen cada minuto. Aparece cuando hace falta calcular
+sobre muchos datos: medias, máximos, pérdidas de paquetes. Es el tipo de dato que una red real
+genera sin parar.
+
+El tercero es el **monitor de servicios** de los temas anteriores, que aquí da el paso que quedaba
+pendiente: guardar sus resultados en una base de datos en lugar de en memoria (@fig-monitor4).
+Como en el Tema 3, los pasajes que lo construyen abren con **En el monitor.**, y el texto principal
+se puede seguir entero sin ellos.
+
+```{mermaid}
+%%| label: fig-monitor4
+%%| fig-cap: "El monitor de servicios con una base de datos. El monitor no cambia: guarda cada resultado en un repositorio, como siempre. Lo que cambia es el repositorio, que ahora escribe en una tabla, y con eso los resultados sobreviven al programa y se pueden consultar con SQL."
+flowchart LR
+    M["<b>Monitor</b><br/><i>comprueba los servicios</i>"]
+    R["<b>Repositorio JDBC</b><br/><i>misma interfaz<br/>que en el Tema 1</i>"]
+    B[("<b>Base de datos</b><br/><i>tabla resultados</i>")]
+    I["<b>Informes</b><br/><i>consultas SQL</i>"]
+
+    M -- "1 · guarda cada resultado" --> R
+    R -- "2 · INSERT" --> B
+    I -- "3 · SELECT" --> B
+```
+
+Los paquetes de los listados son `es.uib.prgava.tema4.biblioteca`, `es.uib.prgava.tema4.red` y
+`es.uib.prgava.tema4.monitor`. Los scripts SQL que crean las tablas de cada ejemplo, como
+`biblioteca.sql`, están en la carpeta `src/main/resources` del proyecto
+[`t4-ejemplos`](https://github.com/UIB-22354-Programacion-Avanzada/t4-ejemplos).
+
+### La base de datos del tema: H2
+
+Para practicar SQL hace falta un sistema gestor de bases de datos, y la mayoría son programas que
+hay que instalar y arrancar aparte: PostgreSQL, MySQL, Oracle o SQL Server. Este tema usa uno que
+no necesita nada de eso, **H2**, una base de datos escrita en Java que entra en el proyecto como
+**una dependencia Maven más**, igual que JUnit:
+
+```xml
+<dependency>
+  <groupId>com.h2database</groupId>
+  <artifactId>h2</artifactId>
+  <version>2.4.240</version>
+</dependency>
+```
+
+H2 funciona dentro del mismo proceso que el programa Java, y puede guardar los datos en un fichero
+o **solo en memoria**. En memoria es como se usa en todo el tema: cada vez que un programa abre la
+base de datos, se crea vacía, se carga el script del ejemplo y queda lista con los datos de
+partida. Cuando el programa termina, desaparece. Para aprender es la mejor opción posible, porque
+nada de lo que hagas se queda estropeado: la próxima vez empiezas otra vez desde el script.
+
+El SQL que se enseña es el estándar, el mismo que entienden PostgreSQL y la mayoría de los
+sistemas gestores. Al final de la sección 4.3 hay un ejemplo del mismo programa conectado a un
+servidor PostgreSQL, y la diferencia son dos líneas.
+
+::: {.callout-tip appearance="simple"}
+**Cómo practicar SQL.** El proyecto `t4-ejemplos` trae una clase, `ConsolaSQL`, que abre la
+consola de texto de H2 sobre una base de datos en memoria cargada con uno de los scripts del tema.
+Se ejecuta con el botón ▶ del IDE o desde el terminal:
+
+```bash
+mvn -q compile exec:java -Dexec.mainClass=es.uib.prgava.tema4.ConsolaSQL                  # la biblioteca
+mvn -q compile exec:java -Dexec.mainClass=es.uib.prgava.tema4.ConsolaSQL -Dexec.args=red  # la red
+```
+
+Aparece el indicador `sql>`, y cada sentencia que escribas, terminada en punto y coma, se ejecuta
+al pulsar Intro. Todas las salidas de consultas de este tema están copiadas de esa consola. Para
+salir, `exit`.
+:::
+
+## 4.1. Fundamentos de bases de datos y modelado de datos
+
+**En el monitor de servicios** (@fig-monitor4) hay una tabla de resultados esperando al final del
+tema. Antes de escribirla conviene entender por qué una tabla, y no un fichero o una lista, y cómo
+se decide qué tablas hacen falta y qué columnas lleva cada una. Esta sección no tiene todavía una
+línea de SQL: es la parte del trabajo que se hace con papel y lápiz, y la que más cuesta corregir
+si se hace mal.
+
+### 4.1.1 Por qué una base de datos
+
+Guardar datos en un fichero es fácil: el monitor del Tema 1 podría escribir una línea por
+resultado y leerlas al arrancar. El problema aparece cuando los datos crecen y cuando más de un
+programa los usa. Cada una de estas preguntas tiene una respuesta difícil con un fichero:
+
+- **¿Cómo se consulta?** Para saber cuántas veces ha caído un servicio hay que leer el fichero
+  entero y contar. Para cada pregunta nueva, un programa nuevo.
+- **¿Quién garantiza que los datos tienen sentido?** Nada impide escribir una línea con una fecha
+  imposible, o un préstamo de un libro que no existe.
+- **¿Qué pasa si dos programas escriben a la vez?** Es una condición de carrera, como las del Tema
+  3, pero entre procesos: las líneas se mezclan o se pierden.
+- **¿Qué pasa si el programa se cae a mitad de un cambio?** Un préstamo son dos cambios: anotar el
+  préstamo y descontar un ejemplar. Si el programa se cae entre los dos, los datos quedan
+  incoherentes, y no hay forma de saberlo.
+
+::: {#imp-base-de-datos .callout-important title="Base de datos y sistema gestor"}
+Una **base de datos** (*database*) es un conjunto organizado de datos que se guardan de forma
+persistente y que comparten varios usuarios o programas.
+
+Un **sistema gestor de bases de datos** o **SGBD** (*database management system*, *DBMS*) es el
+programa que guarda esos datos y que es el único que los toca: los demás programas no leen ni
+escriben los ficheros directamente, sino que **le piden** al gestor lo que necesitan. Por eso el
+gestor puede garantizar cuatro cosas que un fichero no garantiza: que se puedan **consultar** con un
+lenguaje general, que respeten unas **reglas de integridad**, que varios clientes los usen **a la
+vez** sin estropearlos, y que cada cambio de varios pasos se haga **entero o no se haga**.
+:::
+
+La palabra importante de la definición es *único*. Que todos los accesos pasen por el gestor es lo
+que le permite vigilarlos, y es la misma idea que el cerrojo del Tema 3 llevada a otra escala:
+quien quiera tocar los datos tiene que pedir permiso a quien los guarda.
+
+Hay varios tipos de bases de datos, según cómo organizan los datos. Las **relacionales**, que
+organizan todo en tablas, son las más extendidas desde los años ochenta y las que estudian las tres
+primeras secciones del tema, y sobre las que la referencia clásica es el libro de Silberschatz,
+Korth y Sudarshan [@silberschatz2019]. Las que no usan tablas se agrupan bajo el nombre de **NoSQL**
+y son el objeto de la sección 4.4.
+
+### 4.1.2 El modelo relacional
+
+La idea de organizar los datos en tablas tiene un autor y una fecha.
+
+::: {#tip-codd .callout-tip title="El modelo relacional separa qué datos hay de cómo se guardan"}
+En 1970, Edgar F. Codd, un matemático de IBM, publicó un artículo que proponía tratar los datos
+como **relaciones** en el sentido matemático: conjuntos de tuplas, todas con los mismos atributos
+[@codd1970]. Los sistemas de la época obligaban a los programas a conocer cómo estaban guardados
+los datos en el disco —qué registro apuntaba a cuál—, y cualquier cambio en esa organización
+rompía los programas. La propuesta de Codd separaba las dos cosas: el programa describe **qué
+datos quiere**, y el sistema decide **cómo encontrarlos**.
+
+Esa separación es la que hace posible SQL, en el que una consulta dice qué filas se quieren y no
+cómo recorrer las tablas para encontrarlas, y es la razón de que el modelo haya sobrevivido más de
+cincuenta años casi sin cambios.
+:::
+
+En la práctica, una relación es una **tabla**. Esta es la de los libros de la biblioteca, con
+algunas de sus columnas:
+
+| id | isbn | titulo | anio | autor_id |
+|---:|---|---|---:|---:|
+| 1 | 978-84-0000-001-1 | Ficciones | 1944 | 1 |
+| 2 | 978-84-0000-002-8 | El Aleph | 1949 | 1 |
+| 3 | 978-84-0000-003-5 | Paula | 1994 | 2 |
+| 5 | 978-84-0000-005-9 | Nada | 1945 | 3 |
+
+::: {#imp-modelo-relacional .callout-important title="Tabla, fila y columna"}
+En el **modelo relacional** (*relational model*), los datos se organizan en **tablas**. Cada
+**columna** tiene un nombre y un **tipo** —un número entero, un texto de hasta cien caracteres, una
+fecha—, y todos los valores de esa columna son de ese tipo. Cada **fila** es un elemento: un libro,
+un socio, un préstamo.
+
+Una tabla se parece a una lista de objetos de una misma clase, con las columnas en el papel de los
+atributos, pero con dos diferencias importantes. Las filas **no tienen orden**: no hay una
+«primera fila», y si se quiere un orden hay que pedirlo al consultar. Y una celda contiene **un
+solo valor**, nunca una lista.
+
+Una celda puede estar vacía, y entonces se dice que su valor es **`NULL`**: «no se sabe» o «no
+procede». La fecha de devolución de un préstamo que todavía no se ha devuelto es `NULL`.
+:::
+
+Los nombres de columna van sin tildes ni eñes, como `anio` en lugar de *año*: la mayoría de los
+gestores los admiten, pero obligan a escribirlos entre comillas y dan problemas al pasar de uno a
+otro.
+
+Dos libros pueden tener el mismo título, y dos socios el mismo nombre. Para que cada fila se pueda
+señalar sin ambigüedad hace falta una columna cuyo valor no se repita nunca.
+
+::: {#imp-clave-primaria .callout-important title="Clave primaria"}
+La **clave primaria** (*primary key*) de una tabla es la columna, o el conjunto de columnas, cuyo
+valor identifica cada fila: no puede repetirse ni ser `NULL`.
+
+Lo más habitual es una columna `id` con un número que no significa nada y que pone el propio
+gestor, 1, 2, 3…, al insertar cada fila. Se llama **clave artificial** o **subrogada**. La
+alternativa, una **clave natural** con significado propio, como el ISBN de un libro o el correo de
+un socio, parece más elegante, pero tiene un problema: lo que tiene significado puede cambiar, y la
+clave primaria no debería cambiar nunca, porque otras tablas la usan para referirse a la fila.
+:::
+
+Lo de «otras tablas la usan» es lo que hace relacional al modelo. Cada libro tiene un autor, y en
+la tabla de libros no se escribe el nombre del autor, sino el número que lo identifica en la tabla
+de autores: la columna `autor_id`. El libro 1, *Ficciones*, tiene `autor_id` 1, que en la tabla
+`autores` es Jorge Luis Borges.
+
+::: {#imp-clave-ajena .callout-important title="Clave ajena"}
+Una **clave ajena** o **clave foránea** (*foreign key*) es una columna cuyo valor tiene que ser la
+clave primaria de una fila de **otra** tabla. Es la forma de expresar una relación entre filas de
+tablas distintas: el `autor_id` de un libro señala a un autor.
+
+El gestor vigila esa relación, y a eso se le llama **integridad referencial**: no deja insertar un
+libro con un `autor_id` que no existe, ni borrar un autor que todavía tiene libros. Ningún
+programa, por mal escrito que esté, puede dejar un libro apuntando a un autor inexistente.
+:::
+
+### 4.1.3 Del enunciado a las tablas: el modelo entidad-relación
+
+Diseñar una base de datos es decidir qué tablas hay, qué columnas tiene cada una y cómo se
+relacionan. La herramienta habitual para pensarlo antes de escribir nada es un diagrama, el del
+**modelo entidad-relación**, que propuso Peter Chen en 1976 [@chen1976].
+
+::: {#imp-entidad-relacion .callout-important title="Entidad, atributo y relación"}
+En el **modelo entidad-relación** (*entity-relationship model*), una **entidad** es un tipo de cosa
+de la que se quiere guardar información: un libro, un socio. Cada entidad tiene **atributos**: el
+título del libro, el correo del socio. Y entre entidades hay **relaciones**: un autor *escribe*
+libros, un socio *pide prestados* libros.
+
+Lo que más importa de una relación es su **cardinalidad**, cuántos elementos de un lado se
+relacionan con cuántos del otro:
+
+- **Uno a muchos (1:N).** Un autor escribe muchos libros, y cada libro tiene un autor.
+- **Muchos a muchos (N:M).** Un socio pide muchos libros a lo largo del tiempo, y cada libro lo
+  piden muchos socios.
+- **Uno a uno (1:1).** Cada socio tiene un carné, y cada carné es de un socio. Es la menos
+  frecuente.
+:::
+
+El enunciado de la biblioteca es este: *la biblioteca tiene libros, cada uno con su ISBN, su
+título, su año y su autor, y con un número de ejemplares. Los socios, de los que se guarda el
+nombre y el correo, se llevan ejemplares en préstamo, y hay que saber cuándo se llevaron cada uno y
+si lo han devuelto.*
+
+Los sustantivos del enunciado son candidatos a entidades, y los verbos, a relaciones. Hay cuatro
+entidades, y una de ellas, el préstamo, es la relación entre socios y libros convertida en entidad,
+porque tiene sus propios atributos: las fechas.
+
+```{mermaid}
+%%| label: fig-biblioteca
+%%| fig-cap: "El modelo de la biblioteca. Cada caja es una entidad, y será una tabla. Las líneas son las relaciones: el lado con la pata de gallo es el «muchos». PK señala la clave primaria y FK las claves ajenas."
+erDiagram
+    AUTORES ||--o{ LIBROS : escribe
+    LIBROS ||--o{ PRESTAMOS : "se presta en"
+    SOCIOS ||--o{ PRESTAMOS : pide
+    AUTORES {
+        int id PK
+        string nombre
+        int nacimiento
+    }
+    LIBROS {
+        int id PK
+        string isbn
+        string titulo
+        int anio
+        int autor_id FK
+        int ejemplares
+        int disponibles
+    }
+    SOCIOS {
+        int id PK
+        string nombre
+        string email
+    }
+    PRESTAMOS {
+        int id PK
+        int socio_id FK
+        int libro_id FK
+        date fecha_prestamo
+        date fecha_devolucion
+    }
+```
+
+El paso del diagrama a las tablas sigue tres reglas, y las tres se ven en @fig-biblioteca:
+
+1. **Cada entidad es una tabla**, con sus atributos como columnas y una clave primaria `id`.
+2. **Una relación 1:N es una clave ajena en el lado N.** Cada libro tiene un autor, así que la
+   tabla `libros` lleva `autor_id`. Nunca al revés: un autor no puede tener una columna con «sus
+   libros», porque una celda no guarda listas.
+3. **Una relación N:M es una tabla intermedia** con una clave ajena hacia cada lado. Los préstamos
+   son esa tabla: cada fila dice qué socio se llevó qué libro, y cuándo.
+
+La tercera regla merece una pausa, porque es la que más cuesta ver la primera vez. Un socio con
+tres préstamos no tiene tres columnas en la tabla `socios`, ni una columna con tres números: tiene
+**tres filas** en la tabla `prestamos`, cada una con su `socio_id`. Para saber qué libros tiene, se
+buscan en `prestamos` las filas con su número.
+
+::: {#cau-lista-en-columna .callout-caution title="Guardar una lista en una columna"}
+Es la tentación más frecuente al diseñar la primera vez: si un libro puede tener varios autores, se
+añade una columna `autores` con el texto `'Borges, Bioy Casares'`, o columnas `autor1`, `autor2`,
+`autor3`.
+
+Las dos versiones rompen todo lo que hace útil una base de datos. Con el texto separado por comas,
+buscar los libros de Bioy Casares obliga a buscar trozos dentro de un texto, y el gestor no puede
+comprobar que esos nombres sean autores que existen. Con tres columnas, el cuarto autor no cabe,
+casi todos los libros tienen dos columnas vacías, y cada consulta tiene que mirar las tres.
+
+Si un libro puede tener varios autores, la relación entre libros y autores es N:M, y lleva su tabla
+intermedia, `libros_autores`, con una fila por cada pareja de libro y autor. En la biblioteca del
+tema cada libro tiene un solo autor, y por eso basta con la columna `autor_id`.
+:::
+
+La red de equipos es más sencilla todavía. Hay dos entidades, los **equipos**, con su nombre, su
+dirección IP y su tipo, y las **mediciones**, con el instante y la latencia en milisegundos. La
+relación es 1:N, porque cada medición es de un equipo y cada equipo tiene muchas mediciones, así
+que la tabla `mediciones` lleva una clave ajena `equipo_id`. Una medición sin respuesta, un ping que
+no volvió, tiene la latencia a `NULL`.
+
+### 4.1.4 Cada dato en un solo sitio
+
+La biblioteca se podría haber diseñado con una sola tabla, la de préstamos, con todo dentro:
+
+| socio | email | titulo | autor | fecha_prestamo |
+|---|---|---|---|---|
+| Ana Ruiz | ana.ruiz@example.org | Ficciones | Jorge Luis Borges | 2026-10-01 |
+| Ana Ruiz | ana.ruiz@example.org | El Aleph | Jorge Luis Borges | 2026-10-15 |
+| Marta Vidal | marta.vidal@example.org | Ficciones | Jorge Luis Borges | 2026-09-10 |
+
+Parece más cómodo, porque toda la información está a la vista, pero tiene tres defectos que se
+conocen con nombre propio:
+
+- **Anomalía de actualización.** Si Ana cambia de correo, hay que cambiarlo en todas sus filas. Si
+  se olvida una, la base de datos dice dos cosas distintas a la vez, y no hay forma de saber cuál es
+  la buena.
+- **Anomalía de inserción.** Un socio nuevo que todavía no se ha llevado nada no se puede dar de
+  alta, porque cada fila es un préstamo.
+- **Anomalía de borrado.** Si se borra el único préstamo de *El Aleph*, la base de datos olvida que
+  el libro existe y quién lo escribió.
+
+Los tres defectos tienen la misma causa: hay datos **repetidos**. El correo de Ana está escrito
+dos veces, y el autor de *Ficciones*, tres.
+
+::: {#tip-normalizar .callout-tip title="Normalizar es guardar cada hecho una sola vez"}
+La teoría de la **normalización**, que desarrollaron Codd y otros en los años setenta, define una
+serie de **formas normales**, cada una más estricta que la anterior, que dicen cuándo un diseño
+está libre de esas anomalías. Las tres primeras son las que se usan en la práctica, y se pueden
+resumir así:
+
+1. **Primera forma normal.** Cada celda tiene un solo valor: nada de listas en una columna
+   (@cau-lista-en-columna).
+2. **Segunda forma normal.** Cada columna depende de la clave **entera**, no de una parte.
+3. **Tercera forma normal.** Cada columna depende **solo de la clave**, y no de otra columna que no
+   es clave. En la tabla de arriba, el correo depende del socio, no del préstamo: por eso se repite.
+
+Las tres dicen lo mismo con distinta precisión: **cada hecho se guarda en un solo sitio**, y en la
+tabla de la cosa a la que pertenece. El correo es un hecho del socio, así que va en `socios`; el
+autor es un hecho del libro, así que va en `libros`; la fecha del préstamo es un hecho del
+préstamo. Las reglas de paso de 4.1.3 producen ya, casi siempre, un diseño en tercera forma normal.
+:::
+
+Hay una excepción consciente en el diseño de la biblioteca, y conviene señalarla. La columna
+`disponibles` de `libros` es un **dato derivado**: se podría calcular contando los préstamos sin
+devolver de cada libro y restándolos de los ejemplares. Guardarlo aparte es una redundancia, y
+tiene el riesgo de siempre: si alguien anota un préstamo y se olvida de descontar el ejemplar, los
+dos datos dejan de cuadrar. Se guarda igualmente porque consultarlo es mucho más frecuente que
+cambiarlo, y porque permite que el propio gestor impida prestar un libro del que no queda ningún
+ejemplar. El precio es que cada préstamo son dos cambios que tienen que hacerse a la vez, y esa es
+la razón de ser de las transacciones de 4.2.6.
+
+:::: {.ampliacion}
+#### **La tabla del monitor**
+
+**En el monitor.** El monitor guarda resultados, y cada resultado tiene un servicio, un instante,
+un estado y una latencia. Con las reglas de 4.1.3 habría dos tablas, `servicios` y `resultados`,
+con una relación 1:N entre ellas. Este tema usa una sola, `resultados`, con el servicio guardado
+como texto, el mismo texto que entiende el método `Servicio.desde` del Tema 1 (por ejemplo,
+`https://www.uib.es` o `tcp:smtp.uib.es:25`).
+
+Es una desnormalización, y es deliberada: el monitor no guarda nada de los servicios aparte de su
+nombre, así que una tabla `servicios` tendría una sola columna útil, y cada consulta tendría que
+juntar las dos tablas para saber de qué servicio es cada resultado. Si mañana el monitor guardara
+más datos de cada servicio —un responsable, un umbral de latencia propio—, sería el momento de
+separarla.
+::::
+
+## 4.2. Lenguaje SQL
+
+**En el monitor de servicios** (@fig-monitor4), los informes que hasta ahora eran métodos Java que
+recorrían listas pasan a ser consultas: «cuántas veces ha caído cada servicio» es una línea de SQL.
+Esta sección enseña ese lenguaje con la biblioteca y con la red, y deja el monitor para la sección
+siguiente.
+
+::: {#imp-sql .callout-important title="SQL"}
+**SQL** (*Structured Query Language*) es el lenguaje con el que se trabaja con una base de datos
+relacional. Es un estándar internacional, ISO/IEC 9075, que todos los gestores relacionales
+implementan con pequeñas variaciones, y tiene dos partes:
+
+- **Definición de datos** (*DDL*, *Data Definition Language*): sentencias que crean, cambian y
+  borran tablas, como `CREATE TABLE` y `DROP TABLE`.
+- **Manipulación de datos** (*DML*, *Data Manipulation Language*): sentencias que insertan,
+  modifican, borran y consultan filas, que son `INSERT`, `UPDATE`, `DELETE` y `SELECT`.
+
+SQL es un lenguaje **declarativo**: una consulta dice **qué** filas se quieren, no **cómo**
+encontrarlas. Es la separación de @tip-codd hecha lenguaje: el gestor decide el recorrido.
+:::
+
+Unas convenciones de escritura antes de empezar. SQL no distingue mayúsculas de minúsculas en las
+palabras clave ni en los nombres, pero es costumbre escribir las palabras clave en mayúsculas y los
+nombres de tablas y columnas en minúsculas, para que se distingan de un vistazo. Cada sentencia
+termina en punto y coma. Los textos van entre comillas **simples**, `'Ficciones'`, y un comentario
+empieza con dos guiones, `--`, y llega hasta el final de la línea.
+
+### 4.2.1 Definir las tablas: `CREATE TABLE`
+
+Una tabla se crea diciendo su nombre y, para cada columna, su nombre, su tipo y sus restricciones.
+La tabla de autores es la más sencilla:
+
+```sql
+-- Fragmento de biblioteca.sql
+CREATE TABLE autores (
+    id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR(100) NOT NULL,
+    nacimiento  INTEGER
+);
+```
+
+La columna `id` es la clave primaria (@imp-clave-primaria), y `GENERATED ALWAYS AS IDENTITY` le
+dice al gestor que la rellene él: 1 para la primera fila que se inserte, 2 para la segunda, y así.
+La columna `nombre` es un texto de hasta cien caracteres que no puede quedar vacío, y `nacimiento`
+es un número que sí puede, porque no siempre se sabe. Los tipos que usa el tema son pocos:
+
+| Tipo | Para qué | Ejemplo |
+|---|---|---|
+| `INTEGER`, `BIGINT` | Números enteros, de 32 y de 64 bits, como `int` y `long` en Java. | `1944` |
+| `DECIMAL(p, s)` | Números con decimales exactos, para dinero: `p` cifras en total, `s` de ellas decimales. | `12.50` |
+| `VARCHAR(n)` | Texto de hasta `n` caracteres. | `'Ficciones'` |
+| `BOOLEAN` | Verdadero o falso. | `TRUE` |
+| `DATE` | Una fecha, sin hora. | `DATE '2026-10-01'` |
+| `TIMESTAMP` | Una fecha con hora. | `TIMESTAMP '2026-11-20 10:00:00'` |
+
+Las **restricciones** (*constraints*) son reglas que el gestor comprueba en cada cambio, y que
+rechazan cualquier fila que no las cumpla. La tabla de libros las usa casi todas:
+
+```sql
+-- Fragmento de biblioteca.sql
+CREATE TABLE libros (
+    id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    isbn         VARCHAR(17)  NOT NULL UNIQUE,
+    titulo       VARCHAR(200) NOT NULL,
+    anio         INTEGER      CHECK (anio > 0),
+    autor_id     INTEGER      NOT NULL REFERENCES autores (id),
+    ejemplares   INTEGER      NOT NULL CHECK (ejemplares > 0),
+    disponibles  INTEGER      NOT NULL,
+    CHECK (disponibles BETWEEN 0 AND ejemplares)
+);
+```
+
+| Restricción | Qué exige |
+|---|---|
+| `PRIMARY KEY` | Que el valor identifique la fila: no se repite y no es `NULL`. |
+| `NOT NULL` | Que la columna tenga siempre un valor. |
+| `UNIQUE` | Que el valor no se repita en la tabla. Aquí, que no haya dos libros con el mismo ISBN. |
+| `CHECK (condición)` | Que la condición se cumpla. Si menciona una sola columna, se escribe junto a ella; si menciona varias, como la última, va aparte, al final. |
+| `REFERENCES tabla (columna)` | Que el valor exista en esa columna de esa otra tabla: es la clave ajena (@imp-clave-ajena). |
+
+La última restricción, `CHECK (disponibles BETWEEN 0 AND ejemplares)`, es la que vigila el dato
+derivado de 4.1.4: no puede haber más ejemplares disponibles de los que tiene la biblioteca, ni
+menos de cero. Las otras dos tablas siguen el mismo patrón. En `prestamos`, la fecha de devolución
+admite `NULL`, que significa «todavía no se ha devuelto», y una restricción impide que sea anterior
+a la del préstamo:
+
+```sql
+-- Fragmento de biblioteca.sql
+CREATE TABLE prestamos (
+    id                INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    socio_id          INTEGER NOT NULL REFERENCES socios (id),
+    libro_id          INTEGER NOT NULL REFERENCES libros (id),
+    fecha_prestamo    DATE    NOT NULL,
+    fecha_devolucion  DATE,
+    CHECK (fecha_devolucion IS NULL OR fecha_devolucion >= fecha_prestamo)
+);
+```
+
+El orden de creación importa: una tabla solo puede tener una clave ajena hacia otra que ya existe.
+Por eso el script crea primero `autores`, después `libros`, después `socios` y al final
+`prestamos`. Para borrar una tabla, `DROP TABLE prestamos;`, y por la misma razón se borran en
+orden inverso.
+
+### 4.2.2 Modificar los datos: `INSERT`, `UPDATE` y `DELETE`
+
+Las filas se añaden con `INSERT`, diciendo en qué columnas y con qué valores. La columna `id` no se
+menciona, porque la rellena el gestor:
+
+```sql
+INSERT INTO socios (nombre, email) VALUES ('Laura Gil', 'laura.gil@example.org');
+```
+
+```text
+(Update count: 1, 0 ms)
+```
+
+La consola responde con el número de filas afectadas. Una sola sentencia puede insertar varias
+filas, separando cada grupo de valores con una coma, y es lo que hace el script para cargar los
+datos de ejemplo.
+
+Lo interesante es lo que pasa cuando una fila no cumple las restricciones. El correo de un socio es
+`UNIQUE`, y ya hay un socio con el correo `ana.ruiz@example.org`:
+
+```sql
+INSERT INTO socios (nombre, email) VALUES ('Ana Ruiz Soler', 'ana.ruiz@example.org');
+```
+
+```text
+Error: org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: Unique index or primary key violation: "PUBLIC.CONSTRAINT_INDEX_9 ON PUBLIC.SOCIOS(EMAIL NULLS FIRST) VALUES ( /* 1 */ 'ana.ruiz@example.org' )"; SQL statement:
+INSERT INTO socios (nombre, email) VALUES ('Ana Ruiz Soler', 'ana.ruiz@example.org') [23505-220]
+```
+
+Un préstamo para el socio 9, que no existe, viola la clave ajena:
+
+```sql
+INSERT INTO prestamos (socio_id, libro_id, fecha_prestamo) VALUES (9, 1, DATE '2026-11-20');
+```
+
+```text
+Error: org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: Referential integrity constraint violation: "CONSTRAINT_6F: PUBLIC.PRESTAMOS FOREIGN KEY(SOCIO_ID) REFERENCES PUBLIC.SOCIOS(ID) (9)"; SQL statement:
+INSERT INTO prestamos (socio_id, libro_id, fecha_prestamo) VALUES (9, 1, DATE '2026-11-20') [23506-220]
+```
+
+Y la clave ajena funciona en las dos direcciones: tampoco se puede borrar a Borges mientras haya
+libros suyos, porque esos libros quedarían señalando a un autor que no existe. En los tres casos,
+la fila no se inserta ni se borra, y la base de datos queda como estaba. Esa es la integridad
+referencial de @imp-clave-ajena: no la vigila el programa, la vigila el gestor.
+
+Las filas existentes se cambian con `UPDATE`, que dice qué columnas cambian y en qué filas, y se
+borran con `DELETE`. En los dos casos, las filas afectadas son las que cumplen la condición del
+`WHERE`:
+
+```sql
+UPDATE socios SET email = 'joan.pons@uib.example.org' WHERE id = 4;
+UPDATE libros SET disponibles = disponibles - 1 WHERE id = 3;
+DELETE FROM prestamos WHERE fecha_devolucion < DATE '2026-09-01';
+```
+
+La segunda sentencia descuenta un ejemplar de *Paula*: el valor nuevo se calcula a partir del que
+había. Si se intenta lo mismo con *El Aleph*, del que no queda ningún ejemplar, la restricción
+`CHECK` lo impide:
+
+```text
+Error: org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: Check constraint violation: "CONSTRAINT_85D441: "; SQL statement:
+UPDATE libros SET disponibles = disponibles - 1 WHERE id = 2 [23513-220]
+```
+
+El número entre corchetes, `23513`, es el **código de estado SQL** del error. Todos los que
+empiezan por `23` son violaciones de una restricción de integridad, y la sección 4.3 los usa para
+saber, desde Java, qué ha fallado.
+
+::: {#cau-update-sin-where .callout-caution title="`UPDATE` o `DELETE` sin `WHERE`"}
+Las dos sentencias se aplican a **todas las filas que cumplen el `WHERE`**, y si no hay `WHERE`, a
+todas las filas de la tabla. La sentencia `DELETE FROM prestamos;` borra todos los préstamos, y
+`UPDATE socios SET email = 'x@example.org';` deja a todos los socios con el mismo correo, o falla
+por la restricción `UNIQUE` si la hay, que es lo único que salvaría la tabla.
+
+No hay papelera ni confirmación: la sentencia se ejecuta en cuanto se pulsa Intro. Dos
+costumbres evitan el desastre. La primera, escribir el `WHERE` **antes** que el resto: primero
+`DELETE FROM prestamos WHERE ...`, y la condición, y solo después releer la sentencia entera. La
+segunda, probar la condición con un `SELECT` antes de usarla para borrar: si
+`SELECT * FROM prestamos WHERE fecha_devolucion < DATE '2026-09-01';` devuelve las filas que
+esperabas, el `DELETE` con el mismo `WHERE` borrará esas y solo esas.
+:::
+
+::: {#nte-script-biblioteca .callout-note title="El script de la biblioteca"}
+```sql
+-- biblioteca.sql: las tablas de la biblioteca y unos datos de ejemplo
+
+CREATE TABLE autores (
+    id          INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre      VARCHAR(100) NOT NULL,
+    nacimiento  INTEGER
+);
+
+CREATE TABLE libros (
+    id           INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    isbn         VARCHAR(17)  NOT NULL UNIQUE,
+    titulo       VARCHAR(200) NOT NULL,
+    anio         INTEGER      CHECK (anio > 0),
+    autor_id     INTEGER      NOT NULL REFERENCES autores (id),
+    ejemplares   INTEGER      NOT NULL CHECK (ejemplares > 0),
+    disponibles  INTEGER      NOT NULL,
+    CHECK (disponibles BETWEEN 0 AND ejemplares)
+);
+
+CREATE TABLE socios (
+    id      INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nombre  VARCHAR(100) NOT NULL,
+    email   VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE prestamos (
+    id                INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    socio_id          INTEGER NOT NULL REFERENCES socios (id),
+    libro_id          INTEGER NOT NULL REFERENCES libros (id),
+    fecha_prestamo    DATE    NOT NULL,
+    fecha_devolucion  DATE,
+    CHECK (fecha_devolucion IS NULL OR fecha_devolucion >= fecha_prestamo)
+);
+
+INSERT INTO autores (nombre, nacimiento) VALUES
+    ('Jorge Luis Borges', 1899),
+    ('Isabel Allende', 1942),
+    ('Carmen Laforet', 1921),
+    ('Eduardo Mendoza', 1943),
+    ('Rosa Montero', 1951),
+    ('Miguel de Cervantes', 1547),
+    ('Almudena Grandes', 1960);
+
+INSERT INTO libros (isbn, titulo, anio, autor_id, ejemplares, disponibles) VALUES
+    ('978-84-0000-001-1', 'Ficciones', 1944, 1, 2, 1),
+    ('978-84-0000-002-8', 'El Aleph', 1949, 1, 1, 0),
+    ('978-84-0000-003-5', 'Paula', 1994, 2, 2, 2),
+    ('978-84-0000-004-2', 'Eva Luna', 1987, 2, 1, 0),
+    ('978-84-0000-005-9', 'Nada', 1945, 3, 2, 2),
+    ('978-84-0000-006-6', 'La ciudad de los prodigios', 1986, 4, 1, 1),
+    ('978-84-0000-007-3', 'La loca de la casa', 2003, 5, 1, 1),
+    ('978-84-0000-008-0', 'Don Quijote de la Mancha', 1605, 6, 3, 2);
+
+INSERT INTO socios (nombre, email) VALUES
+    ('Ana Ruiz', 'ana.ruiz@example.org'),
+    ('Pau Ferrer', 'pau.ferrer@example.org'),
+    ('Marta Vidal', 'marta.vidal@example.org'),
+    ('Joan Pons', 'joan.pons@example.org');
+
+INSERT INTO prestamos (socio_id, libro_id, fecha_prestamo, fecha_devolucion) VALUES
+    (1, 1, DATE '2026-10-01', NULL),
+    (1, 2, DATE '2026-10-15', NULL),
+    (2, 8, DATE '2026-10-20', NULL),
+    (2, 3, DATE '2026-09-01', DATE '2026-09-20'),
+    (3, 4, DATE '2026-11-02', NULL),
+    (3, 1, DATE '2026-09-10', DATE '2026-10-01'),
+    (1, 5, DATE '2026-08-05', DATE '2026-08-30');
+```
+:::
+
+El script (@nte-script-biblioteca) crea las cuatro tablas y carga unos datos de ejemplo: siete
+autores, ocho libros, cuatro socios y siete préstamos, de los que cuatro están sin devolver. Los
+datos están elegidos para que cada consulta de la sección dé algo que comentar: hay una autora sin
+libros en el catálogo, un socio que nunca se ha llevado nada y dos libros sin ejemplares
+disponibles. Los identificadores los ha puesto el gestor en el orden de inserción, así que Borges es
+el autor 1 y Ana Ruiz la socia 1.
+
+### 4.2.3 Consultar una tabla: `SELECT`
+
+La sentencia `SELECT` es la que más se usa con diferencia, y también la más rica. En su forma más
+sencilla dice qué columnas se quieren y de qué tabla, y el asterisco significa «todas»:
+
+```sql
+SELECT * FROM socios;
+```
+
+```text
+ID | NOMBRE      | EMAIL
+1  | Ana Ruiz    | ana.ruiz@example.org
+2  | Pau Ferrer  | pau.ferrer@example.org
+3  | Marta Vidal | marta.vidal@example.org
+4  | Joan Pons   | joan.pons@example.org
+(4 rows, 6 ms)
+```
+
+El resultado de una consulta es a su vez una tabla, con las columnas pedidas y una fila por cada
+fila que cumple las condiciones. El `WHERE` elige las filas, con los operadores de comparación de
+siempre, `=`, `<>` (distinto), `<`, `>`, `<=` y `>=`, combinados con `AND`, `OR` y `NOT`. Los
+libros de los que no queda ningún ejemplar:
+
+```sql
+SELECT titulo, disponibles FROM libros WHERE disponibles = 0;
+```
+
+```text
+TITULO   | DISPONIBLES
+El Aleph | 0
+Eva Luna | 0
+(2 rows, 6 ms)
+```
+
+Hay cuatro operadores más que se usan a menudo:
+
+| Operador | Qué selecciona | Ejemplo |
+|---|---|---|
+| `BETWEEN a AND b` | Valores entre `a` y `b`, los dos incluidos. | `anio BETWEEN 1940 AND 1950` |
+| `IN (a, b, …)` | Valores que están en la lista. | `autor_id IN (1, 2)` |
+| `LIKE 'patrón'` | Textos que encajan con el patrón: `%` es cualquier texto, incluido el vacío, y `_` un carácter cualquiera. | `titulo LIKE 'La %'` |
+| `IS NULL`, `IS NOT NULL` | Celdas vacías, o con valor. | `fecha_devolucion IS NULL` |
+
+El `ORDER BY` ordena el resultado por una o varias columnas, de menor a mayor o, con `DESC`, de
+mayor a menor. Sin `ORDER BY` el orden de las filas **no está garantizado**, aunque casi siempre
+parezca el de inserción. Y `LIMIT n` se queda con las `n` primeras. Los tres libros más recientes:
+
+```sql
+SELECT titulo, anio FROM libros ORDER BY anio DESC LIMIT 3;
+```
+
+```text
+TITULO             | ANIO
+La loca de la casa | 2003
+Paula              | 1994
+Eva Luna           | 1987
+(3 rows, 7 ms)
+```
+
+El estándar escribe `LIMIT 3` como `FETCH FIRST 3 ROWS ONLY`. H2 y PostgreSQL entienden las dos
+formas, y MySQL y SQLite solo la primera, que por eso es la que usa el tema.
+
+::: {#cau-comparar-null .callout-caution title="Comparar con `NULL` usando `=`"}
+Para buscar los préstamos sin devolver, lo natural es escribir `WHERE fecha_devolucion = NULL`. La
+consulta no da ningún error y no devuelve ninguna fila:
+
+```sql
+SELECT socio_id, libro_id, fecha_prestamo FROM prestamos WHERE fecha_devolucion = NULL;
+```
+
+```text
+SOCIO_ID | LIBRO_ID | FECHA_PRESTAMO
+(0 rows, 8 ms)
+```
+
+La razón es que `NULL` significa «no se sabe», y cualquier comparación con algo que no se sabe da
+también «no se sabe», ni verdadero ni falso. ¿Es igual la fecha de devolución a un valor
+desconocido? No se sabe. Y el `WHERE` solo deja pasar las filas para las que la condición es
+**verdadera**. Lo mismo pasa con `<>`: `fecha_devolucion <> NULL` tampoco devuelve nada.
+
+Para preguntar si una celda está vacía hay un operador propio, `IS NULL`, y su contrario,
+`IS NOT NULL`:
+
+```sql
+SELECT socio_id, libro_id, fecha_prestamo FROM prestamos WHERE fecha_devolucion IS NULL;
+```
+
+```text
+SOCIO_ID | LIBRO_ID | FECHA_PRESTAMO
+1        | 1        | 2026-10-01
+1        | 2        | 2026-10-15
+2        | 8        | 2026-10-20
+3        | 4        | 2026-11-02
+(4 rows, 7 ms)
+```
+:::
+
+### 4.2.4 Agrupar: funciones de agregado
+
+Hasta aquí, cada fila del resultado corresponde a una fila de la tabla. Muchas preguntas, en cambio,
+piden un **resumen**: cuántos libros hay, cuál es la latencia media. Para eso están las **funciones
+de agregado**, que reciben todos los valores de una columna y devuelven uno:
+
+| Función | Qué devuelve |
+|---|---|
+| `COUNT(*)` | El número de filas. |
+| `COUNT(columna)` | El número de filas en las que esa columna **no** es `NULL`. |
+| `SUM(columna)`, `AVG(columna)` | La suma y la media de los valores, sin contar los `NULL`. |
+| `MIN(columna)`, `MAX(columna)` | El menor y el mayor valor. |
+
+Sin más, una consulta con funciones de agregado resume toda la tabla en una fila. Cuántos libros,
+ejemplares y ejemplares disponibles tiene la biblioteca:
+
+```sql
+SELECT COUNT(*) AS libros, SUM(ejemplares) AS ejemplares, SUM(disponibles) AS disponibles
+FROM libros;
+```
+
+```text
+LIBROS | EJEMPLARES | DISPONIBLES
+8      | 13         | 9
+(1 row, 10 ms)
+```
+
+La palabra `AS` da nombre a una columna del resultado. Lo habitual, sin embargo, es no querer un
+resumen de toda la tabla sino uno **por grupo**: cuántos préstamos ha hecho cada socio. El
+`GROUP BY` reparte las filas en grupos, uno por cada valor distinto de la columna que se le dice, y
+calcula las funciones de agregado dentro de cada grupo:
+
+```sql
+SELECT socio_id, COUNT(*) AS prestamos FROM prestamos GROUP BY socio_id ORDER BY socio_id;
+```
+
+```text
+SOCIO_ID | PRESTAMOS
+1        | 3
+2        | 2
+3        | 2
+(3 rows, 18 ms)
+```
+
+Las mediciones de la red son el caso típico, porque son muchas filas de las que lo que interesa es
+el resumen. Para cada equipo, cuántas mediciones hay, cuántas tuvieron respuesta, y la latencia
+mínima, máxima y media:
+
+```sql
+SELECT equipo_id,
+       COUNT(*)           AS medidas,
+       COUNT(latencia_ms) AS respuestas,
+       MIN(latencia_ms)   AS minima,
+       MAX(latencia_ms)   AS maxima,
+       AVG(latencia_ms)   AS media
+FROM mediciones
+GROUP BY equipo_id
+ORDER BY equipo_id;
+```
+
+```text
+EQUIPO_ID | MEDIDAS | RESPUESTAS | MINIMA | MAXIMA | MEDIA
+1         | 4       | 4          | 2      | 4      | 2.75
+3         | 4       | 4          | 12     | 48     | 22.25
+4         | 4       | 2          | 25     | 31     | 28.0
+(3 rows, 29 ms)
+```
+
+La diferencia entre las dos primeras columnas es la que cuenta: la función `COUNT(*)` cuenta filas,
+y `COUNT(latencia_ms)` cuenta latencias que no son `NULL`. Para el equipo 4, el punto de acceso, hay
+cuatro mediciones y solo dos respuestas: dos pings se perdieron. Y su media, 28, es la de las dos
+latencias que se midieron, porque `AVG` no cuenta los `NULL`. Es lo que se quiere: una medición
+perdida no es una latencia de cero. El switch, el equipo 2, no aparece, porque no tiene ninguna
+medición, y una tabla no puede formar un grupo con filas que no existen. La sección siguiente
+explica cómo hacerlo aparecer.
+
+Para quedarse solo con algunos grupos hay que filtrar **después** de agrupar, y eso no lo hace el
+`WHERE`, sino el `HAVING`. Los equipos que han perdido algún paquete:
+
+```sql
+SELECT equipo_id, COUNT(*) - COUNT(latencia_ms) AS perdidas
+FROM mediciones
+GROUP BY equipo_id
+HAVING COUNT(*) - COUNT(latencia_ms) > 0;
+```
+
+```text
+EQUIPO_ID | PERDIDAS
+4         | 2
+(1 row, 23 ms)
+```
+
+El `WHERE` y el `HAVING` se pueden combinar, y cada uno filtra una cosa distinta. Los socios con
+dos o más préstamos sin devolver:
+
+```sql
+SELECT socio_id, COUNT(*) AS pendientes
+FROM prestamos
+WHERE fecha_devolucion IS NULL
+GROUP BY socio_id
+HAVING COUNT(*) >= 2;
+```
+
+```text
+SOCIO_ID | PENDIENTES
+1        | 2
+(1 row, 12 ms)
+```
+
+El `WHERE` descarta primero las **filas** de préstamos ya devueltos; el `GROUP BY` agrupa las que
+quedan por socio, y el `HAVING` descarta después los **grupos** con menos de dos. Ana Ruiz, la socia
+1, tiene tres préstamos, pero uno está devuelto: sin el `WHERE` habría contado tres.
+
+::: {#tip-orden-logico .callout-tip title="Una consulta se escribe en un orden y se evalúa en otro"}
+Las cláusulas de un `SELECT` se escriben en este orden: `SELECT`, `FROM`, `WHERE`, `GROUP BY`,
+`HAVING`, `ORDER BY`. Pero el gestor las evalúa, al menos conceptualmente, en otro:
+
+1. `FROM`: de qué tablas salen las filas.
+2. `WHERE`: qué filas se quedan.
+3. `GROUP BY`: cómo se agrupan las que quedan.
+4. `HAVING`: qué grupos se quedan.
+5. `SELECT`: qué columnas se calculan para cada fila o grupo.
+6. `ORDER BY` y `LIMIT`: en qué orden se devuelven y cuántas.
+
+Ese orden explica casi todas las reglas que parecen arbitrarias. El `WHERE` no puede usar
+`COUNT(*)` porque se evalúa antes de que existan los grupos: para eso está el `HAVING`. Y en una
+consulta con `GROUP BY`, el `SELECT` solo puede mostrar las columnas del `GROUP BY` y funciones de
+agregado, porque se evalúa por grupo, y una columna que no es del grupo tiene varios valores
+distintos dentro de él: ¿cuál mostraría?
+:::
+
+### 4.2.5 Combinar tablas: `JOIN`
+
+Los resultados de la sección anterior dicen «el socio 1» y «el equipo 4», cuando lo que se quiere
+es el nombre. El nombre está en otra tabla, y juntar filas de dos tablas es lo que hace el `JOIN`.
+Los libros con el nombre de su autor:
+
+```sql
+SELECT l.titulo, a.nombre AS autor
+FROM libros l
+JOIN autores a ON a.id = l.autor_id
+ORDER BY a.nombre, l.titulo;
+```
+
+```text
+TITULO                     | AUTOR
+Nada                       | Carmen Laforet
+La ciudad de los prodigios | Eduardo Mendoza
+Eva Luna                   | Isabel Allende
+Paula                      | Isabel Allende
+El Aleph                   | Jorge Luis Borges
+Ficciones                  | Jorge Luis Borges
+Don Quijote de la Mancha   | Miguel de Cervantes
+La loca de la casa         | Rosa Montero
+(8 rows, 12 ms)
+```
+
+La consulta junta cada fila de `libros` con la fila de `autores` que cumple la condición del `ON`:
+la que tiene como `id` el `autor_id` del libro. Es la clave ajena, recorrida en la dirección que va
+del libro a su autor. Las letras `l` y `a` son **alias**, nombres cortos para las tablas, y el
+`l.titulo` dice de qué tabla es cada columna. Hace falta cuando dos tablas tienen columnas con el
+mismo nombre, como las dos `id`, y conviene escribirlo siempre, porque se lee mejor.
+
+Un `JOIN` puede juntar más de dos tablas, encadenando un `ON` por cada pareja. Los préstamos sin
+devolver, con el nombre del socio y el título del libro, son tres tablas:
+
+```sql
+SELECT s.nombre AS socio, l.titulo, p.fecha_prestamo
+FROM prestamos p
+JOIN socios s ON s.id = p.socio_id
+JOIN libros l ON l.id = p.libro_id
+WHERE p.fecha_devolucion IS NULL
+ORDER BY p.fecha_prestamo;
+```
+
+```text
+SOCIO       | TITULO                   | FECHA_PRESTAMO
+Ana Ruiz    | Ficciones                | 2026-10-01
+Ana Ruiz    | El Aleph                 | 2026-10-15
+Pau Ferrer  | Don Quijote de la Mancha | 2026-10-20
+Marta Vidal | Eva Luna                 | 2026-11-02
+(4 rows, 7 ms)
+```
+
+Es la tabla intermedia de 4.1.3 en acción: cada préstamo junta un socio con un libro, y la consulta
+sigue las dos claves ajenas para traer los nombres.
+
+El `JOIN` de los dos ejemplos se llama `INNER JOIN`, y se puede escribir así, con las dos
+palabras. Solo produce filas para las parejas que cumplen el `ON`, y eso tiene una consecuencia: una
+fila que no tiene pareja **desaparece** del resultado. Joan Pons, que nunca se ha llevado un libro,
+no tiene ninguna fila en `prestamos`, así que un `JOIN` entre socios y préstamos no lo muestra. Si
+se quiere ver a todos los socios, con o sin préstamos, hace falta un `LEFT JOIN`, que conserva
+todas las filas de la tabla de la izquierda y rellena con `NULL` las columnas de la derecha cuando
+no hay pareja:
+
+```sql
+SELECT s.nombre, COUNT(p.id) AS prestamos
+FROM socios s
+LEFT JOIN prestamos p ON p.socio_id = s.id
+GROUP BY s.id, s.nombre
+ORDER BY prestamos DESC, s.nombre;
+```
+
+```text
+NOMBRE      | PRESTAMOS
+Ana Ruiz    | 3
+Marta Vidal | 2
+Pau Ferrer  | 2
+Joan Pons   | 0
+(4 rows, 16 ms)
+```
+
+Dos detalles de esta consulta son importantes. El primero es que cuenta `COUNT(p.id)` y no
+`COUNT(*)`. Para Joan, el `LEFT JOIN` produce una fila con todas las columnas de `prestamos` a
+`NULL`, y `COUNT(*)` la contaría: diría que Joan tiene **un** préstamo. En cambio, `COUNT(p.id)`
+cuenta solo los préstamos que existen. El segundo es que agrupa por `s.id` además de por el
+nombre: dos socios distintos pueden llamarse igual, y agrupar solo por el nombre los juntaría en
+uno.
+
+El `LEFT JOIN` también sirve para encontrar lo que **no** tiene pareja. Los autores sin ningún libro
+en el catálogo son los que, tras el `LEFT JOIN`, se quedan con el libro a `NULL`:
+
+```sql
+SELECT a.nombre
+FROM autores a
+LEFT JOIN libros l ON l.autor_id = a.id
+WHERE l.id IS NULL;
+```
+
+```text
+NOMBRE
+Almudena Grandes
+(1 row, 10 ms)
+```
+
+Con un `LEFT JOIN` se resuelve también lo que quedó pendiente en la red: que el switch, sin
+mediciones, aparezca en el resumen.
+
+```sql
+SELECT e.nombre, e.tipo,
+       COUNT(m.id)          AS medidas,
+       COUNT(m.latencia_ms) AS respuestas,
+       AVG(m.latencia_ms)   AS media
+FROM equipos e
+LEFT JOIN mediciones m ON m.equipo_id = e.id
+GROUP BY e.nombre, e.tipo
+ORDER BY e.nombre;
+```
+
+```text
+NOMBRE         | TIPO            | MEDIDAS | RESPUESTAS | MEDIA
+ap-biblioteca  | punto de acceso | 4       | 2          | 28.0
+router-central | router          | 4       | 4          | 2.75
+servidor-web   | servidor        | 4       | 4          | 22.25
+switch-planta1 | switch          | 0       | 0          | null
+(4 rows, 17 ms)
+```
+
+Para un administrador de red, la última fila es la más importante del informe: un equipo del que no
+se tiene ninguna medición es un equipo que no se está vigilando.
+
+Por último, una consulta puede usar el resultado de otra, escrita entre paréntesis: es una
+**subconsulta**. La forma más sencilla devuelve una lista de valores para un `IN`. Los socios que
+tienen algún préstamo sin devolver:
+
+```sql
+SELECT nombre
+FROM socios
+WHERE id IN (SELECT socio_id FROM prestamos WHERE fecha_devolucion IS NULL)
+ORDER BY nombre;
+```
+
+```text
+NOMBRE
+Ana Ruiz
+Marta Vidal
+Pau Ferrer
+(3 rows, 11 ms)
+```
+
+La misma pregunta se puede responder con un `JOIN`, y casi siempre hay varias formas de escribir
+una consulta. La subconsulta suele leerse más cerca de cómo se diría en palabras: «los socios cuyo
+número está entre los de los préstamos pendientes».
+
+::: {#cau-producto-cartesiano .callout-caution title="Juntar tablas sin condición: el producto cartesiano"}
+Un `JOIN` sin `ON`, o la forma antigua de juntar tablas separándolas con una coma en el `FROM` y
+olvidando la condición en el `WHERE`, no da error. Junta **cada** fila de una tabla con **cada**
+fila de la otra:
+
+```sql
+SELECT COUNT(*) FROM libros, autores;
+```
+
+```text
+COUNT(*)
+56
+(1 row, 14 ms)
+```
+
+Ocho libros por siete autores son 56 filas, casi todas sin sentido: *Ficciones* con Isabel Allende,
+*Paula* con Cervantes. Con tablas de miles de filas, el resultado tiene millones, y la consulta
+tarda minutos en devolver basura. El síntoma es un resultado con muchas más filas de las
+esperadas, o una consulta que de pronto no termina. La costumbre que lo evita es escribir siempre
+`JOIN ... ON`, y escribir el `ON` en cuanto se escribe el `JOIN`.
+:::
+
+### 4.2.6 Transacciones
+
+Prestar un libro son dos cambios: anotar el préstamo en `prestamos` y descontar un ejemplar en
+`libros`. Si se hace el primero y el segundo falla —porque no quedan ejemplares, porque se va la
+luz, porque el programa tiene un error—, la base de datos queda con un préstamo anotado de un
+ejemplar que nunca salió. Lo que hace falta es poder decir «estos dos cambios van juntos».
+
+::: {#imp-transaccion .callout-important title="Transacción"}
+Una **transacción** (*transaction*) es un grupo de operaciones que el gestor trata como una sola:
+o se hacen **todas**, o no se hace **ninguna**. Se confirma con `COMMIT`, y a partir de ese momento
+sus cambios son definitivos; o se deshace con `ROLLBACK`, y entonces la base de datos queda
+exactamente como estaba antes de empezar.
+
+Las garantías de una transacción se resumen con las siglas **ACID** [@haerder1983]:
+
+- **Atomicidad** (*atomicity*): todo o nada.
+- **Consistencia** (*consistency*): la transacción lleva la base de datos de un estado que cumple
+  todas las restricciones a otro que también las cumple.
+- **Aislamiento** (*isolation*): mientras dura, otras transacciones no ven sus cambios a medias.
+- **Durabilidad** (*durability*): una vez confirmada, sus cambios sobreviven aunque el sistema se
+  caiga un instante después.
+:::
+
+Por defecto, la consola, y también JDBC, trabajan en modo **autocommit**: cada sentencia es una
+transacción por sí sola y se confirma en cuanto termina. Para agrupar varias hay que desactivarlo.
+Este es el préstamo de *El Aleph*, del que no queda ningún ejemplar, a Joan Pons:
+
+```sql
+SET AUTOCOMMIT OFF;
+INSERT INTO prestamos (socio_id, libro_id, fecha_prestamo) VALUES (4, 2, DATE '2026-11-23');
+UPDATE libros SET disponibles = disponibles - 1 WHERE id = 2;
+ROLLBACK;
+SELECT COUNT(*) AS prestamos FROM prestamos;
+```
+
+```text
+sql> (Update count: 0, 0 ms)
+sql> (Update count: 1, 0 ms)
+sql> Error: org.h2.jdbc.JdbcSQLIntegrityConstraintViolationException: Check constraint violation: "CONSTRAINT_85D441: "; SQL statement:
+UPDATE libros SET disponibles = disponibles - 1 WHERE id = 2 [23513-220]
+sql> (Update count: 0, 0 ms)
+sql> PRESTAMOS
+7
+(1 row, 10 ms)
+```
+
+El `INSERT` se hizo, el `UPDATE` falló por la restricción `CHECK`, y el `ROLLBACK` deshizo también
+el `INSERT`: sigue habiendo siete préstamos. Con *Paula*, de la que quedan dos ejemplares, las dos
+sentencias funcionan, y un `COMMIT` las confirma juntas. Después hay ocho préstamos y a *Paula* le
+queda un ejemplar disponible.
+
+La última letra de ACID, el aislamiento, es la que enlaza con el Tema 3. Dos bibliotecarios que
+prestan a la vez el último ejemplar de un libro son dos hilos que comprueban y después actúan, como
+en el [error frecuente de comprobar y después actuar](tema3.qmd#cau-comprobar-y-actuar) del Tema 3,
+y el gestor es quien se ocupa de que no se pisen. Lo consigue, entre otras técnicas, con cerrojos
+como los de aquel tema, que pone él mismo sobre las filas que toca cada transacción, sin que el
+programa tenga que escribir ningún `synchronized`. Cuánto aísla exactamente cada gestor, y qué
+anomalías permite a cambio de ir más rápido, se configura con los **niveles de aislamiento** del
+estándar, un tema que va más allá de este curso.
+
+## 4.3. Interacción con bases de datos relacionales desde Java (JDBC)
+
+**En el monitor de servicios** (@fig-monitor4), el repositorio del Tema 1 guardaba los resultados
+en una lista. Al final de esta sección habrá otro que los guarda en una tabla, y que el monitor
+usará sin enterarse del cambio, porque implementa la misma interfaz. Para llegar ahí hace falta
+saber cómo un programa Java envía SQL a una base de datos y recoge lo que le devuelve, y eso es
+JDBC.
+
+### 4.3.1 Qué es JDBC
+
+::: {#imp-jdbc .callout-important title="JDBC"}
+**JDBC** (*Java Database Connectivity*) es la API estándar de Java para trabajar con bases de datos
+relacionales. Está en el paquete `java.sql`, que forma parte del JDK, y casi todo lo que contiene
+son **interfaces**: `Connection`, `PreparedStatement`, `ResultSet`… Las clases que las implementan
+las pone cada gestor en una biblioteca llamada **driver** (*controlador*): H2 trae el suyo, y
+PostgreSQL, MySQL y Oracle, los suyos.
+
+El programa solo usa las interfaces. Cuál de los drivers se encarga de cada conexión lo decide la
+**URL de conexión**, un texto que empieza por `jdbc:` seguido del nombre del gestor:
+
+| URL | A qué se conecta |
+|---|---|
+| `jdbc:h2:mem:biblioteca` | Una base de datos H2 en memoria, que desaparece al cerrar la conexión. |
+| `jdbc:h2:./datos/biblioteca` | Una base de datos H2 guardada en el fichero `datos/biblioteca.mv.db`. |
+| `jdbc:postgresql://localhost:5432/biblioteca` | La base de datos `biblioteca` de un servidor PostgreSQL. |
+
+Es el principio de inversión de dependencias del Tema 1 aplicado a escala de biblioteca: el
+programa depende de las interfaces de `java.sql`, no de H2, y por eso cambiar de gestor es, en
+el caso más sencillo, cambiar la URL.
+:::
+
+Las tres interfaces con las que se hace casi todo son estas, y cada una se obtiene de la anterior:
+
+1. Una **`Connection`** es una conexión abierta con la base de datos. Se obtiene de la clase
+   `DriverManager` dándole la URL.
+2. Una **`PreparedStatement`** es una sentencia SQL lista para ejecutar. Se obtiene de la conexión.
+3. Un **`ResultSet`** son las filas que devuelve una consulta. Se obtiene al ejecutar la sentencia,
+   y se recorre fila a fila.
+
+### 4.3.2 Excepciones comprobadas y `try` con recursos
+
+Casi todos los métodos de JDBC declaran que pueden lanzar una `SQLException`: la base de datos
+puede no estar, la consulta puede tener un error, una fila puede violar una restricción. Y esa
+excepción es de un tipo que Java obliga a tratar. Antes de escribir el primer programa con JDBC
+conviene entender qué significa eso, porque en el Tema 3 ya apareció, con `InterruptedException`,
+sin que se explicara.
+
+::: {#imp-excepcion-comprobada .callout-important title="Excepción comprobada"}
+En Java hay dos clases de excepciones. Las **no comprobadas** (*unchecked*) son las que heredan de
+`RuntimeException`, como `IllegalArgumentException` o `NullPointerException`: suelen indicar un
+error de programación, y el compilador no obliga a hacer nada con ellas.
+
+Las **comprobadas** (*checked*) son las demás, como `SQLException`, `IOException` o
+`InterruptedException`. Indican problemas que no dependen del programa —la red se cae, el fichero
+no existe, la base de datos rechaza una fila— y que un programa correcto tiene que prever. Por eso
+el compilador **exige** que cada método que puede recibir una de ellas haga una de dos cosas:
+
+- **Tratarla**, atrapándola con un bloque `try … catch`.
+- **Declararla**, añadiendo `throws SQLException` a su firma, para que la trate quien lo llame.
+
+Si no hace ninguna de las dos, el programa no compila.
+:::
+
+Declararla es lo más sencillo, y es lo que hacen los `main` de los primeros ejemplos:
+`public static void main(String[] args) throws SQLException`. Si algo falla, la excepción llega
+hasta la máquina virtual, que termina el programa e imprime la traza. Para un programa de prueba es
+suficiente. Un programa de verdad la atrapa en algún punto y decide qué hacer.
+
+El otro problema de JDBC son los recursos. Una conexión ocupa memoria en el programa y, si el
+gestor es un servidor, también allí, y lo mismo una sentencia o un `ResultSet` abierto. Hay que
+**cerrarlos** al terminar, llamando a su método `close`, y hay que cerrarlos **también** si algo
+falla a medio camino. Hacerlo a mano exige un bloque `finally` por cada recurso. Java tiene una
+forma de hacerlo sola.
+
+::: {#imp-try-con-recursos .callout-important title="`try` con recursos"}
+Un **`try` con recursos** (*try-with-resources*) es un `try` que declara, entre paréntesis, uno o
+varios objetos que hay que cerrar al terminar:
+
+```java
+// Fragmento
+try (Connection conexion = DriverManager.getConnection(URL);
+     PreparedStatement consulta = conexion.prepareStatement(sql)) {
+    // usar la conexión y la consulta
+}   // aquí se cierran las dos, en orden inverso: primero la consulta y después la conexión
+```
+
+Al salir del bloque, Java llama al método `close` de cada recurso, en orden inverso al de
+declaración, y lo hace **siempre**: tanto si el bloque termina normalmente como si lanza una
+excepción. Solo se pueden declarar así objetos de clases que implementan la interfaz
+`AutoCloseable`, que es la que tiene el método `close`. Todos los recursos de JDBC la implementan.
+
+Un `try` con recursos puede tener además bloques `catch`, que atrapan las excepciones del bloque y
+también las que lance el propio `close`.
+:::
+
+El Tema 3 ya lo usó, sin darle nombre, al crear los ejecutores dentro de un `try` (como en
+[el ejemplo de las seis tareas con `execute`](tema3.qmd#nte-ejecutar)): la interfaz
+`ExecutorService` implementa `AutoCloseable`, y su `close` espera a que terminen las tareas.
+
+El último ejemplo de esta subsección junta las dos piezas. Es una consulta con un error en el
+nombre de la tabla, `libro` en lugar de `libros`, y un `catch` que atrapa la excepción y muestra
+lo que trae:
+
+::: {#nte-error .callout-note title="Atrapar una `SQLException`"}
+```java
+// DemoError.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/** Una consulta con un error en el nombre de la tabla, y lo que llega a Java. */
+public final class DemoError {
+
+    private DemoError() { }
+
+    public static void main(String[] args) {
+        try (Connection conexion = DriverManager.getConnection(DemoConsultar.URL);
+             PreparedStatement consulta = conexion.prepareStatement("SELECT titulo FROM libro");
+             ResultSet filas = consulta.executeQuery()) {
+            while (filas.next()) {
+                System.out.println("   " + filas.getString("titulo"));
+            }
+        } catch (SQLException e) {
+            System.out.println("   no se ha podido consultar: " + e.getMessage().lines().findFirst().orElse(""));
+            System.out.println("   estado SQL: " + e.getSQLState());
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   no se ha podido consultar: Table "LIBRO" not found; SQL statement:
+   estado SQL: 42S02
+```
+:::
+
+La conexión, la sentencia y el `ResultSet` se cierran solos, aunque la excepción salte al preparar
+la sentencia, antes de que el `ResultSet` llegue a existir: el `try` con recursos solo cierra lo que
+ha llegado a abrir.
+
+::: {#wrn-leer-sqlexception .callout-warning title="Leer una `SQLException`"}
+Una `SQLException` trae más información que su mensaje, y saber dónde buscarla ahorra mucho
+tiempo:
+
+- **El mensaje**, con `getMessage()`, dice qué ha pasado con las palabras del gestor, y muchos
+  gestores añaden la sentencia que ha fallado. Es lo primero que hay que leer, entero.
+- **El estado SQL**, con `getSQLState()`, es un código de cinco caracteres definido por el
+  estándar. Sus dos primeros caracteres son la **clase** del error, y son los mismos en todos los
+  gestores: `23` es una violación de una restricción de integridad, `42` un error de sintaxis o un
+  nombre que no existe, `08` un problema de conexión. Es lo que un programa debe mirar para decidir
+  qué hacer, porque el mensaje cambia de un gestor a otro y de una versión a otra.
+- **El código de error**, con `getErrorCode()`, es el número propio del gestor. Sirve para buscar
+  el error en su documentación, pero ata el programa a ese gestor.
+
+Y una costumbre: cuando una consulta falla y no se ve por qué, se copia el SQL tal cual en la
+consola de H2 y se ejecuta allí. Si falla también, el problema es del SQL; si funciona, es de cómo
+lo construye o le pasa los parámetros el programa Java.
+:::
+
+### 4.3.3 Conectar y consultar
+
+El primer programa lista los libros de la biblioteca. Empieza por la URL de conexión, que tiene una
+parte más que las de la tabla de @imp-jdbc:
+
+```java
+// Fragmento
+static final String URL = "jdbc:h2:mem:biblioteca;INIT=RUNSCRIPT FROM 'classpath:biblioteca.sql'";
+```
+
+Lo que va detrás del punto y coma es una opción de H2: al abrir la base de datos, que en memoria
+siempre se abre vacía, ejecuta el script `biblioteca.sql`, que busca entre los recursos del
+proyecto, en la carpeta `src/main/resources`. Así cada ejecución empieza con las tablas creadas y
+los datos de ejemplo cargados, sin un paso aparte.
+
+Con la URL se abre la conexión, se prepara la consulta y se ejecuta, las tres cosas en un `try` con
+recursos:
+
+```java
+// Fragmento
+try (Connection conexion = DriverManager.getConnection(URL);
+     PreparedStatement consulta = conexion.prepareStatement(sql);
+     ResultSet filas = consulta.executeQuery()) {
+```
+
+Un `ResultSet` funciona como un cursor que empieza **antes** de la primera fila. Su método `next`
+avanza a la siguiente y devuelve si existe, de modo que el recorrido es un `while`:
+
+```java
+// Fragmento
+while (filas.next()) {
+    String titulo = filas.getString("titulo");
+    int anio = filas.getInt("anio");
+    int disponibles = filas.getInt("disponibles");
+    // ...
+}
+```
+
+Dentro del bucle, los métodos `get…` leen las columnas de la fila actual, cada uno convirtiendo el
+valor de SQL al tipo de Java que dice su nombre. La columna se puede dar por su nombre, como aquí,
+o por su posición, empezando por 1. Por el nombre se lee mejor y no se rompe si cambia el orden de
+las columnas en el `SELECT`.
+
+::: {#nte-consultar .callout-note title="Listar los libros de la biblioteca"}
+```java
+// DemoConsultar.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/** Se conecta a la base de datos de la biblioteca y lista sus libros. */
+public final class DemoConsultar {
+
+    /** Una base de datos en memoria que, al abrirse, ejecuta el script de la biblioteca. */
+    static final String URL = "jdbc:h2:mem:biblioteca;INIT=RUNSCRIPT FROM 'classpath:biblioteca.sql'";
+
+    private DemoConsultar() { }
+
+    public static void main(String[] args) throws SQLException {
+        String sql = "SELECT titulo, anio, disponibles FROM libros ORDER BY titulo";
+        try (Connection conexion = DriverManager.getConnection(URL);
+             PreparedStatement consulta = conexion.prepareStatement(sql);
+             ResultSet filas = consulta.executeQuery()) {
+            while (filas.next()) {
+                String titulo = filas.getString("titulo");
+                int anio = filas.getInt("anio");
+                int disponibles = filas.getInt("disponibles");
+                System.out.println("   " + titulo + " (" + anio + "): " + disponibles + " disponibles");
+            }
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   Don Quijote de la Mancha (1605): 2 disponibles
+   El Aleph (1949): 0 disponibles
+   Eva Luna (1987): 0 disponibles
+   Ficciones (1944): 1 disponibles
+   La ciudad de los prodigios (1986): 1 disponibles
+   La loca de la casa (2003): 1 disponibles
+   Nada (1945): 2 disponibles
+   Paula (1994): 2 disponibles
+```
+:::
+
+Los métodos que usa este ejemplo y los de las siguientes subsecciones son pocos, y casi todos los
+programas con JDBC se escriben solo con ellos:
+
+| Interfaz | Método | Qué hace |
+|---|---|---|
+| `DriverManager` | `getConnection(url)` *(estático)* | Abre una conexión. Si el gestor pide usuario y contraseña, `getConnection(url, usuario, contraseña)`. |
+| `Connection` | `prepareStatement(sql)` | Prepara una sentencia, que puede tener parámetros marcados con `?`. |
+| | `setAutoCommit(b)`, `commit()`, `rollback()` | Controlan las transacciones (4.3.7). |
+| `PreparedStatement` | `setString(i, v)`, `setInt(i, v)`, `setLong(i, v)` | Dan valor al parámetro número `i`, empezando por 1. |
+| | `setObject(i, v)` | Igual, para otros tipos, como `LocalDate` o `LocalDateTime`. |
+| | `setNull(i, tipo)` | Da al parámetro el valor `NULL`. El tipo es una constante de `java.sql.Types`, como `Types.INTEGER`. |
+| | `executeQuery()` | Ejecuta un `SELECT` y devuelve sus filas, en un `ResultSet`. |
+| | `executeUpdate()` | Ejecuta un `INSERT`, un `UPDATE` o un `DELETE`, y devuelve cuántas filas ha cambiado. |
+| `ResultSet` | `next()` | Avanza a la fila siguiente, y devuelve `false` si no hay más. |
+| | `getString(c)`, `getInt(c)`, `getLong(c)` | Leen la columna `c` de la fila actual, por nombre o por posición. |
+| | `getObject(c, Clase.class)` | Lee la columna como un objeto de esa clase, por ejemplo `LocalDate.class`. Si la celda es `NULL`, devuelve `null`. |
+
+### 4.3.4 Consultas con parámetros
+
+Casi todas las consultas de un programa dependen de algún dato: los libros **de un autor**, el
+socio **con un correo**. En el SQL, ese dato se marca con un signo de interrogación, que es un
+**parámetro**:
+
+```java
+// Fragmento
+String sql = """
+        SELECT l.titulo, l.anio
+        FROM libros l
+        JOIN autores a ON a.id = l.autor_id
+        WHERE a.nombre = ?
+        ORDER BY l.anio
+        """;
+```
+
+La consulta se escribe en un **bloque de texto**, entre tres comillas dobles, que permite repartir
+un texto en varias líneas tal como se vería en la consola. Antes de ejecutarla, se da valor al
+parámetro con `setString`. El primer parámetro es el número 1:
+
+```java
+// Fragmento
+consulta.setString(1, autor);
+try (ResultSet filas = consulta.executeQuery()) {
+```
+
+La misma sentencia preparada se puede ejecutar muchas veces, cambiando el valor del parámetro cada
+vez. El ejemplo busca los libros de tres autores con una sola sentencia, y por eso el `ResultSet` va
+en su propio `try`, dentro del bucle: cada ejecución produce uno nuevo, que hay que cerrar.
+
+::: {#nte-buscar-por-autor .callout-note title="Los libros de un autor, con un parámetro"}
+```java
+// DemoBuscarPorAutor.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/** Busca los libros de un autor con una consulta con parámetro. */
+public final class DemoBuscarPorAutor {
+
+    private DemoBuscarPorAutor() { }
+
+    public static void main(String[] args) throws SQLException {
+        String sql = """
+                SELECT l.titulo, l.anio
+                FROM libros l
+                JOIN autores a ON a.id = l.autor_id
+                WHERE a.nombre = ?
+                ORDER BY l.anio
+                """;
+        try (Connection conexion = DriverManager.getConnection(DemoConsultar.URL);
+             PreparedStatement consulta = conexion.prepareStatement(sql)) {
+            for (String autor : new String[] {"Jorge Luis Borges", "Isabel Allende", "Almudena Grandes"}) {
+                consulta.setString(1, autor);
+                System.out.println("   " + autor + ":");
+                try (ResultSet filas = consulta.executeQuery()) {
+                    while (filas.next()) {
+                        System.out.println("      " + filas.getString("titulo") + " (" + filas.getInt("anio") + ")");
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   Jorge Luis Borges:
+      Ficciones (1944)
+      El Aleph (1949)
+   Isabel Allende:
+      Eva Luna (1987)
+      Paula (1994)
+   Almudena Grandes:
+```
+:::
+
+Para Almudena Grandes la consulta no devuelve ninguna fila, y no es un error: el `while` no da
+ninguna vuelta.
+
+Hay otra forma de poner un dato en una consulta, que es la primera que se le ocurre a cualquiera:
+**concatenar** el texto. Funciona, y es uno de los errores más graves que se pueden cometer al
+programar con una base de datos.
+
+::: {#cau-inyeccion-sql .callout-caution title="Construir el SQL concatenando lo que escribe el usuario: inyección SQL"}
+Un formulario pide el correo de un socio para buscarlo, y el programa lo pega en la consulta:
+
+```java
+// Fragmento: lo que NO hay que hacer
+String sql = "SELECT nombre FROM socios WHERE email = '" + escrito + "'";
+```
+
+Si lo escrito es un correo, la consulta es la esperada. Pero si alguien escribe
+`nadie@example.org' OR '1'='1`, la comilla que trae el texto cierra la del programa, y la consulta
+que llega al gestor es otra:
+
+```sql
+SELECT nombre FROM socios WHERE email = 'nadie@example.org' OR '1'='1'
+```
+
+La condición `'1'='1'` es verdadera para todas las filas, así que la consulta devuelve **todos** los
+socios. Con un `DELETE` en lugar de un `SELECT`, o con un texto un poco más elaborado, el mismo
+truco puede borrar tablas o leer datos de otras. Se llama **inyección SQL** (*SQL injection*), y
+lleva más de veinte años entre los fallos de seguridad más explotados de las aplicaciones web.
+
+El programa siguiente hace la misma búsqueda de las dos maneras:
+
+```java
+// DemoInyeccion.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/** La misma búsqueda de un socio por su correo, concatenando el texto y con un parámetro. */
+public final class DemoInyeccion {
+
+    private DemoInyeccion() { }
+
+    public static void main(String[] args) throws SQLException {
+        String escrito = "nadie@example.org' OR '1'='1";   // lo que escribe alguien en el formulario
+        try (Connection conexion = DriverManager.getConnection(DemoConsultar.URL)) {
+
+            System.out.println("   concatenando:");
+            String sql = "SELECT nombre FROM socios WHERE email = '" + escrito + "'";
+            try (Statement sentencia = conexion.createStatement();
+                 ResultSet filas = sentencia.executeQuery(sql)) {
+                while (filas.next()) {
+                    System.out.println("      " + filas.getString("nombre"));
+                }
+            }
+
+            System.out.println("   con un parametro:");
+            try (PreparedStatement consulta = conexion.prepareStatement("SELECT nombre FROM socios WHERE email = ?")) {
+                consulta.setString(1, escrito);
+                try (ResultSet filas = consulta.executeQuery()) {
+                    while (filas.next()) {
+                        System.out.println("      " + filas.getString("nombre"));
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+```text
+   concatenando:
+      Ana Ruiz
+      Pau Ferrer
+      Marta Vidal
+      Joan Pons
+   con un parametro:
+```
+
+Con un parámetro, el texto llega al gestor **como un valor**, nunca como parte del SQL: se busca un
+socio cuyo correo sea, literalmente, `nadie@example.org' OR '1'='1`, y no hay ninguno. La regla no
+tiene excepciones: **todo dato que no esté escrito en el propio programa va en un parámetro**,
+aunque parezca inofensivo, aunque venga de otra tabla, aunque solo sea un número. La única
+excepción aparente, que el nombre de una tabla o de una columna no se puede pasar como parámetro,
+se resuelve eligiéndolo de una lista fija escrita en el programa, nunca copiándolo de lo que llega.
+:::
+
+El ejemplo usa `Statement`, la interfaz antigua para sentencias sin parámetros, que se obtiene con
+`createStatement()` y recibe el SQL al ejecutarse. Aparece aquí porque es la que permite cometer el
+error. En el resto del tema no hace falta: una `PreparedStatement` sin ningún `?` hace lo mismo.
+
+### 4.3.5 De filas a objetos: un repositorio
+
+Los ejemplos anteriores imprimen dentro del propio bucle del `ResultSet`. En un programa de verdad,
+lo que se quiere es convertir cada fila en un objeto y devolver los objetos, para que el resto del
+programa trabaje con ellos sin saber que vienen de una base de datos. Para un libro, el objeto
+natural es un `record`:
+
+```java
+// Libro.java
+package es.uib.prgava.tema4.biblioteca;
+
+/** Un libro del catálogo, tal como sale de una fila de la tabla {@code libros}. */
+public record Libro(int id, String isbn, String titulo, int anio, int disponibles) { }
+```
+
+Y lo natural es reunir todo el SQL de los libros en una clase, un **repositorio**, con un método por
+operación. Es el mismo patrón que el repositorio de resultados del Tema 1: el resto del programa
+pide «los libros de este autor» y no sabe si salen de una lista, de un fichero o de una tabla.
+
+El repositorio recibe la conexión en el constructor y la guarda; no la abre ni la cierra, porque no
+es suya: la cierra quien la abrió, igual que un ejecutor del Tema 3 lo cierra quien lo crea. Lo que
+sí abre y cierra es cada sentencia. La conversión de una fila en un `Libro` se usa
+en dos métodos, así que va en un método privado:
+
+```java
+// Fragmento
+private static Libro aLibro(ResultSet fila) throws SQLException {
+    return new Libro(fila.getInt("id"), fila.getString("isbn"), fila.getString("titulo"),
+            fila.getInt("anio"), fila.getInt("disponibles"));
+}
+```
+
+Buscar por ISBN devuelve como mucho un libro, porque el ISBN es único. Si no hay ninguno, el método
+devuelve un `Optional` vacío en lugar de `null`, como recomendaba el Tema 1 para los valores que
+pueden faltar:
+
+```java
+// Fragmento
+try (ResultSet filas = consulta.executeQuery()) {
+    if (filas.next()) {
+        return Optional.of(aLibro(filas));
+    }
+    return Optional.empty();
+}
+```
+
+Al insertar un libro hay una dificultad: el `id` lo pone el gestor, y el programa necesita saber
+cuál ha puesto. Para eso, al preparar la sentencia se le pide que devuelva las **claves generadas**,
+y después de ejecutarla se leen como si fueran el resultado de una consulta, con una fila y una
+columna:
+
+```java
+// Fragmento
+try (PreparedStatement alta = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    // ... los set de los seis parámetros
+    alta.executeUpdate();
+    try (ResultSet claves = alta.getGeneratedKeys()) {
+        claves.next();
+        return claves.getInt(1);
+    }
+}
+```
+
+::: {#nte-repositorio .callout-note title="El repositorio de libros, `RepositorioLibros`"}
+```java
+// RepositorioLibros.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+/** Todo el SQL de los libros, en una sola clase. Trabaja con la conexión que recibe. */
+public final class RepositorioLibros {
+
+    private final Connection conexion;
+
+    public RepositorioLibros(Connection conexion) {
+        this.conexion = conexion;
+    }
+
+    /** Los libros de un autor, por año de publicación. */
+    public List<Libro> buscarPorAutor(String autor) throws SQLException {
+        String sql = """
+                SELECT l.id, l.isbn, l.titulo, l.anio, l.disponibles
+                FROM libros l
+                JOIN autores a ON a.id = l.autor_id
+                WHERE a.nombre = ?
+                ORDER BY l.anio
+                """;
+        try (PreparedStatement consulta = conexion.prepareStatement(sql)) {
+            consulta.setString(1, autor);
+            try (ResultSet filas = consulta.executeQuery()) {
+                List<Libro> libros = new ArrayList<>();
+                while (filas.next()) {
+                    libros.add(aLibro(filas));
+                }
+                return libros;
+            }
+        }
+    }
+
+    /** El libro con ese ISBN, o un {@code Optional} vacío si no hay ninguno. */
+    public Optional<Libro> buscarPorIsbn(String isbn) throws SQLException {
+        String sql = "SELECT id, isbn, titulo, anio, disponibles FROM libros WHERE isbn = ?";
+        try (PreparedStatement consulta = conexion.prepareStatement(sql)) {
+            consulta.setString(1, isbn);
+            try (ResultSet filas = consulta.executeQuery()) {
+                if (filas.next()) {
+                    return Optional.of(aLibro(filas));
+                }
+                return Optional.empty();
+            }
+        }
+    }
+
+    /** Da de alta un libro con todos sus ejemplares disponibles, y devuelve el id que le ha dado la base de datos. */
+    public int insertar(String isbn, String titulo, int anio, int autorId, int ejemplares) throws SQLException {
+        String sql = """
+                INSERT INTO libros (isbn, titulo, anio, autor_id, ejemplares, disponibles)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """;
+        try (PreparedStatement alta = conexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            alta.setString(1, isbn);
+            alta.setString(2, titulo);
+            alta.setInt(3, anio);
+            alta.setInt(4, autorId);
+            alta.setInt(5, ejemplares);
+            alta.setInt(6, ejemplares);
+            alta.executeUpdate();
+            try (ResultSet claves = alta.getGeneratedKeys()) {
+                claves.next();
+                return claves.getInt(1);
+            }
+        }
+    }
+
+    /** Convierte la fila actual en un {@code Libro}. */
+    private static Libro aLibro(ResultSet fila) throws SQLException {
+        return new Libro(fila.getInt("id"), fila.getString("isbn"), fila.getString("titulo"),
+                fila.getInt("anio"), fila.getInt("disponibles"));
+    }
+}
+```
+
+El programa de prueba abre **una** conexión, crea el repositorio con ella y la usa hasta el final:
+
+```java
+// DemoRepositorio.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
+/** Usa el repositorio de libros: buscar, dar de alta y volver a buscar. */
+public final class DemoRepositorio {
+
+    private DemoRepositorio() { }
+
+    public static void main(String[] args) throws SQLException {
+        try (Connection conexion = DriverManager.getConnection(DemoConsultar.URL)) {
+            var libros = new RepositorioLibros(conexion);
+
+            System.out.println("   libros de Isabel Allende:");
+            for (Libro libro : libros.buscarPorAutor("Isabel Allende")) {
+                System.out.println("      " + libro);
+            }
+            System.out.println("   ISBN 978-84-0000-005-9: " + libros.buscarPorIsbn("978-84-0000-005-9"));
+            System.out.println("   ISBN 000-00-0000-000-0: " + libros.buscarPorIsbn("000-00-0000-000-0"));
+
+            int id = libros.insertar("978-84-0000-009-7", "Violeta", 2022, 2, 2);
+            System.out.println("   alta de Violeta: id " + id);
+            System.out.println("   libros de Isabel Allende:");
+            for (Libro libro : libros.buscarPorAutor("Isabel Allende")) {
+                System.out.println("      " + libro);
+            }
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   libros de Isabel Allende:
+      Libro[id=4, isbn=978-84-0000-004-2, titulo=Eva Luna, anio=1987, disponibles=0]
+      Libro[id=3, isbn=978-84-0000-003-5, titulo=Paula, anio=1994, disponibles=2]
+   ISBN 978-84-0000-005-9: Optional[Libro[id=5, isbn=978-84-0000-005-9, titulo=Nada, anio=1945, disponibles=2]]
+   ISBN 000-00-0000-000-0: Optional.empty
+   alta de Violeta: id 9
+   libros de Isabel Allende:
+      Libro[id=4, isbn=978-84-0000-004-2, titulo=Eva Luna, anio=1987, disponibles=0]
+      Libro[id=3, isbn=978-84-0000-003-5, titulo=Paula, anio=1994, disponibles=2]
+      Libro[id=9, isbn=978-84-0000-009-7, titulo=Violeta, anio=2022, disponibles=2]
+```
+:::
+
+Que la conexión se abra una vez en el `main` y dure todo el programa no es solo lo más sencillo:
+con una base de datos en memoria es imprescindible. Cada vez que se abre una conexión nueva y no
+hay ninguna otra abierta, H2 crea la base de datos vacía y vuelve a ejecutar el script. Un
+repositorio que abriera y cerrara su propia conexión en cada método perdería, entre un método y
+el siguiente, todo lo que hubiera insertado.
+
+Las mediciones de la red tienen una dificultad que los libros no tienen: la latencia puede ser
+`NULL`. El `record` que las representa la declara como `Integer`, no como `int`, precisamente para
+poder guardar `null`:
+
+```java
+// Medicion.java
+package es.uib.prgava.tema4.red;
+
+import java.time.LocalDateTime;
+
+/** Una medición de latencia. La latencia es {@code null} si el equipo no respondió. */
+public record Medicion(String equipo, LocalDateTime instante, Integer latenciaMs) { }
+```
+
+Y leerla bien exige un cuidado especial, porque el método que parece natural se equivoca en
+silencio.
+
+::: {#cau-getint-null .callout-caution title="Leer un `NULL` con `getInt`"}
+El método `getInt` devuelve un `int`, y un `int` no puede ser `null`. Cuando la celda es `NULL`,
+devuelve **cero**, sin avisar. Para una latencia, cero milisegundos no es «sin respuesta»: es la
+respuesta más rápida posible, justo lo contrario. El programa siguiente lee las mediciones del punto
+de acceso de las dos maneras:
+
+```java
+// DemoMediciones.java
+package es.uib.prgava.tema4.red;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+/** Lee las mediciones de un equipo, primero con getInt y después distinguiendo las que no tienen respuesta. */
+public final class DemoMediciones {
+
+    static final String URL = "jdbc:h2:mem:red;INIT=RUNSCRIPT FROM 'classpath:red.sql'";
+
+    private DemoMediciones() { }
+
+    public static void main(String[] args) throws SQLException {
+        String sql = """
+                SELECT e.nombre, m.instante, m.latencia_ms
+                FROM mediciones m
+                JOIN equipos e ON e.id = m.equipo_id
+                WHERE e.nombre = ?
+                ORDER BY m.instante
+                """;
+        try (Connection conexion = DriverManager.getConnection(URL);
+             PreparedStatement consulta = conexion.prepareStatement(sql)) {
+            consulta.setString(1, "ap-biblioteca");
+
+            System.out.println("   con getInt:");
+            try (ResultSet filas = consulta.executeQuery()) {
+                while (filas.next()) {
+                    System.out.println("      " + filas.getObject("instante", LocalDateTime.class)
+                            + "  " + filas.getInt("latencia_ms") + " ms");
+                }
+            }
+
+            System.out.println("   con getObject(..., Integer.class):");
+            List<Medicion> mediciones = new ArrayList<>();
+            try (ResultSet filas = consulta.executeQuery()) {
+                while (filas.next()) {
+                    mediciones.add(new Medicion(filas.getString("nombre"),
+                            filas.getObject("instante", LocalDateTime.class),
+                            filas.getObject("latencia_ms", Integer.class)));
+                }
+            }
+            for (Medicion medicion : mediciones) {
+                String latencia = medicion.latenciaMs() == null ? "sin respuesta" : medicion.latenciaMs() + " ms";
+                System.out.println("      " + medicion.instante() + "  " + latencia);
+            }
+        }
+    }
+}
+```
+
+```text
+   con getInt:
+      2026-11-20T10:00  25 ms
+      2026-11-20T10:01  0 ms
+      2026-11-20T10:02  31 ms
+      2026-11-20T10:03  0 ms
+   con getObject(..., Integer.class):
+      2026-11-20T10:00  25 ms
+      2026-11-20T10:01  sin respuesta
+      2026-11-20T10:02  31 ms
+      2026-11-20T10:03  sin respuesta
+```
+
+Con `getInt`, las dos mediciones perdidas aparecen como dos pings perfectos. Con
+`getObject("latencia_ms", Integer.class)`, la celda vacía llega como `null`, y el programa puede
+distinguirla. Lo mismo pasa con `getLong`, `getDouble` y `getBoolean`, que devuelven `0`, `0.0` y
+`false`. La regla es sencilla: si una columna admite `NULL` en la tabla, se lee con `getObject` y la
+clase envoltorio correspondiente, `Integer`, `Long` o `Double`.
+:::
+
+El mismo ejemplo lee el instante con `getObject("instante", LocalDateTime.class)`. Los tipos de
+fecha y hora de `java.time` se leen y se escriben así, con `getObject` y `setObject`, y se
+corresponden con los de SQL de forma natural: `DATE` con `LocalDate`, y `TIMESTAMP` con
+`LocalDateTime`.
+
+### 4.3.6 Insertar muchas filas: lotes
+
+Un sistema de monitorización de red inserta mediciones sin parar, y enviar cada `INSERT` por
+separado al gestor tiene un coste: con un servidor en otra máquina, cada sentencia es un viaje de
+ida y vuelta por la red. Una sentencia preparada puede acumular varias ejecuciones y enviarlas todas
+juntas, en un **lote** (*batch*): se dan valores a los parámetros, se llama a `addBatch()` para
+apuntar esa ejecución, y se repite; al final, `executeBatch()` las envía todas y devuelve un array
+con las filas que ha cambiado cada una.
+
+::: {#nte-registrar .callout-note title="Una hora de mediciones, en un lote"}
+```java
+// DemoRegistrar.java
+package es.uib.prgava.tema4.red;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.time.LocalDateTime;
+import java.util.Random;
+
+/** Registra una hora de mediciones del servidor web, una por minuto, en un lote. */
+public final class DemoRegistrar {
+
+    private DemoRegistrar() { }
+
+    public static void main(String[] args) throws SQLException {
+        Random azar = new Random(42);
+        LocalDateTime inicio = LocalDateTime.of(2026, 11, 20, 11, 0);
+        String sql = "INSERT INTO mediciones (equipo_id, instante, latencia_ms) VALUES (?, ?, ?)";
+        try (Connection conexion = DriverManager.getConnection(DemoMediciones.URL)) {
+            try (PreparedStatement alta = conexion.prepareStatement(sql)) {
+                for (int minuto = 0; minuto < 60; minuto++) {
+                    alta.setInt(1, 3);                                   // servidor-web
+                    alta.setObject(2, inicio.plusMinutes(minuto));
+                    if (azar.nextInt(20) == 0) {
+                        alta.setNull(3, Types.INTEGER);                  // de vez en cuando, sin respuesta
+                    } else {
+                        alta.setInt(3, 10 + azar.nextInt(10));
+                    }
+                    alta.addBatch();
+                }
+                int[] filas = alta.executeBatch();
+                System.out.println("   filas insertadas: " + filas.length);
+            }
+
+            String resumen = """
+                    SELECT COUNT(*) AS medidas, COUNT(latencia_ms) AS respuestas, MAX(latencia_ms) AS peor
+                    FROM mediciones
+                    WHERE equipo_id = 3
+                    """;
+            try (PreparedStatement consulta = conexion.prepareStatement(resumen);
+                 ResultSet fila = consulta.executeQuery()) {
+                fila.next();
+                System.out.println("   servidor-web: " + fila.getInt("medidas") + " medidas, "
+                        + fila.getInt("respuestas") + " con respuesta, la peor de " + fila.getInt("peor") + " ms");
+            }
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   filas insertadas: 60
+   servidor-web: 64 medidas, 58 con respuesta, la peor de 48 ms
+```
+:::
+
+Las latencias son números al azar entre 10 y 19 ms, y de vez en cuando, una de cada veinte veces de
+media, una medición se queda sin respuesta, que se guarda con `setNull`. El generador de números
+aleatorios se crea con una semilla fija, 42, para que cada ejecución produzca los mismos números y
+el resultado se pueda comparar. Las 64 medidas son las 60 nuevas más las cuatro que ya traía el
+script, y la peor latencia, 48 ms, es la de una de esas cuatro.
+
+### 4.3.7 Transacciones desde Java
+
+El préstamo de 4.2.6, escrito en Java, es un método que ejecuta dos sentencias en una transacción.
+Por defecto, una conexión JDBC está en modo autocommit, como la consola: cada `executeUpdate` se
+confirma en cuanto termina. Para que las dos sentencias vayan juntas, se desactiva al empezar:
+
+```java
+// Fragmento
+conexion.setAutoCommit(false);
+try (PreparedStatement alta = conexion.prepareStatement(anotar);
+     PreparedStatement descuento = conexion.prepareStatement(descontar)) {
+    // ... los dos executeUpdate
+    conexion.commit();
+```
+
+Si las dos sentencias funcionan, `commit` las confirma juntas. Si cualquiera de las dos falla, salta
+una `SQLException`, y el `catch` deshace lo que se hubiera hecho y vuelve a lanzar la excepción,
+para que quien llamó sepa que el préstamo no se ha hecho:
+
+```java
+// Fragmento
+} catch (SQLException e) {
+    conexion.rollback();
+    throw e;
+} finally {
+    conexion.setAutoCommit(true);
+}
+```
+
+El `finally` devuelve la conexión al modo autocommit, pase lo que pase. La conexión no es del
+método, sino de quien la abrió, y la deja como estaba: si no, la siguiente operación que hiciera
+otro método con esa conexión quedaría dentro de una transacción sin confirmar.
+
+::: {#nte-prestar .callout-note title="El préstamo de un libro, en una transacción"}
+```java
+// Prestamos.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.time.LocalDate;
+
+/** El préstamo de un libro: dos cambios que se hacen los dos o ninguno. */
+public final class Prestamos {
+
+    private Prestamos() { }
+
+    /**
+     * Presta el libro al socio: anota el préstamo y descuenta un ejemplar disponible, en una sola
+     * transacción. Si no queda ningún ejemplar, la restricción CHECK de la tabla impide el
+     * descuento, y la transacción se deshace entera.
+     */
+    public static void prestar(Connection conexion, int socioId, int libroId, LocalDate fecha) throws SQLException {
+        String anotar = "INSERT INTO prestamos (socio_id, libro_id, fecha_prestamo) VALUES (?, ?, ?)";
+        String descontar = "UPDATE libros SET disponibles = disponibles - 1 WHERE id = ?";
+        conexion.setAutoCommit(false);
+        try (PreparedStatement alta = conexion.prepareStatement(anotar);
+             PreparedStatement descuento = conexion.prepareStatement(descontar)) {
+            alta.setInt(1, socioId);
+            alta.setInt(2, libroId);
+            alta.setObject(3, fecha);
+            alta.executeUpdate();
+
+            descuento.setInt(1, libroId);
+            descuento.executeUpdate();
+
+            conexion.commit();
+        } catch (SQLException e) {
+            conexion.rollback();
+            throw e;
+        } finally {
+            conexion.setAutoCommit(true);
+        }
+    }
+}
+```
+
+El programa de prueba intenta dos préstamos a Joan Pons: *Paula*, de la que quedan dos ejemplares,
+y *El Aleph*, del que no queda ninguno. Antes y después muestra cuántos préstamos hay y cuántos
+ejemplares quedan de cada libro:
+
+```java
+// DemoPrestar.java
+package es.uib.prgava.tema4.biblioteca;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+
+/** Dos préstamos: uno que se puede hacer y otro de un libro sin ejemplares disponibles. */
+public final class DemoPrestar {
+
+    private DemoPrestar() { }
+
+    public static void main(String[] args) throws SQLException {
+        try (Connection conexion = DriverManager.getConnection(DemoConsultar.URL)) {
+            mostrar(conexion);
+            intentar(conexion, 4, 3);    // Joan Pons pide Paula: quedan 2
+            intentar(conexion, 4, 2);    // Joan Pons pide El Aleph: no queda ninguno
+            mostrar(conexion);
+        }
+    }
+
+    private static void intentar(Connection conexion, int socioId, int libroId) {
+        try {
+            Prestamos.prestar(conexion, socioId, libroId, LocalDate.of(2026, 11, 23));
+            System.out.println("   prestamo del libro " + libroId + ": hecho");
+        } catch (SQLException e) {
+            System.out.println("   prestamo del libro " + libroId + ": rechazado (" + e.getSQLState() + ")");
+        }
+    }
+
+    private static void mostrar(Connection conexion) throws SQLException {
+        String sql = "SELECT (SELECT COUNT(*) FROM prestamos) AS prestamos, "
+                + "(SELECT disponibles FROM libros WHERE id = 3) AS paula, "
+                + "(SELECT disponibles FROM libros WHERE id = 2) AS aleph";
+        try (PreparedStatement consulta = conexion.prepareStatement(sql);
+             ResultSet fila = consulta.executeQuery()) {
+            fila.next();
+            System.out.println("   prestamos: " + fila.getInt("prestamos") + ", Paula disponibles: "
+                    + fila.getInt("paula") + ", El Aleph disponibles: " + fila.getInt("aleph"));
+        }
+    }
+}
+```
+
+Lo que imprime:
+
+```text
+   prestamos: 7, Paula disponibles: 2, El Aleph disponibles: 0
+   prestamo del libro 3: hecho
+   prestamo del libro 2: rechazado (23513)
+   prestamos: 8, Paula disponibles: 1, El Aleph disponibles: 0
+```
+:::
+
+El segundo préstamo se rechaza con el estado SQL `23513`: clase `23`, violación de una restricción
+de integridad (@wrn-leer-sqlexception). Es la restricción `CHECK` de la tabla `libros`, que no deja
+que los ejemplares disponibles bajen de cero. El `INSERT` del préstamo ya se había hecho cuando
+falló el `UPDATE`, y el `rollback` lo ha deshecho: hay ocho préstamos, siete del script más el de
+*Paula*, y no nueve.
+
+Merece la pena fijarse en quién ha impedido el préstamo. El método `prestar` no comprueba en ningún
+momento si quedan ejemplares, y no le hace falta: la regla está en la tabla, y el gestor la aplica a
+cualquier programa que intente saltársela. Si el método comprobara primero los ejemplares
+disponibles con un `SELECT` y después hiciera el préstamo, tendría la carrera de comprobar y después
+actuar del Tema 3, con dos bibliotecarios que ven el mismo último ejemplar. La restricción no tiene
+ese problema, porque se comprueba dentro del propio `UPDATE`.
+
+::: {.callout-tip appearance="simple"}
+**Lo que este tema no usa.** Los programas profesionales casi nunca abren conexiones con
+`DriverManager`. Usan un **conjunto de conexiones** (*connection pool*), como HikariCP, que mantiene
+varias abiertas y las presta a los hilos que las piden, por la misma razón que un ejecutor mantiene
+varios hilos: crear una conexión con un servidor es caro. Y muchos no escriben SQL a mano, sino que
+usan un **ORM** (*object-relational mapping*), como Hibernate a través de la API estándar JPA, que
+genera el SQL a partir de las clases. Las dos cosas se apoyan en JDBC por debajo, y las dos son más
+fáciles de entender, y de depurar, cuando se sabe qué hacen por debajo. Este tema se queda en esa
+capa a propósito.
+:::
+
+:::: {.ampliacion}
+#### **De H2 a PostgreSQL**
+
+Todo el tema usa H2, pero el SQL y el código Java funcionan igual con un servidor PostgreSQL, que es
+uno de los gestores más usados en producción. El cambio tiene tres partes.
+
+La primera es la dependencia: el driver de PostgreSQL en lugar del de H2.
+
+```xml
+<dependency>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+  <version>42.7.4</version>
+</dependency>
+```
+
+La segunda es preparar la base de datos. Un servidor no carga un script al conectarse, como hacía
+la opción `INIT` de H2, así que el script se carga una vez, antes, con el cliente de línea de
+órdenes de PostgreSQL, `psql`. El script es el mismo `biblioteca.sql`, sin cambiar una línea:
+
+```bash
+psql -h localhost -U biblio -d biblioteca -f src/main/resources/biblioteca.sql
+```
+
+La tercera es el programa. Este es todo lo que cambia en `DemoConsultar` (@nte-consultar), además
+del nombre de la clase: la URL, que ahora señala al servidor, y la llamada que abre la conexión, que
+ahora lleva usuario y contraseña.
+
+```java
+// Fragmento de DemoConsultarPostgres.java
+static final String URL = "jdbc:postgresql://localhost:5432/biblioteca";
+// ...
+try (Connection conexion = DriverManager.getConnection(URL, "biblio", "biblio");
+```
+
+La salida, con PostgreSQL 16, es la misma:
+
+```text
+   Don Quijote de la Mancha (1605): 2 disponibles
+   El Aleph (1949): 0 disponibles
+   Eva Luna (1987): 0 disponibles
+   Ficciones (1944): 1 disponibles
+   La ciudad de los prodigios (1986): 1 disponibles
+   La loca de la casa (2003): 1 disponibles
+   Nada (1945): 2 disponibles
+   Paula (1994): 2 disponibles
+```
+
+Hay diferencias, pero están en los detalles. Los mensajes de error son otros, y algunos códigos de
+estado también: la violación de la restricción `CHECK` en el préstamo de *El Aleph* da `23514` en
+lugar de `23513`. La clase, `23`, es la misma, y por eso es la clase lo que debe mirar un programa
+que quiera funcionar con cualquier gestor. La contraseña, por último, nunca se escribe en el código
+de un programa real, sino que se lee de una variable de entorno o de un fichero de configuración que
+no se sube al repositorio.
+::::
+
+:::: {.ampliacion}
+#### **El repositorio del monitor**
+
+**En el monitor.** El repositorio de resultados del Tema 1 es una interfaz, `RepositorioResultados`,
+con tres métodos: `guardar`, `historial` y `servicios`. La implementación de entonces,
+`RepositorioEnMemoria`, guardaba los resultados en una lista. La nueva los guarda en la tabla
+`resultados`:
+
+```sql
+-- monitor.sql: la tabla de resultados del monitor de servicios
+
+CREATE TABLE resultados (
+    id           BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    servicio     VARCHAR(200)             NOT NULL,
+    instante     TIMESTAMP WITH TIME ZONE NOT NULL,
+    estado       VARCHAR(10)              NOT NULL CHECK (estado IN ('ACTIVO', 'DEGRADADO', 'CAIDO')),
+    latencia_ms  BIGINT                   NOT NULL CHECK (latencia_ms >= 0)
+);
+
+CREATE INDEX resultados_por_servicio ON resultados (servicio, instante);
+```
+
+El instante de un resultado es un `Instant`, un momento absoluto, y la columna que le corresponde
+es `TIMESTAMP WITH TIME ZONE`, que guarda también la zona. JDBC no sabe convertir un `Instant`
+directamente, pero sí un `OffsetDateTime`, que es un instante con un desfase horario: el
+repositorio convierte al guardar, con `atOffset(ZoneOffset.UTC)`, y al leer, con `toInstant()`. El
+índice de la última línea acelera las consultas por servicio, que son las del método `historial`.
+
+```java
+// RepositorioResultadosJdbc.java
+package es.uib.prgava.tema4.monitor;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import es.uib.prgava.tema1.monitor.Estado;
+import es.uib.prgava.tema1.monitor.RepositorioResultados;
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+import es.uib.prgava.tema1.monitor.ServicioTcp;
+
+/**
+ * El repositorio de resultados del monitor, guardado en una base de datos. Implementa la misma
+ * interfaz que {@code RepositorioEnMemoria}, así que el monitor no nota el cambio.
+ */
+public final class RepositorioResultadosJdbc implements RepositorioResultados {
+
+    private final Connection conexion;
+
+    public RepositorioResultadosJdbc(Connection conexion) {
+        this.conexion = conexion;
+    }
+
+    @Override
+    public void guardar(Resultado resultado) {
+        String sql = "INSERT INTO resultados (servicio, instante, estado, latencia_ms) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement alta = conexion.prepareStatement(sql)) {
+            alta.setString(1, comoTexto(resultado.servicio()));
+            alta.setObject(2, resultado.instante().atOffset(ZoneOffset.UTC));
+            alta.setString(3, resultado.estado().name());
+            alta.setLong(4, resultado.latencia().toMillis());
+            alta.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se ha podido guardar el resultado", e);
+        }
+    }
+
+    @Override
+    public List<Resultado> historial(Servicio servicio) {
+        String sql = "SELECT instante, estado, latencia_ms FROM resultados WHERE servicio = ? ORDER BY instante";
+        try (PreparedStatement consulta = conexion.prepareStatement(sql)) {
+            consulta.setString(1, comoTexto(servicio));
+            try (ResultSet filas = consulta.executeQuery()) {
+                List<Resultado> suyos = new ArrayList<>();
+                while (filas.next()) {
+                    suyos.add(new Resultado(servicio,
+                            filas.getObject("instante", OffsetDateTime.class).toInstant(),
+                            Estado.valueOf(filas.getString("estado")),
+                            Duration.ofMillis(filas.getLong("latencia_ms"))));
+                }
+                return List.copyOf(suyos);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se ha podido leer el historial", e);
+        }
+    }
+
+    @Override
+    public Set<Servicio> servicios() {
+        String sql = "SELECT DISTINCT servicio FROM resultados";
+        try (PreparedStatement consulta = conexion.prepareStatement(sql);
+             ResultSet filas = consulta.executeQuery()) {
+            Set<Servicio> vistos = new HashSet<>();
+            while (filas.next()) {
+                vistos.add(Servicio.desde(filas.getString("servicio")));
+            }
+            return Set.copyOf(vistos);
+        } catch (SQLException e) {
+            throw new IllegalStateException("No se han podido leer los servicios", e);
+        }
+    }
+
+    /** El texto con el que se guarda un servicio, el mismo que entiende {@code Servicio.desde}. */
+    private static String comoTexto(Servicio servicio) {
+        if (servicio instanceof ServicioTcp tcp) {
+            return "tcp:" + tcp.nombre();          // el nombre de un servicio TCP no lleva el prefijo
+        }
+        return servicio.nombre();
+    }
+}
+```
+
+Lo que más llama la atención del repositorio son los `catch`. Los métodos de la interfaz se
+escribieron en el Tema 1, sin pensar en bases de datos, y no declaran `throws SQLException`. Una
+clase que implementa una interfaz no puede añadir excepciones comprobadas a sus métodos, porque
+quien usa la interfaz no las espera. Así que cada método atrapa la `SQLException` y la envuelve en
+una excepción no comprobada, `IllegalStateException`, pasándole la original como **causa**, para
+que no se pierda la información. Es la forma habitual de cruzar esa frontera, y es una de las
+razones por las que las excepciones comprobadas son polémicas: obligan a decidir, en cada interfaz,
+si su contrato incluye o no la posibilidad de fallar.
+
+El método privado `comoTexto` resuelve un detalle del Tema 1: el nombre de un servicio TCP es
+`host:puerto`, sin el prefijo `tcp:` que `Servicio.desde` necesita para reconstruirlo.
+
+```java
+// DemoRepositorioJdbc.java
+package es.uib.prgava.tema4.monitor;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
+
+import es.uib.prgava.tema1.monitor.Estado;
+import es.uib.prgava.tema1.monitor.RepositorioResultados;
+import es.uib.prgava.tema1.monitor.Resultado;
+import es.uib.prgava.tema1.monitor.Servicio;
+
+/** Guarda unos resultados del monitor en la base de datos y los vuelve a leer. */
+public final class DemoRepositorioJdbc {
+
+    private DemoRepositorioJdbc() { }
+
+    public static void main(String[] args) throws SQLException {
+        String url = "jdbc:h2:mem:monitor;INIT=RUNSCRIPT FROM 'classpath:monitor.sql'";
+        try (Connection conexion = DriverManager.getConnection(url)) {
+            RepositorioResultados repositorio = new RepositorioResultadosJdbc(conexion);
+
+            Servicio web = Servicio.desde("https://www.uib.es");
+            Servicio correo = Servicio.desde("tcp:smtp.uib.es:25");
+            Instant t = Instant.parse("2026-11-20T10:00:00Z");
+            repositorio.guardar(new Resultado(web, t, Estado.ACTIVO, Duration.ofMillis(85)));
+            repositorio.guardar(new Resultado(correo, t, Estado.CAIDO, Duration.ZERO));
+            repositorio.guardar(new Resultado(web, t.plusSeconds(60), Estado.DEGRADADO, Duration.ofMillis(640)));
+
+            System.out.println("   servicios: " + repositorio.servicios().size());
+            for (Resultado resultado : repositorio.historial(web)) {
+                System.out.println("   " + resultado.instante() + "  " + resultado.estado()
+                        + "  " + resultado.latencia().toMillis() + " ms");
+            }
+            System.out.println("   correo: " + repositorio.historial(correo).get(0).estado());
+        }
+    }
+}
+```
+
+```text
+   servicios: 2
+   2026-11-20T10:00:00Z  ACTIVO  85 ms
+   2026-11-20T10:01:00Z  DEGRADADO  640 ms
+   correo: CAIDO
+```
+
+El monitor puede usar este repositorio sin cambiar una línea, porque solo conoce la interfaz. Hay
+una advertencia, que enlaza con el Tema 3: una `Connection` de JDBC **no** está pensada para que la
+usen varios hilos a la vez. Si la ronda comprueba los servicios en paralelo y todas las
+comprobaciones guardan a la vez con el mismo repositorio, cada hilo necesita su propia conexión, y
+eso es exactamente lo que resuelve un conjunto de conexiones. En la versión secuencial del monitor,
+una conexión basta.
+::::
+
+## 4.4. Panorámica de bases de datos no relacionales (NoSQL)
+
+**En el monitor de servicios** (@fig-monitor4), los resultados son una serie temporal: millones de
+filas pequeñas, con un instante, que casi nunca se modifican y que se consultan por servicio y por
+intervalo de tiempo. Una tabla relacional los guarda bien mientras caben en una máquina. Cuando no
+caben, o cuando los datos no tienen forma de tabla, aparecen otras opciones, y esta sección las
+recorre sin entrar en ninguna a fondo.
+
+### 4.4.1 Por qué aparecieron
+
+Durante treinta años, «base de datos» significó «base de datos relacional». A mediados de los años
+2000, las grandes empresas de internet se encontraron con problemas para los que no bastaba: Google
+indexaba la web entera, Amazon atendía millones de carritos de la compra a la vez, y las redes
+sociales guardaban miles de millones de relaciones entre personas. Tres cosas fallaban a esa escala:
+
+- **Crecer añadiendo máquinas.** Un gestor relacional crece bien comprando una máquina más grande,
+  y mal repartiendo los datos entre muchas pequeñas: un `JOIN` entre tablas que están en máquinas
+  distintas, o una transacción que toca filas de varias, obliga a las máquinas a coordinarse en
+  cada operación.
+- **Datos sin forma fija.** Un catálogo de productos en el que cada tipo de producto tiene atributos
+  distintos no cabe bien en tablas con columnas fijas.
+- **Datos que no son tablas.** Una red de relaciones entre personas, o la topología de una red de
+  comunicaciones, es un grafo, y recorrerlo con `JOIN` es lento y difícil de escribir.
+
+Google publicó en 2006 cómo era *Bigtable*, su sistema de almacenamiento, y Amazon en 2007 cómo era
+*Dynamo*. Los dos sacrificaban parte de lo que garantizaba un gestor relacional a cambio de poder
+repartir los datos entre miles de máquinas, y de ellos salió una generación entera de sistemas.
+
+::: {#imp-nosql .callout-important title="Base de datos NoSQL"}
+**NoSQL** es el nombre colectivo de las bases de datos que **no organizan los datos en tablas
+relacionales**. El nombre se lee hoy como *not only SQL*, «no solo SQL», porque no se oponen al
+modelo relacional, sino que lo complementan donde no encaja bien.
+
+No son una familia homogénea, pero comparten tres rasgos: están pensadas para **repartir** los datos
+entre muchas máquinas, admiten **esquemas flexibles**, en los que dos elementos de la misma
+colección pueden tener campos distintos, y suelen ofrecer **garantías más débiles** que ACID a
+cambio de rapidez y disponibilidad.
+:::
+
+### 4.4.2 Cuatro familias
+
+Las bases de datos NoSQL se agrupan en cuatro familias según cómo organizan los datos:
+
+| Familia | Cómo guarda los datos | Ejemplos | Para qué se usa |
+|---|---|---|---|
+| Clave-valor | Un diccionario enorme: a cada clave le corresponde un valor, que el sistema no interpreta. | Redis, DynamoDB | Sesiones de usuario, cachés, contadores. |
+| Documentos | Documentos con estructura, normalmente JSON, agrupados en colecciones. | MongoDB, CouchDB | Catálogos, perfiles, contenidos con atributos variables. |
+| Columnas anchas | Filas agrupadas por una clave de partición que decide en qué máquina vive cada fila. | Cassandra, HBase | Series temporales, registros de actividad, telemetría. |
+| Grafos | Nodos y aristas, cada uno con sus propiedades. | Neo4j | Redes sociales, recomendaciones, topologías de red. |
+
+Un ejemplo de cada una muestra mejor la diferencia que la tabla.
+
+**Clave-valor.** Es la forma más simple. En Redis, que guarda todo en memoria, la sesión de un
+usuario se guarda con una clave y se le pone una caducidad de media hora:
+
+```text
+SET sesion:7f3a9c "{\"socio\": 1, \"carrito\": [3, 8]}" EX 1800
+GET sesion:7f3a9c
+```
+
+El sistema no sabe qué hay dentro del valor ni puede buscar por su contenido: solo sabe darlo
+cuando se le pide por su clave, y eso lo hace en microsegundos.
+
+**Documentos.** En MongoDB, un libro de la biblioteca podría ser un documento que lleva **dentro**
+a su autor, en lugar de señalarlo con una clave ajena:
+
+```json
+{
+  "isbn": "978-84-0000-003-5",
+  "titulo": "Paula",
+  "anio": 1994,
+  "autor": { "nombre": "Isabel Allende", "nacimiento": 1942 },
+  "temas": ["memorias", "familia"]
+}
+```
+
+Y se consulta por cualquier campo, también por los de dentro:
+
+```text
+db.libros.find({ "autor.nombre": "Isabel Allende" })
+```
+
+Leer un libro con su autor no necesita ningún `JOIN`, porque todo está en el mismo documento, y la
+lista de temas, que en un diseño relacional sería otra tabla (@cau-lista-en-columna), es aquí un
+campo más. El precio es la redundancia que 4.1.4 enseñó a evitar: si el autor tiene veinte libros,
+sus datos están copiados veinte veces, y cambiarlos obliga a cambiar veinte documentos.
+
+**Columnas anchas.** Las mediciones de la red son el caso de uso típico de Cassandra. La tabla se
+parece a una relacional, pero la clave primaria tiene dos partes con papeles distintos:
+
+```sql
+CREATE TABLE mediciones (
+    equipo      text,
+    instante    timestamp,
+    latencia_ms int,
+    PRIMARY KEY (equipo, instante)
+);
+```
+
+La primera parte, `equipo`, es la **clave de partición**: todas las mediciones de un equipo se
+guardan juntas, en la misma máquina, y equipos distintos se reparten entre máquinas distintas. La
+segunda, `instante`, ordena las mediciones dentro de cada partición. Pedir las mediciones de un
+equipo en un intervalo es rapidísimo, porque están juntas y en orden. Pedir la latencia media de
+**todos** los equipos obliga a preguntar a todas las máquinas, y Cassandra directamente no permite
+consultas que no digan la clave de partición, salvo que se pida de forma explícita.
+
+**Grafos.** La topología de una red, con equipos conectados entre sí, es un grafo, y en Neo4j se
+consulta con un lenguaje, Cypher, que dibuja los caminos con flechas. Los equipos a los que se
+llega desde el router central en tres saltos o menos:
+
+```text
+MATCH (origen:Equipo {nombre: 'router-central'})-[:CONECTADO*1..3]->(destino:Equipo)
+RETURN DISTINCT destino.nombre
+```
+
+Con tablas, la misma pregunta exige un `JOIN` de la tabla de conexiones consigo misma por cada
+salto, y no hay forma sencilla de escribir «entre uno y tres saltos».
+
+### 4.4.3 Consistencia y el teorema CAP
+
+Repartir los datos entre muchas máquinas tiene un problema de fondo, que no depende de lo bien que
+se programe el sistema.
+
+::: {#tip-cap .callout-tip title="Teorema CAP: si la red se parte, hay que elegir entre consistencia y disponibilidad"}
+Eric Brewer planteó en el año 2000 una conjetura, que Seth Gilbert y Nancy Lynch demostraron en
+2002 [@gilbert2002], sobre los sistemas que reparten los datos entre varias máquinas. De estas tres
+propiedades, un sistema no puede tener las tres a la vez:
+
+- **Consistencia** (*consistency*): todas las máquinas ven los mismos datos en cada momento; una
+  lectura devuelve siempre la última escritura.
+- **Disponibilidad** (*availability*): toda petición que llega a una máquina que funciona recibe una
+  respuesta.
+- **Tolerancia a particiones** (*partition tolerance*): el sistema sigue funcionando aunque la red
+  se parta y unas máquinas no puedan hablar con otras.
+
+En una red real, las particiones pasan —un cable se corta, un switch se cae—, así que la tercera no
+es opcional, y la elección de verdad es qué hacer cuando ocurren. Un sistema que elige
+**consistencia** deja de responder en el lado de la partición que no puede asegurar que tiene los
+datos al día. Uno que elige **disponibilidad** sigue respondiendo en los dos lados, aunque cada uno
+pueda estar dando datos distintos, y los reconcilia cuando la red se recupera.
+:::
+
+Los gestores relacionales clásicos, que garantizan ACID, eligen la consistencia. Muchos sistemas
+NoSQL, como Cassandra o el Dynamo original, eligen la disponibilidad y ofrecen lo que se llama
+**consistencia eventual** (*eventual consistency*): si dejan de llegar escrituras, al cabo de un
+tiempo todas las máquinas acaban viendo lo mismo, pero mientras tanto una lectura puede devolver un
+valor antiguo. Para un contador de «me gusta» es aceptable. Para el saldo de una cuenta, o para el
+último ejemplar de un libro, no lo es.
+
+Es también un problema de Telemática en estado puro: las particiones de las que habla el teorema son
+fallos de la red, y la decisión de qué hacer con ellas depende de lo que el servicio pueda
+permitirse perder, si la respuesta o la exactitud.
+
+### 4.4.4 Cuándo usar cada una
+
+La pregunta práctica es cuándo merece la pena salir del modelo relacional, y la respuesta corta es:
+**menos de lo que parece**.
+
+::: {.callout-tip appearance="simple"}
+**El modelo relacional, por defecto.** Un gestor relacional como PostgreSQL guarda sin problemas
+cientos de millones de filas en una sola máquina, da transacciones ACID, integridad referencial y un
+lenguaje de consulta general y estándar, y cualquier programador lo conoce. Para la inmensa mayoría
+de las aplicaciones es la elección correcta, y una base de datos NoSQL elegida porque «escala
+mejor», en una aplicación que nunca va a necesitar escalar así, se queda con los inconvenientes sin
+aprovechar las ventajas.
+
+Las razones para elegir otra cosa son concretas: un volumen de escrituras o de datos que no cabe en
+una máquina, datos que de verdad no tienen forma de tabla, como un grafo, o una necesidad de rapidez
+extrema para un acceso muy sencillo, como una caché en memoria. Y no es una elección exclusiva: es
+corriente que un mismo sistema use PostgreSQL para sus datos principales y Redis como caché, cada
+uno para lo que hace mejor. Los gestores relacionales, además, han ido incorporando lo mejor de los
+otros: PostgreSQL guarda y consulta documentos JSON con un tipo propio, `JSONB`, y para muchos casos
+eso basta.
+:::
+
+Para el monitor de servicios, la respuesta es clara: una tabla relacional mientras quepa en una
+máquina, que con un resultado por servicio y minuto es durante muchísimo tiempo. Si el monitor
+vigilara cientos de miles de servicios, sus resultados serían una serie temporal enorme que solo se
+consulta por servicio y por intervalo, que es exactamente el caso de uso de una base de datos de
+columnas anchas, o de una base de datos especializada en series temporales.
+
+## Resumen del tema
+
+```{mermaid}
+%%| label: fig-mapa4
+%%| fig-cap: "Mapa del tema. Los fundamentos deciden las tablas y sus restricciones; SQL las crea, las modifica y las consulta; JDBC lleva ese SQL desde Java; y NoSQL es lo que se elige cuando las tablas no encajan."
+flowchart TB
+    subgraph F["<b>4.1 Fundamentos</b>"]
+        F1["tablas, filas, columnas"]
+        F2["clave primaria y clave ajena"]
+        F3["modelo entidad-relación"]
+        F4["normalización:<br/>cada hecho en un sitio"]
+    end
+    subgraph S["<b>4.2 SQL</b>"]
+        S1["CREATE TABLE<br/>y restricciones"]
+        S2["INSERT, UPDATE, DELETE"]
+        S3["SELECT, GROUP BY, JOIN"]
+        S4["transacciones ACID"]
+    end
+    subgraph J["<b>4.3 JDBC</b>"]
+        J1["Connection,<br/>PreparedStatement, ResultSet"]
+        J2["parámetros:<br/>sin inyección SQL"]
+        J3["filas a objetos:<br/>repositorio"]
+        J4["commit y rollback"]
+    end
+    subgraph N["<b>4.4 NoSQL</b>"]
+        N1["clave-valor, documentos,<br/>columnas, grafos"]
+        N2["teorema CAP"]
+    end
+    F3 --> F1
+    F2 --> S1
+    F4 --> S1
+    S3 --> J1
+    S4 --> J4
+    F2 -. "integridad" .-> J4
+    S4 <-. "consistencia o disponibilidad" .-> N2
+```
+
+Las ideas que conviene llevarse del tema, en el orden en que aparecieron:
+
+- **Por qué una base de datos.** Un gestor es el único que toca los datos, y por eso puede
+  garantizar lo que un fichero no garantiza: consultas generales, integridad, acceso concurrente y
+  cambios de varios pasos que se hacen enteros o no se hacen (@imp-base-de-datos). - **Cómo se
+  diseña.** Cada entidad es una tabla con su clave primaria; cada relación 1:N, una clave ajena en
+  el lado N, y cada relación N:M, una tabla intermedia. Y cada hecho se guarda en un solo sitio,
+  porque un dato repetido acaba diciendo dos cosas distintas (@tip-normalizar). - **Cómo se
+  consulta.** Una consulta dice qué filas se quieren, no cómo encontrarlas, y se evalúa en un orden
+  distinto del que se escribe (@tip-orden-logico): `WHERE` filtra filas, `GROUP BY` las agrupa,
+  `HAVING` filtra grupos. Y `NULL` no es un valor, sino la ausencia de uno, y se pregunta por él con
+  `IS NULL` (@cau-comparar-null). - **Cómo se usa desde Java.** Con tres interfaces, `Connection`,
+  `PreparedStatement` y `ResultSet`, cerradas siempre con un `try` con recursos; con **todos** los
+  datos en parámetros, nunca concatenados (@cau-inyeccion-sql); y con un repositorio que convierte
+  filas en objetos y esconde el SQL al resto del programa. - **Cómo se protege.** Las reglas que
+  deben cumplirse siempre van en la tabla, como restricciones, y los cambios que van juntos van en
+  una transacción (@imp-transaccion). Entre las dos cosas, el gestor impide los errores que en el
+  Tema 3 había que evitar a mano. - **Cuándo salir del modelo relacional.** Cuando los datos no
+  caben en una máquina o no tienen forma de tabla; y al repartirlos, la red obliga a elegir entre
+  consistencia y disponibilidad (@tip-cap).
+
+Con este tema se cierra el recorrido del curso por el monitor de servicios. Empezó en el Tema 1 como
+un diseño de clases e interfaces, se midió y se ajustó en el Tema 2, aprendió a comprobar todos los
+servicios a la vez en el Tema 3, y ahora guarda lo que mide en un sitio del que no se pierde. Cada
+paso se ha dado cambiando una pieza sin tocar las demás, y eso, más que cualquier técnica concreta,
+es lo que el curso ha intentado enseñar.
+
+## Referencias
+
+::: {#refs}
+:::
