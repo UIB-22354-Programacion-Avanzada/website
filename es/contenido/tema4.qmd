@@ -139,9 +139,12 @@ persistente y que comparten varios usuarios o programas.
 Un **sistema gestor de bases de datos** o **SGBD** (*database management system*, *DBMS*) es el
 programa que guarda esos datos y que es el único que los toca: los demás programas no leen ni
 escriben los ficheros directamente, sino que **le piden** al gestor lo que necesitan. Por eso el
-gestor puede garantizar cuatro cosas que un fichero no garantiza: que se puedan **consultar** con un
-lenguaje general, que respeten unas **reglas de integridad**, que varios clientes los usen **a la
-vez** sin estropearlos, y que cada cambio de varios pasos se haga **entero o no se haga**.
+gestor puede garantizar cuatro cosas que un fichero no garantiza: 
+
+- que se puedan **consultar** con un lenguaje general, 
+- que respeten unas **reglas de integridad**, 
+- que varios clientes los usen **a la vez** sin estropearlos, y 
+- que cada cambio de varios pasos se haga **entero o no se haga**.
 :::
 
 La palabra importante de la definición es *único*. Que todos los accesos pasen por el gestor es lo
@@ -169,6 +172,11 @@ datos quiere**, y el sistema decide **cómo encontrarlos**.
 Esa separación es la que hace posible SQL, en el que una consulta dice qué filas se quieren y no
 cómo recorrer las tablas para encontrarlas, y es la razón de que el modelo haya sobrevivido más de
 cincuenta años casi sin cambios.
+
+Formalmente, una relación sobre los dominios $D_1, \dots, D_n$ es un subconjunto del producto cartesiano $D_1 \times \dots \times D_n$. De esa definición salen dos propiedades que la distinguen de una simple hoja de cálculo:
+
+- **Las filas no tienen orden y no se repiten**, porque una relación es un conjunto. Si quieres un orden, hay que pedirlo al consultar.
+- **Cada celda contiene un único valor atómico**, nunca una lista. Esta es la primera forma normal.
 :::
 
 En la práctica, una relación es una **tabla**. Esta es la de los libros de la biblioteca, con
@@ -196,12 +204,39 @@ Una celda puede estar vacía, y entonces se dice que su valor es **`NULL`**: «n
 procede». La fecha de devolución de un préstamo que todavía no se ha devuelto es `NULL`.
 :::
 
+Los conceptos básicos tienen la siguiente correspondencia:
+
+| Término formal | Término práctico | Ejemplo en la biblioteca |
+|---|---|---|
+| Relación | Tabla | `libros` |
+| Atributo | Columna | `titulo`, `anio` |
+| Dominio | Tipo de la columna | `anio` es un entero positivo |
+| Tupla | Fila | (3, `'Paula'`, 1994, 2) |
+| Esquema | Definición de la tabla | `libros(id, titulo, anio, autor_id)` |
+
 Los nombres de columna van sin tildes ni eñes, como `anio` en lugar de *año*: la mayoría de los
 gestores los admiten, pero obligan a escribirlos entre comillas y dan problemas al pasar de uno a
 otro.
 
 Dos libros pueden tener el mismo título, y dos socios el mismo nombre. Para que cada fila se pueda
 señalar sin ambigüedad hace falta una columna cuyo valor no se repita nunca.
+
+Dos tablas de la biblioteca:
+
+**autores**
+
+| id | nombre | nacimiento |
+|---:|---|---:|
+| 1 | Jorge Luis Borges | 1899 |
+| 2 | Isabel Allende | 1942 |
+
+**libros**
+
+| id | titulo | anio | autor_id |
+|---:|---|---:|---:|
+| 1 | Ficciones | 1944 | 1 |
+| 2 | El Aleph | 1949 | 1 |
+| 3 | Paula | 1994 | 2 |
 
 ::: {#imp-clave-primaria .callout-important title="Clave primaria"}
 La **clave primaria** (*primary key*) de una tabla es la columna, o el conjunto de columnas, cuyo
