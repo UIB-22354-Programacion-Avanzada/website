@@ -2,6 +2,714 @@
 title: "Soluciones — Tema 3: Programación Concurrente"
 lang: es
 sidebar: barra-es
+bibliography: ../contenido/tema3.bib
 ---
 
-*Contenido pendiente.*
+## Cómo leer estas soluciones
+
+Esta página recorre los 10 ejercicios del Tema 3 y explica, para cada uno, **qué se pedía, cómo se
+resuelve y por qué esa solución y no otra**. En concurrencia esa última parte pesa más que en ningún
+otro tema, por una razón incómoda: un programa concurrente incorrecto **pasa las pruebas casi
+siempre**. Una carrera que aparece una vez de cada mil ejecuciones no se ve en la pantalla, y la
+única defensa es poder explicar, línea a línea, por qué no puede ocurrir. Eso es lo que hace cada
+solución.
+
+El código completo, compilable y con sus pruebas en verde, está en el repositorio de soluciones de
+la organización. Aquí encontrarás los fragmentos que importan, no el proyecto entero.
+
+::: {.callout-tip appearance="simple"}
+Leer una solución antes de haberla intentado produce una sensación de comprensión que no se sostiene
+delante de un folio en blanco. Si aún no has resuelto un ejercicio, resuélvelo primero, aunque sea
+mal; después, lee. La diferencia entre las dos formas de usar esta página es enorme y no se nota
+hasta el examen.
+:::
+
+Cada solución tiene la misma estructura: qué se pedía, el código, por qué así, la respuesta a la
+pregunta de **«Para pensar»** —que no está en el tema y hay que decidirla— y los **errores
+frecuentes**. Estos últimos no son inventados: son los que aparecen año tras año en este tipo de
+ejercicios. Reconocer un error que has cometido tú es la forma más eficaz de no volver a cometerlo.
+
+Una advertencia sobre el estilo: todas las soluciones usan **la construcción más sencilla que
+resuelve el ejercicio**. Un `new Thread` y un `join` donde basta con eso, un ejecutor donde hay que
+repartir tareas, y concurrencia estructurada solo en el último. Si tu solución usa algo más
+sofisticado y funciona, no está mal; pero conviene preguntarse qué aporta.
+
+## 3.1. Fundamentos de la concurrencia
+
+Los tres ejercicios siguen el camino del tema: crear hilos y esperarlos, provocar una carrera y
+eliminarla, provocar un interbloqueo y eliminarlo. En los dos últimos el código de partida está mal
+a propósito, y el primer paso de la solución no es escribir nada, sino **verlo fallar**. Quien se
+salta ese paso arregla un problema que no ha visto, y no sabe si lo ha arreglado.
+
+### 3.1.1 Clase `CreadorDeHilos`
+
+**Qué se pedía.** Las [cuatro formas de crear un
+hilo](../contenido/tema3.qmd#nte-formas-de-crear-hilos) con la misma tarea —anotar en un registro el
+nombre del hilo que la ejecuta—, cada una devolviendo el hilo **sin arrancar**, y un método
+`ejecutarTodos` que arranque varios y espere a que terminen.
+
+**La solución.** Las dos formas que necesitan una clase con nombre:
+
+```java
+static final class HiloAnotador extends Thread {        // forma 1: el objeto ES el hilo
+    // ... constructor con super(nombre)
+    @Override
+    public void run() {
+        registro.add(getName());
+    }
+}
+
+static final class TareaAnotar implements Runnable {     // forma 2: el objeto es la TAREA
+    // ... constructor
+    @Override
+    public void run() {
+        registro.add(Thread.currentThread().getName());
+    }
+}
+```
+
+Las otras dos, con una lambda, y el método que los ejecuta:
+
+```java
+public static Thread conLambda(String nombre, List<String> registro) {
+    return new Thread(() -> registro.add(Thread.currentThread().getName()), nombre);
+}
+
+public static Thread conConstructor(String nombre, List<String> registro) {
+    return Thread.ofPlatform().name(nombre).unstarted(
+            () -> registro.add(Thread.currentThread().getName()));
+}
+
+public static void ejecutarTodos(List<Thread> hilos) throws InterruptedException {
+    for (Thread hilo : hilos) {
+        hilo.start();
+    }
+    for (Thread hilo : hilos) {
+        hilo.join();
+    }
+}
+```
+
+**Por qué así.** La diferencia entre las formas está en una sola línea. En la primera el objeto
+**es** el hilo, y por eso `run` puede llamar a `getName()`. En las otras tres el objeto es una
+**tarea**, que no sabe en qué hilo va a ejecutarse, y tiene que preguntarlo con
+`Thread.currentThread()`. La cuarta usa `unstarted` y no `start`, porque el enunciado pedía devolver
+el hilo sin arrancar: quien lo arranca es `ejecutarTodos`.
+
+Los dos bucles de `ejecutarTodos` son la decisión importante. Una llamada a `join` bloquea hasta que
+ese hilo termina ([los métodos de `Thread`](../contenido/tema3.qmd#imp-metodos-thread)). Con `start`
+y `join` en la misma vuelta, cada hilo terminaría antes de que arrancara el siguiente: los cuatro
+irían uno detrás de otro, y el programa sería secuencial con más ceremonia. La prueba
+`ejecutarTodosLosEjecutaALaVez` está hecha para pillarlo: lanza cuatro hilos que solo pueden
+terminar si están en marcha los cuatro a la vez.
+
+**La pregunta de «Para pensar».** En las formas 2, 3 y 4 no hay que cambiar nada de la tarea: la
+clase `TareaAnotar` y las lambdas son `Runnable`, y un ejecutor recibe `Runnable`. Se entregan con
+`ejecutor.execute(tarea)` en lugar de envolverlas en un `Thread`. En la forma 1 hay que **reescribir
+la clase**, porque la tarea está dentro de una subclase de `Thread`, mezclada con el hilo, y hay que
+sacarla a un `Runnable`. Técnicamente un `Thread` es un `Runnable` y `execute(hilo)` compila, pero
+el ejecutor solo llama a su `run` en uno de sus propios hilos: el objeto `Thread` no llega a
+arrancar nunca, y `getName()` devuelve el nombre de un hilo que no ha ejecutado nada. Por eso la
+forma 1 casi no se usa: separar el **qué** del **quién** es lo que permite cambiar el quién.
+
+**Errores frecuentes.** Llamar a `run()` en lugar de `start()`, que ejecuta la tarea en el hilo que
+llama sin crear ninguno ([la precaución correspondiente](../contenido/tema3.qmd#cau-llamar-run)). Un
+solo bucle con `start` y `join`. Usar `getName()` en la tarea de la forma 2, que no compila porque
+`Runnable` no lo tiene. Y devolver los hilos ya arrancados.
+
+### 3.1.2 Clases `AforoSincronizado` y `SimulacionAforo`
+
+**Qué se pedía.** Una simulación que **demuestre** la [condición de
+carrera](../contenido/tema3.qmd#imp-condicion-de-carrera) de `Aforo` —comprobar si hay sitio y
+después entrar— lanzando varios hilos y contando las entradas aceptadas, y una versión
+`AforoSincronizado` sin la carrera.
+
+**La solución.** La simulación:
+
+```java
+int[] aceptadas = new int[hilos];           // una casilla por hilo
+Thread[] lanzados = new Thread[hilos];
+for (int i = 0; i < hilos; i++) {
+    int mio = i;
+    lanzados[i] = new Thread(() -> {
+        for (int k = 0; k < intentosPorHilo; k++) {
+            if (aforo.entrar()) {
+                aceptadas[mio]++;
+            }
+        }
+    });
+}
+for (Thread hilo : lanzados) {
+    hilo.start();
+}
+int total = 0;
+for (int i = 0; i < hilos; i++) {
+    lanzados[i].join();
+    total += aceptadas[i];                  // despues del join: ya nadie escribe
+}
+```
+
+Y el arreglo, que es el mismo cuerpo que `Aforo` con un modificador:
+
+```java
+@Override
+public synchronized boolean entrar() {
+    if (dentro < capacidad) {
+        Thread.yield();
+        dentro++;
+        return true;
+    }
+    return false;
+}
+
+@Override
+public synchronized int dentro() {
+    return dentro;
+}
+```
+
+**Por qué así.** La simulación no puede tener su propia carrera, o no demostraría nada. Por eso cada
+hilo escribe **solo en su casilla** y la suma se hace después de los `join`. No hace falta
+sincronizar esa lectura: `join` no solo espera, también garantiza que lo que escribió el hilo es
+visible para quien espera. La variable `mio` existe porque una lambda solo puede capturar variables
+locales que no cambian, y la `i` del bucle cambia.
+
+El `main` que pedía el esqueleto, con 8 hilos y 500 intentos sobre 1000 plazas, da algo así:
+
+```text
+Aforo:             1004 entradas para 1000 plazas
+AforoSincronizado: 1000 entradas para 1000 plazas
+```
+
+El número de la primera línea cambia de una ejecución a otra, y a veces sale 1000: la carrera no
+ocurre siempre, y por eso es peligrosa.
+
+En `AforoSincronizado`, `entrar` es `synchronized` y con eso la comprobación y la acción quedan
+dentro del mismo cerrojo: mientras un hilo está entre las dos, ningún otro puede comprobar con un
+`dentro` que está a punto de cambiar. El `Thread.yield()` se conserva para que la comparación sea
+justa, y ya no abre ninguna ventana: aunque el hilo ceda el procesador, sigue teniendo el cerrojo.
+Es la [exclusión mutua](../contenido/tema3.qmd#nte-exclusion) del tema aplicada a «comprobar y
+después actuar».
+
+La pregunta del paso 5 era si `dentro()` necesita también `synchronized`. Sí: sin el mismo cerrojo,
+un hilo podría leer un valor antiguo de `dentro`, porque nada obliga a que vea lo que escribió otro
+hilo. Es el [error de sincronizar solo las
+escrituras](../contenido/tema3.qmd#cau-sincronizar-escrituras). Y `capacidad()` no lo necesita: es
+un atributo `final`, que no cambia nunca.
+
+**La pregunta de «Para pensar».** Con cuarenta tornos, la solución es **repartir el aforo en
+cupos**, uno por torno, cada uno con su propio cerrojo. Si caben 40.000 personas, cada torno tiene
+un cupo de 1.000 y solo compite consigo mismo. La suma de los cupos es la capacidad, así que nunca
+entra nadie de más. Cuando un torno agota su cupo, pide prestado a otro que le sobre; esa operación
+sí necesita coordinar dos cupos, pero es rara. Es la misma idea que `LongAdder` en 3.2.4 —varios
+contadores en lugar de uno— aplicada a un límite. Un único `AtomicInteger` con `compareAndSet`
+evitaría el cerrojo, pero los cuarenta tornos seguirían peleando por la misma variable, y con mucho
+tráfico eso también se nota.
+
+**Errores frecuentes.** Sumar las entradas en una variable compartida, que añade una segunda carrera
+y hace que la simulación cuente mal precisamente lo que quiere medir. Sincronizar solo `entrar`.
+Concluir que `Aforo` está bien porque una ejecución dio 1000. Y quitar el `Thread.yield()` de la
+versión sincronizada «porque ya no hace falta», que hace la comparación injusta.
+
+### 3.1.3 Clase `MesaOrdenada`
+
+**Qué se pedía.** Una mesa para la cena de los filósofos [@dijkstra1965] que **no pueda quedarse
+parada**: cada filósofo toma primero el tenedor de número menor, y un comentario que diga qué
+[condición de Coffman](../contenido/tema3.qmd#tip-coffman) rompe.
+
+**La solución.**
+
+```java
+@Override
+public void comer(int filosofo, Runnable bocado) {
+    if (filosofo < 0 || filosofo >= tenedores.length) {
+        throw new IllegalArgumentException("No hay filosofo " + filosofo);
+    }
+    int izquierdo = filosofo;
+    int derecho = (filosofo + 1) % tenedores.length;
+    int primero = Math.min(izquierdo, derecho);
+    int segundo = Math.max(izquierdo, derecho);
+    synchronized (tenedores[primero]) {
+        synchronized (tenedores[segundo]) {
+            bocado.run();
+        }
+    }
+}
+```
+
+**Por qué así.** La mesa ingenua cumple las cuatro condiciones de Coffman [@coffman1971]: los
+tenedores son exclusivos, cada filósofo retiene el de su izquierda mientras espera el de su derecha,
+nadie le quita un tenedor a otro, y si los cinco toman el izquierdo a la vez se forma el ciclo $0
+\to 1 \to 2 \to 3 \to 4 \to 0$. Esta mesa rompe la cuarta, la **espera circular**.
+
+El argumento cabe en tres líneas. Todos toman los tenedores en orden creciente de número, así que en
+un ciclo de esperas cada filósofo esperaría un tenedor de número **mayor** que el que tiene.
+Recorriendo el ciclo se volvería al primero con un número mayor que el suyo, lo que es imposible.
+Sin ciclo no hay [interbloqueo](../contenido/tema3.qmd#imp-interbloqueo).
+
+Un detalle que las pruebas comprueban: con un solo comensal, el tenedor izquierdo y el derecho son
+el mismo. El filósofo entra dos veces en el mismo `synchronized`, y funciona porque los cerrojos
+intrínsecos son **reentrantes**: un hilo que ya tiene un cerrojo puede volver a tomarlo.
+
+::: {#imp-orden-global .callout-important title="Un orden global para los cerrojos"}
+La técnica de este ejercicio no es un truco para filósofos: es la forma general de evitar
+interbloqueos cuando un hilo necesita varios cerrojos a la vez. Se fija un orden total entre todos
+los cerrojos —por número, por identificador, por dirección de memoria— y **todo el código los toma
+en ese orden**. Es lo que recomienda la bibliografía clásica sobre concurrencia en Java
+[@goetz2006], y es lo que hace falta en una transferencia entre dos cuentas, o en cualquier
+operación que toque dos objetos protegidos.
+
+Su punto débil es que la regla tiene que cumplirla **todo** el código. Un solo método que tome los
+cerrojos al revés vuelve a abrir el ciclo, y el compilador no lo detecta.
+:::
+
+**La pregunta de «Para pensar».** El filósofo zurdo es **la misma solución**. Para los filósofos 0 a
+$n-2$, el tenedor de la izquierda ($i$) tiene número menor que el de la derecha ($i+1$), así que el
+orden global coincide con «izquierda primero». Solo el filósofo $n-1$ tiene a su derecha el tenedor
+0, de número menor, y por tanto lo toma primero: es exactamente el zurdo. Las dos rompen la espera
+circular. Lo que aporta el orden global es la generalidad: la regla «de menor a mayor» funciona
+igual con cualquier conjunto de cerrojos, no solo en una mesa redonda.
+
+**Errores frecuentes.** Tomar los dos tenedores dentro de un único `synchronized` sobre la mesa
+entera, que evita el interbloqueo pero deja comer a un solo filósofo a la vez. Calcular el tenedor
+derecho como `filosofo + 1` sin el módulo, que se sale del array con el último filósofo. Explicar la
+solución como «rompe la retención y espera», que no es lo que hace: cada filósofo sigue reteniendo
+el primer tenedor mientras espera el segundo. Y no ejecutar `DemoCena` con la mesa ingenua antes de
+arreglarla.
+
+## 3.2. Herramientas de concurrencia en Java
+
+En los cinco ejercicios de esta sección **no aparece ningún `synchronized`**: el trabajo lo hacen
+las clases de `java.util.concurrent`, y la dificultad está en elegir la adecuada y en usarla bien.
+Las soluciones son cortas. Lo largo es saber qué garantiza cada clase y, sobre todo, **qué no
+garantiza**: que cada operación de un mapa concurrente sea atómica no hace atómicas dos seguidas, y
+que una cola bloqueante reparta el trabajo no dice cuándo se ha acabado.
+
+### 3.2.1 Método `contar` de `PrimosEnParalelo`
+
+**Qué se pedía.** Contar los primos de un intervalo repartiéndolo en `partes` tareas que se entregan
+a un [ejecutor](../contenido/tema3.qmd#imp-ejecutor) recibido, sin cerrarlo.
+
+**La solución.**
+
+```java
+List<Callable<Long>> tareas = new ArrayList<>();
+int longitud = hasta - desde;
+for (int k = 0; k < partes; k++) {
+    int inicio = desde + (int) ((long) longitud * k / partes);
+    int fin = desde + (int) ((long) longitud * (k + 1) / partes);
+    tareas.add(() -> contarSecuencial(inicio, fin));
+}
+long total = 0;
+for (Future<Long> futuro : ejecutor.invokeAll(tareas)) {
+    total += futuro.get();
+}
+return total;
+```
+
+**Por qué así.** La fórmula del reparto produce trozos contiguos, sin solapes, que cubren el
+intervalo aunque no sea múltiplo de `partes`, y la multiplicación se hace en `long` para que no
+desborde. Cada tarea es un `Callable<Long>` porque devuelve un resultado; `invokeAll` las entrega
+todas y espera a que terminen, así que los [futuros](../contenido/tema3.qmd#imp-futuro) que devuelve
+ya tienen su valor y `get()` no bloquea.
+
+El ejecutor no se cierra, y es deliberado: no es de este método. Quien lo crea es quien lo cierra,
+que es la otra cara del [error de no cerrar un
+ejecutor](../contenido/tema3.qmd#cau-no-cerrar-ejecutor). Un método que cierra un ejecutor ajeno
+deja inservible algo que quien llama quizá quería reutilizar.
+
+**La pregunta de «Para pensar».** Dieciséis partes pueden ir más rápido que cuatro con cuatro hilos
+porque **no todos los números cuestan lo mismo**: comprobar si $n$ es primo cuesta hasta $\sqrt{n}$
+divisiones, y los números grandes cuestan más. Con cuatro partes iguales, la última es la más cara,
+y los otros tres hilos terminan antes y se quedan parados esperándola. Con dieciséis, cada hilo que
+termina coge la siguiente, y el trabajo se reparte solo: es **equilibrio de carga**. Un millón de
+partes sería peor, porque cada tarea tiene un coste fijo —crearla, encolarla, su futuro, sacarla de
+la cola— que con trozos de diez números supera al trabajo útil. El punto bueno suele estar en unas
+pocas veces el número de hilos.
+
+**Errores frecuentes.** Calcular los límites con `longitud / partes` y sumar el resto a la última
+parte, que funciona pero concentra el trabajo extra en la parte más cara. Hacer la multiplicación en
+`int`. Cerrar el ejecutor con un `try` con recursos dentro del método. Y llamar a `submit` y `get`
+en el mismo bucle, que espera a cada tarea antes de entregar la siguiente y elimina el paralelismo.
+
+### 3.2.2 Método `informe` de `EstacionMeteo`
+
+**Qué se pedía.** El **futuro** de un informe con la temperatura y la humedad, consultando los dos
+sensores a la vez en el ejecutor recibido, con un plazo, y con `?` en lugar del dato que falle o no
+llegue a tiempo, sin ningún `join` dentro del método.
+
+**La solución.**
+
+```java
+long milis = plazo.toMillis();
+CompletableFuture<String> t = CompletableFuture.supplyAsync(temperatura, ejecutor)
+        .thenApply(grados -> String.format(Locale.ROOT, "%.1f", grados))
+        .orTimeout(milis, TimeUnit.MILLISECONDS)
+        .exceptionally(error -> "?");
+CompletableFuture<String> h = CompletableFuture.supplyAsync(humedad, ejecutor)
+        .thenApply(String::valueOf)
+        .orTimeout(milis, TimeUnit.MILLISECONDS)
+        .exceptionally(error -> "?");
+return t.thenCombine(h, (grados, por100) -> "temperatura " + grados + ", humedad " + por100);
+```
+
+**Por qué así.** Cada futuro se construye entero antes de combinarlo: lanzar, convertir en texto,
+poner plazo y poner repuesto. El orden de las dos últimas etapas es lo que se evalúa. El método
+`exceptionally` solo cubre los fallos de las etapas **anteriores**, así que tiene que ir después de
+`orTimeout` para cubrir también el plazo vencido, y después de `thenApply` para cubrir sus errores.
+
+Que no haya `join` es la otra mitad del ejercicio. El método devuelve el futuro del informe y vuelve
+al instante; quien llama decide si espera, y cuándo. Esperar dentro convertiría un método
+[asíncrono](../contenido/tema3.qmd#imp-programacion-asincrona) en uno síncrono con más líneas, y la
+prueba que mide que `informe` vuelve en menos de 100 ms está hecha para eso.
+
+**La pregunta de «Para pensar».** Escribir `?` es un error cuando el dato **se usa para decidir
+algo**, y no solo para mostrarlo. En un panel, un `?` es honesto: dice que no se sabe. Pero si la
+temperatura alimenta una alarma de incendio, una factura o el control de una caldera, sustituir el
+fallo por un relleno —o, peor, por el último valor conocido sin decirlo— esconde un problema que
+alguien necesita ver. Ahí lo correcto es que el futuro termine con la excepción, sin
+`exceptionally`, para que quien decide se entere; o devolver el último valor bueno **junto con la
+hora en que se midió**, para que la decisión sepa cuán viejo es. Repuesto para lo que se muestra;
+error visible para lo que se decide.
+
+**Errores frecuentes.** Poner `exceptionally` antes de `orTimeout`, que deja sin repuesto el plazo
+vencido. Llamar a `supplyAsync` sin el ejecutor, que usa el `ForkJoinPool` común. Formatear con
+`String.format("%.1f", ...)` sin `Locale.ROOT`, que en un ordenador configurado en español escribe
+una coma. Y un `join` al final «para comprobar que funciona».
+
+### 3.2.3 Clase `Votacion`
+
+**Qué se pedía.** Un recuento de votos seguro con varios hilos, sin `synchronized`, con un método
+que solo deja votar una vez a cada votante.
+
+**La solución.**
+
+```java
+private final ConcurrentHashMap<String, Long> votos = new ConcurrentHashMap<>();
+private final ConcurrentHashMap<String, String> votantes = new ConcurrentHashMap<>();
+private final AtomicLong total = new AtomicLong();
+
+public void votar(String opcion) {
+    votos.merge(opcion, 1L, Long::sum);
+    total.incrementAndGet();
+}
+
+public boolean votarUnaVez(String votante, String opcion) {
+    if (votantes.putIfAbsent(votante, opcion) != null) {
+        return false;
+    }
+    votar(opcion);
+    return true;
+}
+```
+
+**Por qué así.** Las dos líneas clave son dos operaciones que comprueban y actúan **de una vez**. El
+método `merge` lee, suma y escribe de forma atómica para esa clave, como en el [ejemplo de contar
+palabras](../contenido/tema3.qmd#nte-contar-palabras); con `get` y `put` por separado se perderían
+votos cuando dos hilos votan lo mismo a la vez. Y `putIfAbsent` comprueba e inserta en una sola
+operación: de varios hilos que lo intentan con el mismo votante, exactamente uno recibe `null`. Con
+`containsKey` seguido de `put` quedaría una ventana en la que dos hilos ven «no ha votado» y votan
+los dos: es el [error de comprobar y después actuar](../contenido/tema3.qmd#cau-comprobar-y-actuar),
+el mismo de `Aforo`, con otras clases.
+
+**La pregunta de «Para pensar».** Sí pueden no coincidir. El método `votar` hace dos operaciones
+atómicas, el `merge` y el `incrementAndGet`, pero **el par no es atómico**: entre las dos, otro hilo
+puede leer el total y el mapa y ver un voto en uno y no en el otro. Además, `resultados()` copia el
+mapa clave a clave mientras se sigue votando, así que ni siquiera la copia es una foto de un
+instante. Para un marcador que se refresca cada segundo no importa. Si importara —un escrutinio
+oficial—, hay dos salidas: calcular el total sumando el mapa, en lugar de guardarlo aparte, que deja
+una sola fuente de verdad a cambio de un recorrido por consulta; o proteger `votar` y las lecturas
+con un mismo cerrojo, que da coherencia total a cambio de que los votos entren de uno en uno.
+
+**Errores frecuentes.** Usar un `HashMap` con `Collections.synchronizedMap` y `get` más `put`, que
+sincroniza cada operación pero no el par. Comprobar con `containsKey`. Devolver el propio mapa desde
+`resultados`. Y llevar el total en un `long` corriente con `total++`, que es la carrera más antigua
+del tema.
+
+### 3.2.4 Método `imprimir` de `Imprenta`
+
+**Qué se pedía.** Un [productor-consumidor](../contenido/tema3.qmd#imp-productor-consumidor) con
+**varios productores** —un hilo por oficina— y varios consumidores —un hilo por impresora— a través
+de una cola limitada, que devuelva lo que ha impreso cada impresora.
+
+**La solución.** El reparto es el del pasaplatos. Lo nuevo es el final:
+
+```java
+for (Thread productor : productores) {
+    productor.join();
+}
+for (int i = 0; i < impresoras; i++) {
+    cola.put(FIN);
+}
+for (Thread consumidor : consumidores) {
+    consumidor.join();
+}
+return impresos;
+```
+
+**Por qué así.** El enunciado terminaba con una pregunta: ¿quién sabe cuándo han terminado todas las
+oficinas? Ninguna oficina, porque cada una solo sabe de sí misma. Lo sabe **el método**, después de
+esperarlas a todas con `join`. Solo entonces pone las píldoras, y **una por impresora**, porque cada
+impresora que saca una termina y deja de sacar. Ponerlas antes de los `join` haría que alguna
+impresora parara con documentos todavía por llegar; poner menos dejaría alguna esperando para
+siempre.
+
+Lo que imprime cada impresora va en una lista **suya**, que solo toca su hilo, y el mapa se lee
+después del `join` de todas: no hay nada compartido que proteger, y por eso basta un `LinkedHashMap`
+corriente.
+
+::: {#imp-quien-pone-las-pildoras .callout-important title="Quién pone las píldoras"}
+Con varios productores, **ningún productor puede poner la píldora**: no sabe si los demás han
+terminado. La regla general es que la pone quien sabe que el trabajo anterior ha terminado del todo,
+que casi siempre es el hilo que ha lanzado a los productores y los ha esperado. Y hace falta **una
+por consumidor**, porque cada píldora detiene exactamente a uno.
+
+Esta regla vuelve a aparecer en la ampliación de 3.2.5, repetida en cada puesto de la cadena.
+:::
+
+**La pregunta de «Para pensar».** Con una sola cola, el orden es el de llegada: si una oficina mete
+mil documentos de golpe, los de las demás esperan detrás. Para repartir de forma justa hacen falta
+**colas separadas**, una por oficina, y que las impresoras las atiendan por turno: un documento de
+la primera, uno de la segunda, y así, saltando las vacías (*round-robin*). Es lo que hacen los
+planificadores de los sistemas operativos y los *routers* con varias colas. Una alternativa más
+sencilla es limitar cuántos documentos puede tener cada oficina en la cola a la vez, con un semáforo
+por oficina: no reparte perfecto, pero impide que una sola lo llene todo.
+
+**Errores frecuentes.** Que cada oficina ponga una píldora al terminar, que detiene impresoras
+mientras otras oficinas siguen enviando. Poner una sola píldora. Compartir una única lista de
+impresos entre las impresoras sin protegerla. Y usar `offer` en lugar de `put`, que con la cola
+llena pierde el documento en silencio.
+
+### 3.2.5 Método `fabricar` de `CadenaDeMontaje`
+
+**Qué se pedía.** Una cadena de tres puestos —ensamblar (60 ms), pintar (100 ms) y empaquetar (30
+ms)— con un hilo por puesto y una cola limitada entre cada dos, que devuelva las piezas terminadas
+en el orden en que entraron. Y, como ampliación, la misma cadena con varios trabajadores por puesto.
+
+**La solución.** El puesto del medio es el que tiene la decisión: es consumidor de una cola y
+productor de otra, y tiene que **pasar la píldora**:
+
+```java
+Thread pintor = new Thread(() -> {
+    try {
+        while (true) {
+            String pieza = ensambladas.take();
+            if (pieza.equals(FIN)) {
+                pintadas.put(FIN);          // el empaquetador solo ve su cola
+                return;
+            }
+            pintadas.put(Taller.pintar(pieza));
+        }
+    } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+    }
+}, "pintor");
+```
+
+Y el final del método:
+
+```java
+ensamblador.start();
+pintor.start();
+empaquetador.start();
+ensamblador.join();
+pintor.join();
+empaquetador.join();
+return terminadas;
+```
+
+**Por qué así.** Las dos colas son `ArrayBlockingQueue` de tamaño fijo, y eso da el comportamiento
+de una cadena real sin escribir nada: `put` espera si la cola está llena, así que un puesto rápido
+no se adelanta demasiado al siguiente; `take` espera si está vacía, así que un puesto no hace nada
+hasta que le llega trabajo. No hace falta una tercera cola: el ensamblador lee la lista de piezas, y
+el empaquetador guarda las terminadas en una lista suya, que el método lee después del `join`, como
+en la `Imprenta`.
+
+El pintor pasa la píldora porque el empaquetador **no ve la cola del ensamblador**: solo se enterará
+del final si alguien se lo dice por la suya. Sin esa línea, el empaquetador se queda esperando en
+`take` para siempre. Y el orden de entrada se conserva solo, sin escribir nada para ello: cada
+puesto tiene un único hilo y las colas sacan las piezas en el orden en que entraron.
+
+Las interrupciones se tratan como en el tema: se restaura la marca con `interrupt()` y el hilo
+termina, en lugar de [tragarse la excepción](../contenido/tema3.qmd#cau-tragarse-interrupcion).
+
+**La ampliación.** Con varios trabajadores por puesto cambian tres cosas, y las tres son la [regla
+de las píldoras](#imp-quien-pone-las-pildoras) de 3.2.4. Los ensambladores se reparten las piezas
+sacándolas de una cola de entrada. Ningún trabajador pasa la píldora: si el primer pintor que acaba
+la pasara, los empaquetadores podrían terminar mientras otro pintor tiene una pieza entre manos, y
+esa pieza se perdería. Y las píldoras las pone el método, puesto a puesto:
+
+```java
+for (Thread hilo : puesto1) {
+    hilo.join();
+}
+for (int i = 0; i < pintores; i++) {
+    ensambladas.put(FIN);
+}
+for (Thread hilo : puesto2) {
+    hilo.join();
+}
+for (int i = 0; i < empaquetadores; i++) {
+    pintadas.put(FIN);
+}
+```
+
+Cada empaquetador guarda lo suyo en su propia lista, creada en cada vuelta del `for` que lo lanza, y
+se juntan al final.
+
+La tabla del enunciado se explica con una sola idea: **el ritmo de la cadena lo marca el puesto más
+lento**, contando cuántos trabajadores tiene. Con uno por puesto, el pintor saca una pieza cada 100
+ms. Tres empaquetadores no cambian nada (1094 ms), porque el empaquetador ya estaba esperando al
+pintor. Con dos pintores, el puesto de pintura saca una cada 50 ms, y el más lento pasa a ser el
+ensamblador, con una cada 60 (734 ms). Por eso el siguiente trabajador que más ayuda es un segundo
+ensamblador (623 ms), y después un tercer pintor (492 ms), cuando los tres puestos quedan en torno a
+una pieza cada 30 ms.
+
+**La pregunta de «Para pensar».** El tiempo depende del puesto **más lento**, el pintor: es el
+cuello de botella, y en régimen la cadena saca una pieza terminada cada 100 ms. La primera pieza
+tarda lo que los tres pasos, $60 + 100 + 30 = 190$ ms, y cada una de las demás sale 100 ms después.
+Con $n$ piezas, $T(n) = 60 + 100n + 30 = 100n + 90$ ms: 490 para cuatro (se midieron unos 520) y
+1090 para diez (la solución midió 1097). Lo que sobra es el arranque de los hilos y la impresión. En
+general, $T(n) = \sum t_i + (n-1)\max t_i$: la suma de los tiempos para la primera pieza y el máximo
+para cada una de las siguientes.
+
+**Errores frecuentes.** Que el pintor no pase la píldora, que deja la prueba colgada diez segundos.
+Arrancar y esperar cada hilo seguido, que con colas pequeñas deja al ensamblador esperando sitio
+para siempre. En la ampliación, que cada pintor pase la píldora al terminar. Y usar una colección
+concurrente para `terminadas` «por si acaso», que no es un error pero indica no haber entendido por
+qué no hace falta.
+
+## 3.3. Hilos virtuales y concurrencia estructurada
+
+Los dos últimos ejercicios son los más cortos de escribir y los que más cuesta justificar. En los
+dos, la solución sale de colocar **el límite en su sitio**: en 3.3.1, el límite de descargas en el
+semáforo y no en el número de hilos; en 3.3.2, el tiempo de vida de las tareas en el ámbito y no en
+el código que las vigila.
+
+### 3.3.1 Método `descargarTodas` de `Descargador`
+
+**Qué se pedía.** Descargar todas las direcciones, cada una en su propio [hilo
+virtual](../contenido/tema3.qmd#imp-hilo-virtual), sin más de `simultaneas` a la vez, con `"error:
+"` y el mensaje para las que fallen.
+
+**La solución.**
+
+```java
+Map<String, String> contenidos = new ConcurrentHashMap<>();
+Semaphore permisos = new Semaphore(simultaneas);
+try (ExecutorService ejecutor = Executors.newVirtualThreadPerTaskExecutor()) {
+    for (String direccion : direcciones) {
+        ejecutor.execute(() -> {
+            try {
+                permisos.acquire();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+            try {
+                contenidos.put(direccion, descargar.apply(direccion));
+            } catch (RuntimeException e) {
+                contenidos.put(direccion, "error: " + e.getMessage());
+            } finally {
+                permisos.release();
+            }
+        });
+    }
+}
+return contenidos;
+```
+
+**Por qué así.** Un hilo virtual por descarga, sin límite: crear diez mil cuesta poco. El límite lo
+pone el [semáforo](../contenido/tema3.qmd#imp-semaforo), que está donde está el recurso escaso: las
+descargas a la vez, no los hilos. Limitar con un ejecutor de tamaño fijo también funcionaría, pero
+mezclaría las dos cosas, y es justo lo que los hilos virtuales permiten separar.
+
+El `acquire` va **fuera** del `try` que tiene el `release`: si la espera se interrumpe, el hilo no
+ha obtenido permiso y no debe devolver ninguno. Y el `release` va en un `finally`, porque un permiso
+que no se devuelve se pierde para siempre, y después de unos cuantos fallos el descargador se
+quedaría parado. El `try` con recursos del ejecutor hace el resto: su `close` espera a que terminen
+todas las tareas, que es lo que pedía «el método no vuelve hasta que han terminado todas». El mapa
+es concurrente porque aquí sí escriben varios hilos a la vez.
+
+**La pregunta de «Para pensar».** El servidor ve hasta veinte conexiones, diez de cada descargador:
+el semáforo limita a cada descargador, no al servidor, porque cada uno tiene el suyo. Para que el
+límite sea del servidor, el semáforo tiene que ser **uno y compartido** por todos los que le hablan:
+se crea fuera, uno por servidor —por ejemplo, en un mapa de *host* a semáforo— y se pasa a cada
+descargador en lugar de crearlo dentro. Es la regla del tema: el límite va donde está el recurso
+escaso, y aquí el recurso escaso es el servidor.
+
+**Errores frecuentes.** El `release` fuera del `finally`. El `acquire` dentro del `try` que libera,
+que devuelve un permiso que no se tenía y deja pasar a uno de más. Un `HashMap` corriente para los
+contenidos. Y olvidar el `try` con recursos, que hace que el método vuelva antes de que acaben las
+descargas.
+
+### 3.3.2 Método `primeraRespuesta` de `Replicas`
+
+**Qué se pedía.** Preguntar a todas las réplicas a la vez en un ámbito de [concurrencia
+estructurada](../contenido/tema3.qmd#imp-concurrencia-estructurada) con plazo, y devolver la primera
+respuesta correcta, de modo que al volver no quede ninguna réplica en marcha.
+
+**La solución.**
+
+```java
+try (var ambito = StructuredTaskScope.open(Joiner.<T>anySuccessfulResultOrThrow(),
+        configuracion -> configuracion.withTimeout(plazo))) {
+    for (Callable<T> replica : replicas) {
+        ambito.fork(replica);
+    }
+    return ambito.join();
+}
+```
+
+**Por qué así.** Toda la política está en el `Joiner` [@jep505]. Con `anySuccessfulResultOrThrow`,
+el primer éxito cancela las demás subtareas y `join` lo devuelve; si fallan todas, `join` lanza
+`FailedException`; si vence el plazo, `TimeoutException`. Y el `close` del `try` espera a que las
+canceladas **terminen**, así que al volver no queda ninguna viva, por cualquiera de los tres
+caminos. Con un `CompletableFuture.anyOf` habría que cancelar las perdedoras a mano y, aun así, nada
+garantizaría que hubieran terminado. Es la diferencia que el tema atribuye a la concurrencia
+estructurada: el tiempo de vida de las tareas lo marca un bloque del código [@smith2018].
+
+Comparado con el [presupuesto del viaje](../contenido/tema3.qmd#nte-viaje) del tema, cambia una sola
+cosa, el `Joiner`. Es la mejor prueba de que la estructura y la política están separadas.
+
+**La pregunta de «Para pensar».** Triplicar la carga merece la pena cuando **la latencia importa más
+que la capacidad**: consultas de lectura, idempotentes y baratas, en un servicio con capacidad de
+sobra y una cola de latencias larga, en el que la mayoría de las respuestas llegan rápido pero de
+vez en cuando una réplica tarda mucho. Para escrituras, consultas caras o un servicio cerca de su
+límite, triplicar la carga lo hace todo más lento. La variante que paga menos es la **petición de
+respaldo** (*hedged request*): preguntar a una réplica y, solo si no contesta en un tiempo —por
+ejemplo, el percentil 95 de lo normal—, preguntar a otra y quedarse con la primera respuesta. Casi
+todas las consultas cuestan una petición, y las lentas se rescatan con una segunda.
+
+**Errores frecuentes.** Usar `Joiner.allSuccessfulOrThrow()`, que espera a todas. Poner el plazo con
+un `Thread.sleep` o con `orTimeout` en futuros sueltos, fuera del ámbito. Capturar las excepciones
+de `join` y devolver `null`, que convierte un fallo en una respuesta. Y olvidar que el ámbito es una
+API en vista previa en Java 25, que necesita `--enable-preview`.
+
+## Qué llevarte de este tema
+
+Si de las diez soluciones hubiera que quedarse con cinco frases:
+
+1. **Arrancar todos, después esperar a todos.** Dos bucles, no uno. Es la forma de todo programa con
+   hilos, y el error de juntarlos produce un programa secuencial que parece concurrente (3.1.1,
+   3.1.2, 3.2.5).
+2. **Comprobar y después actuar es una carrera.** Da igual que sea un `if` con un `++`, un
+   `containsKey` con un `put` o dos operaciones atómicas seguidas: o van dentro del mismo cerrojo, o
+   se usa la operación que hace las dos cosas a la vez (3.1.2, 3.2.3).
+3. **Un orden global para los cerrojos.** Romper la espera circular es la forma más práctica de
+   evitar interbloqueos, y funciona con cualquier número de cerrojos (3.1.3).
+4. **La píldora la pone quien sabe que se ha acabado.** Con varios productores, ninguno lo sabe; lo
+   sabe quien los ha lanzado y los ha esperado, y hace falta una por consumidor (3.2.4, 3.2.5).
+5. **El límite va donde está el recurso escaso.** Las descargas a la vez, en un semáforo; el tiempo
+   de vida de las tareas, en un ámbito; los hilos, sin límite si son virtuales (3.3.1, 3.3.2).
+
+Y una observación sobre el conjunto: en casi todos los ejercicios, la mejor herramienta fue **no
+compartir**. Una casilla por hilo, una lista por impresora, una lista por empaquetador: lo que no se
+comparte no hay que protegerlo. Es el consejo más repetido de la bibliografía sobre concurrencia
+[@goetz2006], y el más barato de seguir.
+
+## Referencias
+
+::: {#refs}
+:::
+

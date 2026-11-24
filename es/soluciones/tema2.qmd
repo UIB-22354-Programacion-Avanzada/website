@@ -2,6 +2,844 @@
 title: "Soluciones — Tema 2: Algoritmos, Complejidad y Estructuras de Datos"
 lang: es
 sidebar: barra-es
+bibliography: ../contenido/tema2.bib
 ---
 
-*Contenido pendiente.*
+## Cómo leer estas soluciones
+
+Esta página recorre los 17 ejercicios del Tema 2 y explica, para cada uno, **qué se pedía, cómo se
+resuelve y por qué esa solución y no otra**. En este tema hay una diferencia con el anterior que
+conviene tener presente desde el principio: en casi todos los ejercicios, **lo que se entrega no es
+solo un programa que funcione, sino un número que coincida con una fórmula**. Por eso cada solución
+dice de dónde sale cada número, y por eso un método que da el resultado correcto con el doble de
+trabajo no resuelve el ejercicio.
+
+El código completo, compilable y con sus pruebas en verde, está en el repositorio de soluciones de
+la organización. Aquí encontrarás los fragmentos que importan, no el proyecto entero.
+
+::: {.callout-tip appearance="simple"}
+Leer una solución antes de haberla intentado produce una sensación de comprensión que no se sostiene
+delante de un folio en blanco. Si aún no has resuelto un ejercicio, resuélvelo primero, aunque sea
+mal; después, lee. La diferencia entre las dos formas de usar esta página es enorme y no se nota
+hasta el examen.
+:::
+
+Cada solución tiene la misma estructura: qué se pedía, el código, por qué así, la respuesta a la
+pregunta de **«Para pensar»** —que no está en el tema y hay que decidirla— y los **errores
+frecuentes**. Estos últimos no son inventados: son los que aparecen año tras año en este tipo de
+ejercicios. Reconocer un error que has cometido tú es la forma más eficaz de no volver a cometerlo.
+
+## 2.1. Eficiencia de algoritmos
+
+Los nueve ejercicios de esta sección entrenan una sola habilidad: **contar**. Contar iteraciones de
+un bucle, contar comparaciones de una búsqueda, contar copias de un array que crece. La notación
+asintótica viene después, y solo resume lo que el recuento ya ha dicho. Quien intenta adivinar el
+orden sin contar acierta en los casos fáciles y falla en los que importan, como el caso medio de
+2.1.5 o las copias de 2.1.6.
+
+Hay además un hilo que atraviesa la sección: el recuento que se anuncia con `Recuento.anunciar` es
+el mismo que comprueban las pruebas. Si el número que sale por consola no coincide con la fórmula,
+no hace falta mirar la prueba para saber que algo está mal.
+
+### 2.1.1 Método `maximoYSegundo` de `RecorridosEjercicio`
+
+**Qué se pedía.** El mayor y el segundo mayor elemento de un array, contando las repeticiones (en
+`{3, 17, 9, 17, 2}` los dos son 17), en **un solo recorrido**, y anunciando el recuento de
+iteraciones.
+
+**La solución.** El corazón es el cuerpo del bucle:
+
+```java
+int maximo = Integer.MIN_VALUE;
+int segundo = Integer.MIN_VALUE;
+for (int dato : datos) {
+    operaciones++;
+    if (dato > maximo) {
+        segundo = maximo;          // el maximo viejo baja a segundo
+        maximo = dato;
+    } else if (dato > segundo) {   // llega aqui tambien un dato IGUAL al maximo
+        segundo = dato;
+    }
+}
+Recuento.anunciar("maximoYSegundo", datos.length, operaciones, "n");
+```
+
+**Por qué así.** Las dos variables se inicializan a `Integer.MIN_VALUE` para que el primer elemento
+no necesite tratamiento especial: cualquier dato es mayor o igual, y cae en uno de los dos casos.
+
+El orden de las comprobaciones es la decisión importante. Primero se pregunta si el dato supera al
+máximo, porque en ese caso el máximo viejo baja a segundo. Al revés, un elemento mayor que los dos
+acabaría como segundo y el máximo se perdería. Y el `else if` con `>` resuelve los repetidos sin más
+código: un 17 igual al máximo no entra en la primera rama, sí en la segunda, y ocupa el segundo
+puesto.
+
+El resultado son $n$ iteraciones en lugar de $2n$. Las dos versiones son del mismo orden, $O(n)$,
+pero el [coste de un algoritmo](../contenido/tema2.qmd#imp-coste) se cuenta, y el ejercicio pide la
+constante pequeña a conciencia.
+
+**La pregunta de «Para pensar».** La versión de dos recorridos merece entregarse cuando la claridad
+vale más que un factor 2 que nadie va a notar. Para arrays de miles de elementos la diferencia son
+microsegundos, y la versión de dos recorridos se convence uno de que es correcta en diez segundos;
+la de uno exige pensar el orden de los `if` y el caso de los repetidos, que es donde están los
+errores. Si el método no está en un camino caliente medido, gana la fácil de leer. Si lo está, la de
+un recorrido, con un comentario que explique el orden.
+
+**Errores frecuentes.** Escribir las comprobaciones en el orden inverso. Inicializar las dos
+variables con `datos[0]`, que con `{17, 3}` deja el 17 también como segundo. Calcular el segundo
+mayor **de los distintos**, que no es lo que se pedía. Y contar las iteraciones fuera del bucle, con
+`datos.length`, lo que hace que el recuento sea correcto aunque el método recorra el array dos
+veces.
+
+### 2.1.2 Método `porEstado` de `EstadosEjercicio`
+
+**Qué se pedía.** Contar cuántos resultados del historial hay en cada estado con dos bucles anidados
+—el exterior por los resultados, el interior por los valores del enum—, sin `break`, anunciar el
+recuento y escribir la conclusión sobre su orden.
+
+**La solución.**
+
+```java
+long[] cuentas = new long[Estado.values().length];
+for (Resultado resultado : historial) {
+    for (Estado estado : Estado.values()) {
+        operaciones++;
+        if (resultado.estado() == estado) {
+            cuentas[estado.ordinal()]++;
+        }
+    }
+}
+Recuento.anunciar("porEstado", historial.size(), operaciones, "3n");
+```
+
+**Por qué así.** El array se dimensiona con `Estado.values().length` y no con un 3 escrito a mano:
+si mañana el [enum](../contenido/tema1.qmd#imp-enum) crece, el método sigue siendo correcto. Sin
+`break`, el recuento es exactamente $3n$ y no depende de en qué estado está cada resultado, que es
+lo que permite comprobarlo con una prueba.
+
+La conclusión es que **el método es $O(n)$**. Dos bucles anidados no significan $O(n^2)$: el
+interior da siempre tres vueltas, y tres es una constante del programa, no un tamaño de la entrada.
+Es la [notación O grande](../contenido/tema2.qmd#tip-o-grande) aplicada sin automatismos: lo que
+cuenta es de qué depende cada bucle, no cuántos hay.
+
+**La pregunta de «Para pensar».** Sí merece la pena. La versión sin bucle interior es
+`cuentas[resultado.estado().ordinal()]++`, una línea por resultado: $n$ iteraciones en lugar de
+$3n$, más rápida y más corta a la vez. No cambia el orden, pero con cincuenta valores la diferencia
+sería de $50n$ frente a $n$: sigue siendo lineal, y es cincuenta veces más trabajo. «Es $O(n)$» no
+cierra la discusión: dice cómo crece el coste, no cuánto es.
+
+**Errores frecuentes.** Concluir $O(n^2)$ porque hay dos bucles. Poner un `break` al encontrar el
+estado, que da un recuento entre $n$ y $3n$ que ninguna prueba puede fijar. Y comparar los enum con
+`equals` en lugar de `==`, que funciona pero oculta que los valores de un enum son únicos.
+
+### 2.1.3 Clase `CotasEjercicio`: los testigos de una cota
+
+**Qué se pedía.** Para $f(n) = 3n^2 + 50n + 200$, encontrar una constante $c$ y un umbral $n_0$ que
+demuestren $f \in O(n^2)$, otros que demuestren $f \in \Omega(n^2)$, y concluir.
+
+**La solución.** Cuatro métodos que devuelven los testigos:
+
+```java
+public static long constanteCSuperior() { return 4; }
+public static long n0Superior()         { return 54; }
+public static long constanteCInferior() { return 3; }
+public static long n0Inferior()         { return 0; }
+```
+
+**Por qué así.** Para la cota superior hay que encontrar $c$ y $n_0$ con $3n^2 + 50n + 200 \le
+c\,n^2$ para todo $n \ge n_0$. Con $c = 4$ la desigualdad queda $n^2 - 50n - 200 \ge 0$, cuya raíz
+positiva es $25 + \sqrt{825} \approx 53{,}7$: a partir de $n_0 = 54$ se cumple siempre. Para la
+inferior, $3n^2 + 50n + 200 \ge 3n^2$ es cierto para todo $n \ge 0$, porque los otros dos términos
+son positivos: $c = 3$ y $n_0 = 0$.
+
+Con las dos, $f \in \Theta(n^2)$: crece exactamente como $n^2$. No hacía falta buscar las dos
+constantes a la vez, porque $\Theta$ es por definición la conjunción de $O$ y $\Omega$, y cada una
+se demuestra con su propia pareja [@cormen2022].
+
+La pregunta intermedia del enunciado —por qué $c = 4$ con $n_0 = 54$ y $c = 53$ con $n_0 = 3$ son
+las dos correctas— tiene una respuesta corta: la definición pide que **existan** una constante y un
+umbral, no los menores. La constante absorbe los factores y el umbral permite ignorar los tamaños
+pequeños, y uno se puede cambiar por el otro.
+
+**La pregunta de «Para pensar».** Comprobar hasta cien mil no dice nada de cien mil y uno. Para todo
+$n$ hace falta una **demostración**: el razonamiento algebraico de arriba, en papel o, si se quiere
+que lo compruebe una máquina, en un asistente de demostración como Lean, Coq o Isabelle. Eso no es
+una prueba unitaria: una prueba unitaria comprueba ejemplos, y una demostración cubre todos los
+casos. Las pruebas de este ejercicio son una red contra erratas, no la justificación.
+
+**Errores frecuentes.** Dar un $n_0$ en el que la desigualdad se cumple pero que no es el comienzo
+de un tramo en el que se cumple siempre. Elegir $c = 3$ para la superior, que no funciona para
+ningún $n_0$ porque los términos de menor grado nunca desaparecen. Y creer que hay una única pareja
+correcta.
+
+### 2.1.4 Método `primerNDondeGana` de `CruceEjercicio`
+
+**Qué se pedía.** Dadas dos funciones de coste como
+[lambdas](../contenido/tema1.qmd#lambdas-e-interfaces-funcionales), el primer $n$ entre 1 y un
+límite en el que la primera es estrictamente menor que la segunda, o $-1$ si no lo hay.
+
+**La solución.**
+
+```java
+if (coste1 == null || coste2 == null || limite < 1) {
+    throw new IllegalArgumentException("Hacen falta dos funciones y un limite de al menos 1");
+}
+for (int n = 1; n <= limite; n++) {
+    if (coste1.applyAsLong(n) < coste2.applyAsLong(n)) {   // < estricto: un empate no gana
+        return n;
+    }
+}
+return -1;
+```
+
+**Por qué así.** El contrato pide `IllegalArgumentException` también para `null`, y tiene sentido:
+aquí una función nula es un argumento sin sentido, igual que un límite negativo, y conviene
+tratarlos igual. El `<` estricto es la otra decisión: en un empate todavía no gana ninguno.
+
+El ejercicio existe para ver con números lo que dice la [precaución sobre la O grande sin
+$n$](../contenido/tema2.qmd#cau-o-grande-sin-n): un algoritmo de orden peor puede ganar en los
+tamaños pequeños, y el punto de cruce depende de las constantes.
+
+**La pregunta de «Para pensar».** Con $n^2$ frente a $2n$ devuelve 1, y eso no dice nada útil: el
+cuadrático gana en $n = 1$, empata en $n = 2$ y pierde para siempre a partir de 3. El primer cruce
+puede no tener nada que ver con los tamaños reales del programa. Para elegir algoritmo importa quién
+gana en el rango de tamaños real, y si hay un **último** cruce a partir del cual el resultado ya no
+cambia. Lo que pasa a la derecha de ese último cruce es justo lo que describe la notación
+asintótica.
+
+**Errores frecuentes.** Usar `<=`, que da por ganador al primer empate. Empezar el bucle en 0, que
+no está en el rango pedido. Y lanzar `NullPointerException` para los `null`, que no es lo que dice
+el contrato.
+
+### 2.1.5 Clase `CasosEjercicio`: peor caso, mejor caso y caso medio, medidos
+
+**Qué se pedía.** Medir, contando comparaciones de una búsqueda lineal sobre `{0, 1, ..., n-1}`, el
+peor caso, el mejor caso y el caso medio, este último suponiendo que el elemento buscado está y que
+todos son igual de probables.
+
+**La solución.** Un método privado que cuenta y tres que eligen la entrada:
+
+```java
+public static long peorCaso(int n)  { validar(n); return comparaciones(crecientes(n), -1); }
+public static long mejorCaso(int n) { validar(n); return comparaciones(crecientes(n), 0); }
+
+public static double casoMedio(int n) {
+    validar(n);
+    int[] datos = crecientes(n);
+    long total = 0;
+    for (int buscado = 0; buscado < n; buscado++) {   // los n elementos PRESENTES
+        total += comparaciones(datos, buscado);
+    }
+    return (double) total / n;
+}
+```
+
+**Por qué así.** El peor caso es un elemento ausente, que obliga a mirarlos todos: $n$
+comparaciones. El mejor, el primero: una. El caso medio no se adivina, se calcula: buscar el
+elemento $i$ cuesta $i + 1$ comparaciones, la suma para todos es $n(n+1)/2$ y la media, $(n+1)/2$.
+Para $n = 1000$, 500,5.
+
+El ejercicio separa lo que el [tema](../contenido/tema2.qmd#imp-casos) distingue: los tres casos son
+**funciones distintas** de $n$, y decir «la búsqueda lineal es $O(n)$» sin decir de qué caso se
+habla es incompleto. El caso medio, además, depende de una hipótesis sobre las entradas, que aquí es
+explícita.
+
+**La pregunta de «Para pensar».** Es la media ponderada de los dos tipos de búsqueda: con
+probabilidad 9/10 el elemento está y cuesta, de media, $(n+1)/2$; con probabilidad 1/10 no está y
+cuesta $n$. En total, $0{,}9 \cdot (n+1)/2 + 0{,}1 \cdot n = 0{,}55n + 0{,}45$, que para $n = 1000$
+da 550,45. Sigue siendo lineal, pero el número cambia: el caso medio no es una propiedad del
+algoritmo, sino del algoritmo **más** la distribución de las entradas.
+
+**Errores frecuentes.** Obtener $n/2$ en lugar de $(n+1)/2$, casi siempre por contar desde 0 o por
+incluir la búsqueda fallida en la media. Hacer la división entera, que convierte 500,5 en 500. Y
+calcular el caso medio con búsquedas al azar, que da un número distinto en cada ejecución y no se
+puede comprobar.
+
+### 2.1.6 Clase `ArrayCreciente`: el coste amortizado, contado
+
+**Qué se pedía.** Un array que crece solo, con la estrategia de crecimiento recibida como función
+([el patrón Strategy](../contenido/tema1.qmd#strategy) del Tema 1), que cuente las copias que hace
+al crecer. Con él, comparar sumar una cantidad fija con multiplicar por dos.
+
+**La solución.** Todo el interés está en `anadir`:
+
+```java
+public void anadir(int valor) {
+    if (tamano == elementos.length) {
+        int nueva = crecimiento.applyAsInt(elementos.length);
+        if (nueva <= elementos.length) {
+            throw new IllegalStateException("La estrategia de crecimiento no aumenta la capacidad: "
+                    + elementos.length + " -> " + nueva);
+        }
+        elementos = Arrays.copyOf(elementos, nueva);
+        copias += tamano;          // se copian los que HAY, no las casillas nuevas
+    }
+    elementos[tamano] = valor;
+    tamano++;
+}
+```
+
+**Por qué así.** Se cuenta `tamano`, que con el array lleno es la capacidad vieja: son los elementos
+que `Arrays.copyOf` mueve. Contar `nueva` sería contar casillas vacías, que no se copian. La
+comprobación de que la estrategia crece evita un error difícil de relacionar con su causa: sin ella,
+una estrategia que devuelve la misma capacidad acabaría en un `ArrayIndexOutOfBoundsException` una
+línea más abajo.
+
+Y `get` comprueba la posición contra el tamaño, no contra la capacidad, con
+`Objects.checkIndex(posicion, tamano)`: con capacidad 16 y tres elementos, la posición 5 existe en
+el array pero no se ha escrito, y devolver su 0 sería mentir.
+
+Los números son los del [coste amortizado](../contenido/tema2.qmd#tip-amortizado). Con mil elementos
+desde capacidad 1, doblando se hacen 1.023 copias (1 + 2 + 4 + ... + 512) y la capacidad final es
+1.024: algo más de una copia por elemento. Sumando 10 desde capacidad 10 se hacen 49.500 copias:
+unas cincuenta por elemento, y creciendo con $n$. La primera estrategia es $O(1)$ amortizado por
+inserción; la segunda, $O(n)$.
+
+**La pregunta de «Para pensar».** El factor 1,5 gana memoria. Con el factor 2, justo después de
+crecer la mitad del array está vacía; con 1,5, como mucho un tercio. Hay además un argumento más
+fino: con un factor menor que la razón áurea (unos 1,618), la suma de los bloques que se van
+liberando acaba alcanzando para el siguiente, y el gestor de memoria puede reutilizarlos; con 2 eso
+nunca ocurre. Lo que se pierde son copias: con factor $k$ el total copiado tiende a $n/(k-1)$, es
+decir $n$ con 2 y $2n$ con 1,5. Las dos son lineales; la elección es un compromiso entre memoria
+desperdiciada y trabajo de copia.
+
+**Errores frecuentes.** Contar `nueva` en lugar de `tamano`. Comprobar `get` contra
+`elementos.length`. Escribir el crecimiento dentro de la clase con un `if` por estrategia, que es
+exactamente lo que el patrón Strategy evita. Y concluir de la tabla que doblar «es más rápido» sin
+decir que el orden es distinto.
+
+### 2.1.7 Método `binariaConInsercion` de `BusquedasEjercicio`
+
+**Qué se pedía.** La [búsqueda binaria](../contenido/tema2.qmd#búsqueda-lineal-y-binaria) con el
+mismo contrato que `Arrays.binarySearch`: la posición si el elemento está y, si no, `-(punto de
+inserción) - 1`.
+
+**La solución.**
+
+```java
+int izquierda = 0;
+int derecha = datos.length - 1;
+while (izquierda <= derecha) {
+    int centro = izquierda + (derecha - izquierda) / 2;   // nunca (izquierda + derecha) / 2
+    if (datos[centro] < buscado) {
+        izquierda = centro + 1;
+    } else if (datos[centro] > buscado) {
+        derecha = centro - 1;
+    } else {
+        return centro;
+    }
+}
+return -izquierda - 1;
+```
+
+**Por qué así.** El punto medio se calcula como `izquierda + (derecha - izquierda) / 2` porque la
+suma `izquierda + derecha` desborda el `int` con arrays de más de $2^{30}$ elementos, sale negativa
+y el índice revienta. Es la [precaución del punto medio](../contenido/tema2.qmd#cau-punto-medio), y
+el fallo estuvo años en la biblioteca de Java porque hacían falta arrays enormes para verlo
+[@bloch2006extra].
+
+Al salir del bucle, `izquierda == derecha + 1`: todo lo que queda a su izquierda es menor que el
+buscado y todo lo que queda desde ella, mayor. Es justo el punto de inserción, sin calcular nada
+más. El $-1$ de la fórmula existe para que el punto 0 no se confunda con «encontrado en la posición
+0».
+
+El método **no** comprueba que el array esté ordenado, y es deliberado: comprobarlo cuesta $O(n)$, y
+la razón de ser de la búsqueda binaria es costar $O(\log n)$. Un método que valida esa precondición
+en cada llamada deja de ser una búsqueda binaria. La precondición se documenta y la cumple quien
+llama ([la precaución correspondiente](../contenido/tema2.qmd#cau-binaria-sin-ordenar)).
+
+**La pregunta de «Para pensar».** La prueba debe comprobar lo que el contrato promete, no la
+coincidencia con la biblioteca. Para cada resultado $r$: si $r \ge 0$, `datos[r] == buscado`; si $r
+< 0$, con $p = -r - 1$, que $0 \le p \le n$, que el buscado no está, que todo lo anterior a $p$ es
+menor y todo lo que hay desde $p$, mayor. Esa prueba admite cualquier posición válida entre las
+iguales y no falla si mañana la biblioteca cambia de implementación. Comprobada para miles de
+entradas al azar, es una prueba de propiedades.
+
+**Errores frecuentes.** El punto medio con la suma. Devolver `-izquierda` sin el $-1$. Escribir
+`while (izquierda < derecha)`, que no examina el último elemento que queda. Y comprobar el orden del
+array dentro del método.
+
+### 2.1.8 Clase `OrdenEjercicio`: dos pasadas estables
+
+**Qué se pedía.** Ordenar resultados por servicio y, dentro de cada servicio, por instante, de dos
+formas: con dos ordenaciones sucesivas y con un único comparador compuesto. Y explicar por qué
+coinciden.
+
+**La solución.**
+
+```java
+public static List<Resultado> conDosPasadas(List<Resultado> resultados) {
+    var copia = new ArrayList<>(resultados);
+    copia.sort(Comparator.comparing(Resultado::instante));          // primero el SECUNDARIO
+    copia.sort(Comparator.comparing(r -> r.servicio().nombre()));   // despues el PRINCIPAL
+    return List.copyOf(copia);
+}
+
+public static List<Resultado> conUnComparador(List<Resultado> resultados) {
+    var copia = new ArrayList<>(resultados);
+    copia.sort(Comparator.comparing((Resultado r) -> r.servicio().nombre())
+            .thenComparing(Resultado::instante));
+    return List.copyOf(copia);
+}
+```
+
+**Por qué así.** Se ordena una copia, porque la lista recibida puede ser inmutable y, aunque no lo
+sea, un método que reordena lo que le pasan sorprende a quien lo llama. Como `Servicio` es una
+[interfaz](../contenido/tema1.qmd#imp-interfaz) sin orden natural, se compara por su nombre.
+
+Coinciden porque `List.sort` sobre objetos es **estable**: dos elementos que el comparador considera
+iguales salen en el mismo orden relativo en que entraron ([la estabilidad, en el
+tema](../contenido/tema2.qmd#imp-estabilidad)). En la segunda pasada, todos los resultados de un
+servicio empatan, y la estabilidad los deja en el orden cronológico que fijó la primera. Es lo mismo
+que hace `thenComparing` en una sola pasada. Por eso las pasadas van **al revés**: primero el
+criterio secundario, después el principal.
+
+**La pregunta de «Para pensar».** Con cinco criterios, el comparador compuesto. Cinco pasadas son
+cinco ordenaciones completas, $5 \cdot O(n \log n)$, frente a una sola con un comparador que mira
+los campos que hagan falta: el mismo orden, unas cinco veces menos trabajo. Y, sobre todo, las
+pasadas hay que escribirlas del criterio menos importante al más importante, que es justo el orden
+en que nadie piensa; con cinco, el error es casi seguro. Las pasadas solo tienen sentido cuando los
+criterios llegan en momentos distintos, como cuando el usuario va pulsando columnas de una tabla.
+
+**Errores frecuentes.** Hacer las pasadas en el orden «natural», principal y luego secundario, que
+deja la lista ordenada solo por instante. Ordenar la lista recibida en lugar de una copia. Y
+escribir el comparador compuesto con una resta de enteros o de milisegundos en lugar de `comparing`,
+que puede desbordar.
+
+### 2.1.9 Clase `RepositorioContador`: el coste del monitor, reproducido
+
+**Qué se pedía.** Un repositorio de lista única que cuente las comparaciones que hace `historial`, y
+un método que simule $r$ rondas de $s$ servicios y devuelva el total, para reproducir la tabla de
+[el coste del monitor, medido](../contenido/tema2.qmd#el-coste-del-monitor-medido).
+
+**La solución.**
+
+```java
+@Override
+public List<Resultado> historial(Servicio servicio) {
+    var suyos = new ArrayList<Resultado>();
+    for (var resultado : datos) {
+        comparaciones++;
+        if (resultado.servicio().equals(servicio)) {
+            suyos.add(resultado);
+        }
+    }
+    return List.copyOf(suyos);
+}
+```
+
+```java
+for (int ronda = 0; ronda < rondas; ronda++) {
+    for (Servicio servicio : lista) {
+        repositorio.guardar(Resultado.activo(servicio, Duration.ofMillis(10)));
+        repositorio.historial(servicio);       // primero guardar, despues consultar
+    }
+}
+return repositorio.comparaciones();
+```
+
+**Por qué así.** Se cuenta una comparación por vuelta del bucle, que es una llamada a `equals`. Y la
+simulación guarda **antes** de consultar, como el monitor: por eso en la consulta $k$-ésima hay $k$
+resultados, y no $k - 1$.
+
+La fórmula sale sola. Con $N = r \cdot s$ resultados en total, la suma es $1 + 2 + \dots + N =
+N(N+1)/2$, y el término que domina es $r^2 s^2/2$: el $O(r^2 s^2)$ del tema. Con 2 servicios y 1
+ronda salen $1 + 2 = 3$; con 20 servicios y 100 rondas, $N = 2000$ y el total es 2.001.000. Duplicar
+las rondas multiplica el total por cuatro.
+
+**La pregunta de «Para pensar».** El contador no debería vivir en el repositorio: medir es una
+responsabilidad distinta de guardar, y mezclarlas va contra el principio de responsabilidad única.
+La alternativa es un **decorador** que implementa `RepositorioResultados`, envuelve al repositorio
+de verdad y le reenvía cada llamada. No necesita mirar dentro: sabe cuántos resultados se han
+guardado, porque todos pasan por su `guardar`, y en cada `historial` suma ese número. El repositorio
+queda intacto y el instrumento se añade o se quita sin tocarlo, que es también el principio
+abierto-cerrado.
+
+**Errores frecuentes.** Consultar antes de guardar, que da $N(N-1)/2$ y no coincide con la tabla.
+Contar solo las comparaciones que aciertan. Y declarar el contador `static`, que suma las de todas
+las instancias y hace que las pruebas dependan del orden en que se ejecutan.
+
+## 2.2. Estructuras de datos fundamentales y la Java Collections Framework
+
+Los cuatro ejercicios de esta sección tienen la misma forma: una estructura de la biblioteca, una
+pregunta que esa estructura contesta bien y una trampa que la documentación avisa y casi nadie lee.
+La trampa es lo que se evalúa: el conjunto que se modifica mientras se recorre, la `Stack` que no
+conviene usar, la vista que no es una copia, el montículo que no se recorre en orden.
+
+### 2.2.1 Clase `PalabrasUnicas`: el conjunto
+
+**Qué se pedía.** Tres operaciones sobre una lista de palabras —cuántas distintas hay, cuáles en
+orden de aparición, y la lista sin las cortas— y una explicación de qué falla en `sinLasCortasRoto`.
+
+**La solución.**
+
+```java
+public static int cuantasDistintas(List<String> palabras) {
+    return new HashSet<>(Objects.requireNonNull(palabras)).size();
+}
+
+public static List<String> distintasEnOrdenDeAparicion(List<String> palabras) {
+    return List.copyOf(new LinkedHashSet<>(Objects.requireNonNull(palabras)));
+}
+
+public static List<String> sinLasCortas(List<String> palabras, int minimo) {
+    // ... validaciones
+    var copia = new ArrayList<>(palabras);
+    copia.removeIf(palabra -> palabra.length() < minimo);
+    return List.copyOf(copia);
+}
+```
+
+**Por qué así.** Las tres caben en una o dos líneas porque cada una elige la estructura que ya hace
+el trabajo. El constructor de copia de un conjunto mete todos los elementos y la [tabla
+*hash*](../contenido/tema2.qmd#imp-tabla-hash) descarta los repetidos: $n$ inserciones de coste
+$O(1)$ esperado. Con una lista y `contains` serían $O(n^2)$. Un `LinkedHashSet` recuerda el orden de
+inserción, y como un repetido no se vuelve a insertar, la primera aparición fija el sitio. Y
+`removeIf` quita lo que cumple la condición con su propio recorrido, en una sola pasada.
+
+Lo de `sinLasCortasRoto` es la [precaución de modificar mientras se
+recorre](../contenido/tema2.qmd#cau-modificar-mientras-recorres). El `for` mejorado usa un iterador,
+y el iterador de `ArrayList` recuerda cuántas modificaciones tenía la lista al crearse. Un `remove`
+por detrás de él lo detecta en el siguiente `next()` y lanza `ConcurrentModificationException`. Hay
+un caso peor: si lo que se quita es el **penúltimo** elemento, `hasNext()` ya devuelve `false`, el
+bucle termina sin excepción y el último elemento no se examina. El método devuelve un resultado
+incorrecto en silencio.
+
+**La pregunta de «Para pensar».** Un `LinkedHashSet` no es la elección por omisión porque cuesta más
+y casi nunca hace falta. Cada entrada lleva dos referencias más —la lista doblemente enlazada que
+recuerda el orden— y cada inserción y borrado las mantiene: más memoria y algo más de tiempo, con el
+mismo orden de coste. La regla es pedir la promesa más débil que baste. Si importa el orden de
+llegada, `LinkedHashSet`; si no, `HashSet`; y si importa el orden de los valores, `TreeSet`.
+
+**Errores frecuentes.** Contar las distintas con una lista y `contains`. Usar `HashSet` para el
+orden de aparición y que las pruebas pasen por casualidad con pocas palabras. Arreglar el bucle roto
+recorriendo con índices hacia delante, que se salta el elemento siguiente a cada borrado. Y explicar
+el fallo diciendo solo «lanza una excepción», sin el caso silencioso.
+
+### 2.2.2 Clase `HistorialDeNavegacion`: la pila
+
+**Qué se pedía.** El botón «atrás» de un navegador: visitar, ver la página actual y retroceder, con
+una [pila](../contenido/tema2.qmd#imp-pila-cola) y eligiendo la pareja de métodos que corresponde.
+
+**La solución.**
+
+```java
+private final Deque<String> paginas = new ArrayDeque<>();
+
+public Optional<String> actual() {
+    return Optional.ofNullable(paginas.peekLast());
+}
+
+public Optional<String> atras() {
+    if (paginas.size() < 2) {
+        return Optional.empty();       // con una sola pagina no se retrocede
+    }
+    paginas.pollLast();
+    return Optional.of(paginas.peekLast());
+}
+```
+
+**Por qué así.** Se usa `ArrayDeque` por su interfaz `Deque`, no `Stack`, por las razones de la
+[precaución sobre `Stack`](../contenido/tema2.qmd#cau-usar-stack): hereda de `Vector`, sincroniza
+cada operación sin necesidad y deja insertar en medio de la pila.
+
+La pareja de métodos es la decisión del ejercicio. Aquí una pila vacía es un caso **esperado** —un
+navegador recién abierto—, así que se usan los que devuelven un valor especial (`peekLast`,
+`pollLast`) y no los que lanzan (`getLast`, `removeLast`). El vacío llega a quien llama como
+`Optional`, visible en el tipo. Y la comprobación del tamaño va **antes** de quitar nada, para que
+«con una sola página no cambia nada» sea literalmente cierto.
+
+**La pregunta de «Para pensar».** En la pila de llamadas de la máquina virtual, no. Ahí sacar de una
+pila vacía no es un caso que atender, sino la prueba de que el programa está roto. Un `Optional`
+obligaría a cada llamador a decidir qué hacer con algo que no debería ocurrir nunca, y casi siempre
+acabaría ignorado. Lo correcto es la pareja que lanza, para que el error salte donde se produce. La
+regla: `Optional` para la ausencia normal, excepción para la ausencia que revela un fallo.
+
+**Errores frecuentes.** Quitar primero y comprobar después, que vacía la pila con una sola página.
+Usar `Stack`. Mezclar los extremos —`addFirst` con `peekLast`—, que convierte la pila en una cola. Y
+devolver `null` en lugar de `Optional`.
+
+### 2.2.3 Clase `Agenda`: el árbol de búsqueda
+
+**Qué se pedía.** Una agenda de un día que conteste qué citas hay en un intervalo y cuál es la
+siguiente después de una hora, en $O(\log n + k)$ y $O(\log n)$.
+
+**La solución.**
+
+```java
+private final NavigableMap<LocalTime, String> citas = new TreeMap<>();
+
+public List<Cita> entre(LocalTime desde, LocalTime hasta) {
+    // ... validacion del intervalo
+    return comoCitas(citas.subMap(desde, true, hasta, false));
+}
+
+public Optional<Cita> siguienteDespuesDe(LocalTime hora) {
+    var entrada = citas.higherEntry(hora);        // estrictamente mayor
+    return entrada == null ? Optional.empty()
+                           : Optional.of(new Cita(entrada.getKey(), entrada.getValue()));
+}
+```
+
+**Por qué así.** Un [árbol de búsqueda](../contenido/tema2.qmd#imp-arbol-busqueda) guarda las claves
+en orden, y eso es lo que contestan las dos preguntas. El método `subMap` baja por el árbol hasta
+`desde` en $O(\log n)$ y recorre solo las $k$ citas del intervalo, sin mirar las demás. Y
+`higherEntry` es «estrictamente mayor»: `ceilingEntry` sería «mayor o igual» y devolvería la cita de
+esa misma hora. El campo se declara como `NavigableMap`, la interfaz que tiene esos métodos.
+
+Con un `HashMap`, `entre` tendría que recorrer **todas** las citas, quedarse con las del intervalo y
+ordenarlas, porque la tabla no guarda orden: $O(n + k \log k)$. Y `siguienteDespuesDe` sería otro
+recorrido completo.
+
+**La pregunta de «Para pensar».** La vista no tiene datos propios: cada vez que se recorre, recorre
+el árbol. Si después de pedirla se añade una cita dentro del intervalo, la vista la muestra. Y al
+revés, un `put` sobre la vista escribe en el árbol. La lista que devuelve `entre` no cambia: es una
+copia hecha con `List.copyOf` en el momento de la llamada. Por eso un método público devuelve
+copias, y las vistas se usan dentro de la clase, donde se sabe cuánto viven.
+
+**Errores frecuentes.** Usar `ceilingEntry`. Incluir el extremo superior del intervalo cuando el
+enunciado lo excluye. Devolver la vista directamente desde `entre`. Y declarar el campo como `Map`,
+que obliga a un *cast* para llegar a `subMap`.
+
+### 2.2.4 Clase `ResultadosMasLentos`: el montículo
+
+**Qué se pedía.** Los $k$ resultados de mayor latencia, de mayor a menor, con una `PriorityQueue`.
+
+**La solución.**
+
+```java
+var cola = new PriorityQueue<Resultado>(Comparator.comparing(Resultado::latencia).reversed());
+cola.addAll(resultados);
+var lentos = new ArrayList<Resultado>();
+while (lentos.size() < k && !cola.isEmpty()) {
+    lentos.add(cola.poll());
+}
+return List.copyOf(lentos);
+```
+
+**Por qué así.** La cola saca el mínimo según su comparador, y aquí el «mínimo» tiene que ser la
+latencia mayor: de ahí el `reversed()`. Como `Duration` es `Comparable`, no hace falta pasar a
+milisegundos.
+
+Lo que se evalúa es la segunda mitad. Los $k$ primeros se **sacan** con `poll`, no se recorren. El
+iterador de `PriorityQueue` recorre el array del [montículo](../contenido/tema2.qmd#imp-monticulo),
+donde solo la raíz está en su sitio ([la precaución de iterar una
+`PriorityQueue`](../contenido/tema2.qmd#cau-iterar-priorityqueue)). Con pocos elementos el recorrido
+sale ordenado por casualidad, y por eso las pruebas usan suficientes.
+
+**La pregunta de «Para pensar».** El montículo de tamaño $k$ compensa cuando $n$ es muy grande
+comparado con $k$ y, sobre todo, cuando los resultados no están todos a la vez en memoria. Con un
+montículo de mínimo de tamaño $k$, cada resultado nuevo se compara con la raíz —el peor de los
+guardados— y solo entra si la supera: $O(\log k)$ por elemento y memoria $O(k)$. Y permite algo que
+esta versión no permite: trabajar sobre un **flujo**. Los resultados del monitor llegan uno a uno y
+para siempre; con el montículo de tamaño $k$ el ranking se mantiene al día con memoria constante.
+
+**Errores frecuentes.** Recorrer la cola con un `for` y quedarse con los $k$ primeros. Olvidar el
+`reversed()` y devolver los más rápidos. No comprobar `isEmpty()` cuando hay menos de $k$
+resultados. Y ordenar toda la lista con `sort`, que resuelve el problema pero no el ejercicio.
+
+## 2.3. Criterios de selección de estructura según operación dominante
+
+La sección cierra el tema con el método completo: identificar la [operación
+dominante](../contenido/tema2.qmd#imp-operacion-dominante), elegir la estructura que la hace barata
+y **comprobarlo contando**. Los cuatro ejercicios aplican el método a casos cada vez más grandes,
+del array de enteros al monitor entero.
+
+### 2.3.1 Método `hayRepetido` de `RepetidosEjercicio`
+
+**Qué se pedía.** La versión lineal de `Conteos.hayRepetido`, que compara todos los pares, y la
+tabla con los seis recuentos sobre los tres arrays de `DemoConteos`.
+
+**La solución.**
+
+```java
+Set<Integer> vistos = new HashSet<>();
+for (int dato : datos) {
+    operaciones++;
+    if (!vistos.add(dato)) {               // add devuelve false si ya estaba
+        Recuento.anunciar("conConjunto", datos.length, operaciones, "n como maximo");
+        return true;
+    }
+}
+Recuento.anunciar("conConjunto", datos.length, operaciones, "n");
+return false;
+```
+
+**Por qué así.** El método `add` de un conjunto devuelve `false` si el elemento ya estaba: una sola
+consulta a la tabla comprueba e inserta a la vez. Con `contains` seguido de `add` se consultaría dos
+veces.
+
+La tabla, con los tres arrays de 2000 elementos:
+
+| el array de 2000 elementos | `Conteos.hayRepetido` | `RepetidosEjercicio.hayRepetido` |
+|---|--:|--:|
+| sin repetido | 1.999.000 | 2.000 |
+| con el repetido en medio | 1.498.501 | 1.001 |
+| con el repetido al principio | 1 | 2 |
+
+Cambiar la estructura ha cambiado el **orden**, no la constante: de $n(n-1)/2$ a $n$. La tercera
+fila no lo desmiente: es el mejor caso de la cuadrática, que encuentra el repetido en su primera
+comparación, y no dice nada de cómo crece el coste.
+
+**La pregunta de «Para pensar».** La versión lenta se prefiere con arrays muy pequeños, de unas
+decenas de elementos, donde $n^2$ sigue siendo poco y la versión con conjunto paga por cada elemento
+el *boxing* a `Integer`, el cálculo del *hash* y la reserva de la tabla. También cuando la memoria
+es lo escaso, porque la cuadrática no gasta nada extra. Y si se puede ordenar el array, hay una vía
+intermedia: $O(n \log n)$ y comparar vecinos, sin memoria adicional.
+
+**Errores frecuentes.** Usar `contains` y `add` por separado. Concluir de la tercera fila que la
+versión cuadrática «a veces es mejor». Y olvidar que el $O(1)$ de cada `add` es esperado, no
+garantizado.
+
+### 2.3.2 Clase `ConsumirPorElPrincipio`: por el extremo equivocado
+
+**Qué se pedía.** Consumir $n$ elementos por el principio de un `ArrayList` contando los
+desplazamientos, hacer lo mismo con un `ArrayDeque`, y comparar.
+
+**La solución.**
+
+```java
+while (!lista.isEmpty()) {
+    desplazamientos += lista.size() - 1;   // remove(0) mueve todos los de detras
+    consumidos.add(lista.remove(0));
+}
+```
+
+```java
+Integer siguiente;
+while ((siguiente = cola.pollFirst()) != null) {
+    consumidos.add(siguiente);
+}
+```
+
+**Por qué así.** Cada `remove(0)` mueve una posición a la izquierda todos los elementos que quedan
+detrás del primero: `size() - 1`. Sumados para todas las extracciones dan $n(n-1)/2$, así que un
+bucle que **se lee** como lineal es cuadrático. Es el error de la tabla de costes de 2.2.2 que más
+se comete, porque nada en el código lo delata.
+
+Con `ArrayDeque`, un array circular, sacar por el principio solo mueve el índice de la cabeza: nada
+que desplazar, $O(1)$ por elemento. Y se usa `pollFirst`, que devuelve `null` al vaciarse, porque
+vaciarse es lo normal aquí y ese `null` es la condición de salida.
+
+**La pregunta de «Para pensar».** La notación $O$ esconde la constante, y aquí la constante es muy
+distinta. Una `LinkedList` crea un nodo por elemento —un objeto con el valor y dos referencias—,
+cada inserción es una reserva de memoria, cada extracción deja basura para el recolector, y los
+nodos quedan dispersos, de modo que recorrerlos falla en la caché del procesador. Un `ArrayDeque`
+guarda los elementos en un array contiguo: menos memoria, casi ninguna reserva y accesos que la
+caché aprovecha. La propia documentación lo dice [@jdk25collections], y el tema lo avisa en la
+[precaución sobre `LinkedList`](../contenido/tema2.qmd#cau-linkedlist-por-defecto).
+
+**Errores frecuentes.** Contar $n$ desplazamientos por extracción en lugar de los que quedan detrás.
+Usar `removeFirst` y un `try` para detectar el final. Y medir con el cronómetro en lugar de contar,
+que con tamaños pequeños no enseña la diferencia.
+
+### 2.3.3 Clase `Telefonos`: tabla o árbol
+
+**Qué se pedía.** Una guía que conteste el teléfono de un nombre exacto y los nombres que empiezan
+por un prefijo, eligiendo **una** estructura y justificándola.
+
+**La solución.** Un `TreeMap`, y el prefijo con `tailMap`:
+
+```java
+for (String nombre : guia.tailMap(prefijo, true).keySet()) {
+    if (!nombre.startsWith(prefijo)) {
+        break;                 // ya no habra mas: los del prefijo son consecutivos
+    }
+    nombres.add(nombre);
+}
+```
+
+**Por qué así.** Un `HashMap` contestaría la primera pregunta en $O(1)$ esperado, pero la segunda le
+costaría recorrer todas las claves y ordenarlas. En el árbol, la primera cuesta $O(\log n)$ y la
+segunda $O(\log n + k)$: bajar hasta el primer nombre mayor o igual que el prefijo y recorrer los
+$k$ que coinciden. Funciona porque, en orden alfabético, todos los nombres con un prefijo común
+forman un **tramo contiguo**: el orden de las claves es el índice. Por eso el `break` es
+imprescindible; sin él el recorrido seguiría hasta el final y la segunda pregunta volvería a ser
+$O(n)$.
+
+**La pregunta de «Para pensar».** Probablemente no mantendría las dos. Con un millón de nombres,
+$\log_2 n$ son unas 20 comparaciones: la búsqueda exacta en el árbol ya es rapidísima, y pasar a
+$O(1)$ ahorra poco. A cambio, dos estructuras doblan la memoria y obligan a que cada alta, cambio y
+baja toque las dos, con el riesgo de que dejen de coincidir. Merece la pena solo si una medición
+muestra que la búsqueda exacta es el cuello de botella.
+
+**Errores frecuentes.** Olvidar el `break`. Usar `HashMap` y filtrar. Usar `subMap(prefijo, prefijo
++ "z")`, que falla con nombres que tienen caracteres posteriores a la `z`, como acentos. Y
+justificar la elección por la primera pregunta sola.
+
+### 2.3.4 Clase `ComparativaRepositorios`: el método, aplicado al monitor
+
+**Qué se pedía.** Contar los resultados que examina `historial` con la lista única y con un índice
+por servicio sobre la misma carga, dar las dos fórmulas y concluir.
+
+**La solución.** La versión con índice, que es la nueva:
+
+```java
+porServicio.computeIfAbsent(servicio, s -> new ArrayList<>())
+        .add(Resultado.activo(servicio, Duration.ofMillis(10)));
+List<Resultado> suyos = porServicio.get(servicio);
+examinados += suyos.size();        // lo que se examina es lo que se copia
+List.copyOf(suyos);
+```
+
+**Por qué así.** Con índice, encontrar la lista del servicio es $O(1)$ esperado y no examina nada;
+lo que se examina es lo que se copia, que son solo los de ese servicio.
+
+Las fórmulas, con $r$ rondas, $s$ servicios y $N = r \cdot s$:
+
+- **Lista única:** $1 + 2 + \dots + N = N(N+1)/2$, que es $O(r^2 s^2)$.
+- **Índice:** en la ronda $j$ cada servicio tiene $j$ resultados, y son $s$ servicios, así que $s
+  \cdot r(r+1)/2$, que es $O(r^2 s)$.
+
+Con 20 servicios, la tabla del enunciado lo confirma: 2.001.000 frente a 101.000 con 100 rondas, y
+128.008.000 frente a 6.408.000 con 800. El cociente tiende a $s = 20$.
+
+La conclusión tiene dos partes. El índice elimina el factor $s$, porque cada consulta deja de mirar
+los resultados de los demás servicios. Pero **sigue siendo cuadrático en las rondas**, porque
+`historial` devuelve el historial entero, que crece cada ronda, y se pide cada ronda. El problema de
+fondo no es cómo se busca, sino que se pide y se copia todo cada vez. Se arregla cambiando la
+pregunta —pedir solo los últimos $k$ resultados, que es lo que necesita una política de alerta— y no
+la estructura. Es lo que explica [cuándo la estructura no es el
+problema](../contenido/tema2.qmd#cuándo-la-estructura-no-es-el-problema).
+
+**La pregunta de «Para pensar».** Todo lo que dice la tabla se podía calcular antes: las dos
+fórmulas salen de contar en papel, y de ellas se deduce que el cociente tiende a $s$ y que las dos
+columnas son cuadráticas en $r$. El tema lo programó y lo midió igualmente porque una fórmula solo
+es tan buena como el modelo del que sale, y medir es la forma de comprobar que el modelo no se ha
+dejado nada, por ejemplo un coste oculto en el `equals` o en la copia. Y porque un número medido
+convence a quien no ha seguido la cuenta. La medición no sustituye al análisis: lo confirma.
+
+**Errores frecuentes.** Contar en la versión con índice una operación por consulta, como si
+`historial` fuera $O(1)$, olvidando la copia. Concluir que el índice «resuelve» el problema. Y dar
+las fórmulas sin comprobarlas contra la tabla.
+
+## Qué llevarte de este tema
+
+Si de las diecisiete soluciones hubiera que quedarse con cinco frases:
+
+1. **El coste se cuenta, no se adivina.** Primero el recuento exacto, después el orden. Dos bucles
+   anidados pueden ser lineales, y un bucle que se lee como lineal puede ser cuadrático (2.1.2,
+   2.1.9, 2.3.2).
+2. **El orden no lo es todo.** $O(n)$ dice cómo crece el coste, no cuánto es. La constante decide
+   entre dos versiones del mismo orden, y el rango de tamaños reales decide entre dos órdenes
+   (2.1.1, 2.1.4, 2.3.2).
+3. **El caso medio depende de las entradas.** Peor, mejor y medio son funciones distintas, y el caso
+   medio cambia si cambia la distribución, sin que cambie el algoritmo (2.1.5, 2.1.6).
+4. **Cada estructura contesta bien unas preguntas.** Elegir es identificar la operación dominante y
+   buscar la estructura que la hace barata, sin olvidar las trampas que la documentación avisa
+   (2.2.1 a 2.2.4, 2.3.3).
+5. **A veces el problema es la pregunta.** Un índice quita un factor; cambiar lo que se pide puede
+   quitar el orden entero. Antes de optimizar cómo se busca, conviene preguntarse si hace falta
+   buscar todo (2.3.4).
+
+Y una observación sobre el conjunto: casi todos los números de estos ejercicios se podían saber
+**antes** de programar, con lápiz y papel. Programar y contar sirve para comprobar el modelo, no
+para sustituirlo. Es la forma de trabajar del tratado clásico sobre ordenación y búsqueda, que
+analiza cada algoritmo contando sus operaciones antes de ejecutarlo [@knuth1997].
+
+## Referencias
+
+::: {#refs}
+:::
+
+
+
