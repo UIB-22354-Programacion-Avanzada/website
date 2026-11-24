@@ -20,7 +20,62 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -72,6 +127,35 @@ ul.task-list li input[type="checkbox"] {
   }
 }</script>
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 <link rel="stylesheet" href="../../styles.css">
 <meta property="og:title" content="Soluciones — Tema 2: Algoritmos, Complejidad y Estructuras de Datos – Programación Avanzada (22354)">
@@ -461,8 +545,42 @@ ul.task-list li input[type="checkbox"] {
 </nav>
 <div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
 <!-- margin-sidebar -->
-    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
-        
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">En esta página</h2>
+   
+  <ul>
+  <li><a href="#cómo-leer-estas-soluciones" id="toc-cómo-leer-estas-soluciones" class="nav-link active" data-scroll-target="#cómo-leer-estas-soluciones">Cómo leer estas soluciones</a></li>
+  <li><a href="#eficiencia-de-algoritmos" id="toc-eficiencia-de-algoritmos" class="nav-link" data-scroll-target="#eficiencia-de-algoritmos">2.1. Eficiencia de algoritmos</a>
+  <ul class="collapse">
+  <li><a href="#método-maximoysegundo-de-recorridosejercicio" id="toc-método-maximoysegundo-de-recorridosejercicio" class="nav-link" data-scroll-target="#método-maximoysegundo-de-recorridosejercicio">2.1.1 Método <code>maximoYSegundo</code> de <code>RecorridosEjercicio</code></a></li>
+  <li><a href="#método-porestado-de-estadosejercicio" id="toc-método-porestado-de-estadosejercicio" class="nav-link" data-scroll-target="#método-porestado-de-estadosejercicio">2.1.2 Método <code>porEstado</code> de <code>EstadosEjercicio</code></a></li>
+  <li><a href="#clase-cotasejercicio-los-testigos-de-una-cota" id="toc-clase-cotasejercicio-los-testigos-de-una-cota" class="nav-link" data-scroll-target="#clase-cotasejercicio-los-testigos-de-una-cota">2.1.3 Clase <code>CotasEjercicio</code>: los testigos de una cota</a></li>
+  <li><a href="#método-primerndondegana-de-cruceejercicio" id="toc-método-primerndondegana-de-cruceejercicio" class="nav-link" data-scroll-target="#método-primerndondegana-de-cruceejercicio">2.1.4 Método <code>primerNDondeGana</code> de <code>CruceEjercicio</code></a></li>
+  <li><a href="#clase-casosejercicio-peor-caso-mejor-caso-y-caso-medio-medidos" id="toc-clase-casosejercicio-peor-caso-mejor-caso-y-caso-medio-medidos" class="nav-link" data-scroll-target="#clase-casosejercicio-peor-caso-mejor-caso-y-caso-medio-medidos">2.1.5 Clase <code>CasosEjercicio</code>: peor caso, mejor caso y caso medio, medidos</a></li>
+  <li><a href="#clase-arraycreciente-el-coste-amortizado-contado" id="toc-clase-arraycreciente-el-coste-amortizado-contado" class="nav-link" data-scroll-target="#clase-arraycreciente-el-coste-amortizado-contado">2.1.6 Clase <code>ArrayCreciente</code>: el coste amortizado, contado</a></li>
+  <li><a href="#método-binariaconinsercion-de-busquedasejercicio" id="toc-método-binariaconinsercion-de-busquedasejercicio" class="nav-link" data-scroll-target="#método-binariaconinsercion-de-busquedasejercicio">2.1.7 Método <code>binariaConInsercion</code> de <code>BusquedasEjercicio</code></a></li>
+  <li><a href="#clase-ordenejercicio-dos-pasadas-estables" id="toc-clase-ordenejercicio-dos-pasadas-estables" class="nav-link" data-scroll-target="#clase-ordenejercicio-dos-pasadas-estables">2.1.8 Clase <code>OrdenEjercicio</code>: dos pasadas estables</a></li>
+  <li><a href="#clase-repositoriocontador-el-coste-del-monitor-reproducido" id="toc-clase-repositoriocontador-el-coste-del-monitor-reproducido" class="nav-link" data-scroll-target="#clase-repositoriocontador-el-coste-del-monitor-reproducido">2.1.9 Clase <code>RepositorioContador</code>: el coste del monitor, reproducido</a></li>
+  </ul></li>
+  <li><a href="#estructuras-de-datos-fundamentales-y-la-java-collections-framework" id="toc-estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="nav-link" data-scroll-target="#estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</a>
+  <ul class="collapse">
+  <li><a href="#clase-palabrasunicas-el-conjunto" id="toc-clase-palabrasunicas-el-conjunto" class="nav-link" data-scroll-target="#clase-palabrasunicas-el-conjunto">2.2.1 Clase <code>PalabrasUnicas</code>: el conjunto</a></li>
+  <li><a href="#clase-historialdenavegacion-la-pila" id="toc-clase-historialdenavegacion-la-pila" class="nav-link" data-scroll-target="#clase-historialdenavegacion-la-pila">2.2.2 Clase <code>HistorialDeNavegacion</code>: la pila</a></li>
+  <li><a href="#clase-agenda-el-árbol-de-búsqueda" id="toc-clase-agenda-el-árbol-de-búsqueda" class="nav-link" data-scroll-target="#clase-agenda-el-árbol-de-búsqueda">2.2.3 Clase <code>Agenda</code>: el árbol de búsqueda</a></li>
+  <li><a href="#clase-resultadosmaslentos-el-montículo" id="toc-clase-resultadosmaslentos-el-montículo" class="nav-link" data-scroll-target="#clase-resultadosmaslentos-el-montículo">2.2.4 Clase <code>ResultadosMasLentos</code>: el montículo</a></li>
+  </ul></li>
+  <li><a href="#criterios-de-selección-de-estructura-según-operación-dominante" id="toc-criterios-de-selección-de-estructura-según-operación-dominante" class="nav-link" data-scroll-target="#criterios-de-selección-de-estructura-según-operación-dominante">2.3. Criterios de selección de estructura según operación dominante</a>
+  <ul class="collapse">
+  <li><a href="#método-hayrepetido-de-repetidosejercicio" id="toc-método-hayrepetido-de-repetidosejercicio" class="nav-link" data-scroll-target="#método-hayrepetido-de-repetidosejercicio">2.3.1 Método <code>hayRepetido</code> de <code>RepetidosEjercicio</code></a></li>
+  <li><a href="#clase-consumirporelprincipio-por-el-extremo-equivocado" id="toc-clase-consumirporelprincipio-por-el-extremo-equivocado" class="nav-link" data-scroll-target="#clase-consumirporelprincipio-por-el-extremo-equivocado">2.3.2 Clase <code>ConsumirPorElPrincipio</code>: por el extremo equivocado</a></li>
+  <li><a href="#clase-telefonos-tabla-o-árbol" id="toc-clase-telefonos-tabla-o-árbol" class="nav-link" data-scroll-target="#clase-telefonos-tabla-o-árbol">2.3.3 Clase <code>Telefonos</code>: tabla o árbol</a></li>
+  <li><a href="#clase-comparativarepositorios-el-método-aplicado-al-monitor" id="toc-clase-comparativarepositorios-el-método-aplicado-al-monitor" class="nav-link" data-scroll-target="#clase-comparativarepositorios-el-método-aplicado-al-monitor">2.3.4 Clase <code>ComparativaRepositorios</code>: el método, aplicado al monitor</a></li>
+  </ul></li>
+  <li><a href="#qué-llevarte-de-este-tema" id="toc-qué-llevarte-de-este-tema" class="nav-link" data-scroll-target="#qué-llevarte-de-este-tema">Qué llevarte de este tema</a></li>
+  <li><a href="#referencias" id="toc-referencias" class="nav-link" data-scroll-target="#referencias">Referencias</a></li>
+  </ul>
+</nav>
     </div>
 <!-- main -->
 <main class="content" id="quarto-document-content">
@@ -487,9 +605,443 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<p><em>Contenido pendiente.</em></p>
+<section id="cómo-leer-estas-soluciones" class="level2">
+<h2 class="anchored" data-anchor-id="cómo-leer-estas-soluciones">Cómo leer estas soluciones</h2>
+<p>Esta página recorre los 17 ejercicios del Tema 2 y explica, para cada uno, <strong>qué se pedía, cómo se resuelve y por qué esa solución y no otra</strong>. En este tema hay una diferencia con el anterior que conviene tener presente desde el principio: en casi todos los ejercicios, <strong>lo que se entrega no es solo un programa que funcione, sino un número que coincida con una fórmula</strong>. Por eso cada solución dice de dónde sale cada número, y por eso un método que da el resultado correcto con el doble de trabajo no resuelve el ejercicio.</p>
+<p>El código completo, compilable y con sus pruebas en verde, está en el repositorio de soluciones de la organización. Aquí encontrarás los fragmentos que importan, no el proyecto entero.</p>
+<div class="callout callout-style-simple callout-tip no-icon">
+<div class="callout-body d-flex">
+<div class="callout-icon-container">
+<i class="callout-icon no-icon"></i>
+</div>
+<div class="callout-body-container">
+<p>Leer una solución antes de haberla intentado produce una sensación de comprensión que no se sostiene delante de un folio en blanco. Si aún no has resuelto un ejercicio, resuélvelo primero, aunque sea mal; después, lee. La diferencia entre las dos formas de usar esta página es enorme y no se nota hasta el examen.</p>
+</div>
+</div>
+</div>
+<p>Cada solución tiene la misma estructura: qué se pedía, el código, por qué así, la respuesta a la pregunta de <strong>«Para pensar»</strong> —que no está en el tema y hay que decidirla— y los <strong>errores frecuentes</strong>. Estos últimos no son inventados: son los que aparecen año tras año en este tipo de ejercicios. Reconocer un error que has cometido tú es la forma más eficaz de no volver a cometerlo.</p>
+</section>
+<section id="eficiencia-de-algoritmos" class="level2">
+<h2 class="anchored" data-anchor-id="eficiencia-de-algoritmos">2.1. Eficiencia de algoritmos</h2>
+<p>Los nueve ejercicios de esta sección entrenan una sola habilidad: <strong>contar</strong>. Contar iteraciones de un bucle, contar comparaciones de una búsqueda, contar copias de un array que crece. La notación asintótica viene después, y solo resume lo que el recuento ya ha dicho. Quien intenta adivinar el orden sin contar acierta en los casos fáciles y falla en los que importan, como el caso medio de 2.1.5 o las copias de 2.1.6.</p>
+<p>Hay además un hilo que atraviesa la sección: el recuento que se anuncia con <code>Recuento.anunciar</code> es el mismo que comprueban las pruebas. Si el número que sale por consola no coincide con la fórmula, no hace falta mirar la prueba para saber que algo está mal.</p>
+<section id="método-maximoysegundo-de-recorridosejercicio" class="level3">
+<h3 class="anchored" data-anchor-id="método-maximoysegundo-de-recorridosejercicio">2.1.1 Método <code>maximoYSegundo</code> de <code>RecorridosEjercicio</code></h3>
+<p><strong>Qué se pedía.</strong> El mayor y el segundo mayor elemento de un array, contando las repeticiones (en <code>{3, 17, 9, 17, 2}</code> los dos son 17), en <strong>un solo recorrido</strong>, y anunciando el recuento de iteraciones.</p>
+<p><strong>La solución.</strong> El corazón es el cuerpo del bucle:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb1-1"><a href="#cb1-1"></a><span class="dt">int</span> maximo <span class="op">=</span> <span class="bu">Integer</span><span class="op">.</span><span class="fu">MIN_VALUE</span><span class="op">;</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="dt">int</span> segundo <span class="op">=</span> <span class="bu">Integer</span><span class="op">.</span><span class="fu">MIN_VALUE</span><span class="op">;</span></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> dato <span class="op">:</span> datos<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a>    operaciones<span class="op">++;</span></span>
+<span id="cb1-5"><a href="#cb1-5"></a>    <span class="cf">if</span> <span class="op">(</span>dato <span class="op">&gt;</span> maximo<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6"></a>        segundo <span class="op">=</span> maximo<span class="op">;</span>          <span class="co">// el maximo viejo baja a segundo</span></span>
+<span id="cb1-7"><a href="#cb1-7"></a>        maximo <span class="op">=</span> dato<span class="op">;</span></span>
+<span id="cb1-8"><a href="#cb1-8"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>dato <span class="op">&gt;</span> segundo<span class="op">)</span> <span class="op">{</span>   <span class="co">// llega aqui tambien un dato IGUAL al maximo</span></span>
+<span id="cb1-9"><a href="#cb1-9"></a>        segundo <span class="op">=</span> dato<span class="op">;</span></span>
+<span id="cb1-10"><a href="#cb1-10"></a>    <span class="op">}</span></span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="op">}</span></span>
+<span id="cb1-12"><a href="#cb1-12"></a>Recuento<span class="op">.</span><span class="fu">anunciar</span><span class="op">(</span><span class="st">"maximoYSegundo"</span><span class="op">,</span> datos<span class="op">.</span><span class="fu">length</span><span class="op">,</span> operaciones<span class="op">,</span> <span class="st">"n"</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Las dos variables se inicializan a <code>Integer.MIN_VALUE</code> para que el primer elemento no necesite tratamiento especial: cualquier dato es mayor o igual, y cae en uno de los dos casos.</p>
+<p>El orden de las comprobaciones es la decisión importante. Primero se pregunta si el dato supera al máximo, porque en ese caso el máximo viejo baja a segundo. Al revés, un elemento mayor que los dos acabaría como segundo y el máximo se perdería. Y el <code>else if</code> con <code>&gt;</code> resuelve los repetidos sin más código: un 17 igual al máximo no entra en la primera rama, sí en la segunda, y ocupa el segundo puesto.</p>
+<p>El resultado son <span class="math inline">\(n\)</span> iteraciones en lugar de <span class="math inline">\(2n\)</span>. Las dos versiones son del mismo orden, <span class="math inline">\(O(n)\)</span>, pero el <a href="../../es/contenido/tema2.html#imp-coste">coste de un algoritmo</a> se cuenta, y el ejercicio pide la constante pequeña a conciencia.</p>
+<p><strong>La pregunta de «Para pensar».</strong> La versión de dos recorridos merece entregarse cuando la claridad vale más que un factor 2 que nadie va a notar. Para arrays de miles de elementos la diferencia son microsegundos, y la versión de dos recorridos se convence uno de que es correcta en diez segundos; la de uno exige pensar el orden de los <code>if</code> y el caso de los repetidos, que es donde están los errores. Si el método no está en un camino caliente medido, gana la fácil de leer. Si lo está, la de un recorrido, con un comentario que explique el orden.</p>
+<p><strong>Errores frecuentes.</strong> Escribir las comprobaciones en el orden inverso. Inicializar las dos variables con <code>datos[0]</code>, que con <code>{17, 3}</code> deja el 17 también como segundo. Calcular el segundo mayor <strong>de los distintos</strong>, que no es lo que se pedía. Y contar las iteraciones fuera del bucle, con <code>datos.length</code>, lo que hace que el recuento sea correcto aunque el método recorra el array dos veces.</p>
+</section>
+<section id="método-porestado-de-estadosejercicio" class="level3">
+<h3 class="anchored" data-anchor-id="método-porestado-de-estadosejercicio">2.1.2 Método <code>porEstado</code> de <code>EstadosEjercicio</code></h3>
+<p><strong>Qué se pedía.</strong> Contar cuántos resultados del historial hay en cada estado con dos bucles anidados —el exterior por los resultados, el interior por los valores del enum—, sin <code>break</code>, anunciar el recuento y escribir la conclusión sobre su orden.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb2-1"><a href="#cb2-1"></a><span class="dt">long</span><span class="op">[]</span> cuentas <span class="op">=</span> <span class="kw">new</span> <span class="dt">long</span><span class="op">[</span>Estado<span class="op">.</span><span class="fu">values</span><span class="op">().</span><span class="fu">length</span><span class="op">];</span></span>
+<span id="cb2-2"><a href="#cb2-2"></a><span class="cf">for</span> <span class="op">(</span>Resultado resultado <span class="op">:</span> historial<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3"></a>    <span class="cf">for</span> <span class="op">(</span>Estado estado <span class="op">:</span> Estado<span class="op">.</span><span class="fu">values</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4"></a>        operaciones<span class="op">++;</span></span>
+<span id="cb2-5"><a href="#cb2-5"></a>        <span class="cf">if</span> <span class="op">(</span>resultado<span class="op">.</span><span class="fu">estado</span><span class="op">()</span> <span class="op">==</span> estado<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-6"><a href="#cb2-6"></a>            cuentas<span class="op">[</span>estado<span class="op">.</span><span class="fu">ordinal</span><span class="op">()]++;</span></span>
+<span id="cb2-7"><a href="#cb2-7"></a>        <span class="op">}</span></span>
+<span id="cb2-8"><a href="#cb2-8"></a>    <span class="op">}</span></span>
+<span id="cb2-9"><a href="#cb2-9"></a><span class="op">}</span></span>
+<span id="cb2-10"><a href="#cb2-10"></a>Recuento<span class="op">.</span><span class="fu">anunciar</span><span class="op">(</span><span class="st">"porEstado"</span><span class="op">,</span> historial<span class="op">.</span><span class="fu">size</span><span class="op">(),</span> operaciones<span class="op">,</span> <span class="st">"3n"</span><span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> El array se dimensiona con <code>Estado.values().length</code> y no con un 3 escrito a mano: si mañana el <a href="../../es/contenido/tema1.html#imp-enum">enum</a> crece, el método sigue siendo correcto. Sin <code>break</code>, el recuento es exactamente <span class="math inline">\(3n\)</span> y no depende de en qué estado está cada resultado, que es lo que permite comprobarlo con una prueba.</p>
+<p>La conclusión es que <strong>el método es <span class="math inline">\(O(n)\)</span></strong>. Dos bucles anidados no significan <span class="math inline">\(O(n^2)\)</span>: el interior da siempre tres vueltas, y tres es una constante del programa, no un tamaño de la entrada. Es la <a href="../../es/contenido/tema2.html#tip-o-grande">notación O grande</a> aplicada sin automatismos: lo que cuenta es de qué depende cada bucle, no cuántos hay.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Sí merece la pena. La versión sin bucle interior es <code>cuentas[resultado.estado().ordinal()]++</code>, una línea por resultado: <span class="math inline">\(n\)</span> iteraciones en lugar de <span class="math inline">\(3n\)</span>, más rápida y más corta a la vez. No cambia el orden, pero con cincuenta valores la diferencia sería de <span class="math inline">\(50n\)</span> frente a <span class="math inline">\(n\)</span>: sigue siendo lineal, y es cincuenta veces más trabajo. «Es <span class="math inline">\(O(n)\)</span>» no cierra la discusión: dice cómo crece el coste, no cuánto es.</p>
+<p><strong>Errores frecuentes.</strong> Concluir <span class="math inline">\(O(n^2)\)</span> porque hay dos bucles. Poner un <code>break</code> al encontrar el estado, que da un recuento entre <span class="math inline">\(n\)</span> y <span class="math inline">\(3n\)</span> que ninguna prueba puede fijar. Y comparar los enum con <code>equals</code> en lugar de <code>==</code>, que funciona pero oculta que los valores de un enum son únicos.</p>
+</section>
+<section id="clase-cotasejercicio-los-testigos-de-una-cota" class="level3">
+<h3 class="anchored" data-anchor-id="clase-cotasejercicio-los-testigos-de-una-cota">2.1.3 Clase <code>CotasEjercicio</code>: los testigos de una cota</h3>
+<p><strong>Qué se pedía.</strong> Para <span class="math inline">\(f(n) = 3n^2 + 50n + 200\)</span>, encontrar una constante <span class="math inline">\(c\)</span> y un umbral <span class="math inline">\(n_0\)</span> que demuestren <span class="math inline">\(f \in O(n^2)\)</span>, otros que demuestren <span class="math inline">\(f \in \Omega(n^2)\)</span>, y concluir.</p>
+<p><strong>La solución.</strong> Cuatro métodos que devuelven los testigos:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb3-1"><a href="#cb3-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">constanteCSuperior</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">4</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">n0Superior</span><span class="op">()</span>         <span class="op">{</span> <span class="cf">return</span> <span class="dv">54</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">constanteCInferior</span><span class="op">()</span> <span class="op">{</span> <span class="cf">return</span> <span class="dv">3</span><span class="op">;</span> <span class="op">}</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">n0Inferior</span><span class="op">()</span>         <span class="op">{</span> <span class="cf">return</span> <span class="dv">0</span><span class="op">;</span> <span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Para la cota superior hay que encontrar <span class="math inline">\(c\)</span> y <span class="math inline">\(n_0\)</span> con <span class="math inline">\(3n^2 + 50n + 200 \le
+c\,n^2\)</span> para todo <span class="math inline">\(n \ge n_0\)</span>. Con <span class="math inline">\(c = 4\)</span> la desigualdad queda <span class="math inline">\(n^2 - 50n - 200 \ge 0\)</span>, cuya raíz positiva es <span class="math inline">\(25 + \sqrt{825} \approx 53{,}7\)</span>: a partir de <span class="math inline">\(n_0 = 54\)</span> se cumple siempre. Para la inferior, <span class="math inline">\(3n^2 + 50n + 200 \ge 3n^2\)</span> es cierto para todo <span class="math inline">\(n \ge 0\)</span>, porque los otros dos términos son positivos: <span class="math inline">\(c = 3\)</span> y <span class="math inline">\(n_0 = 0\)</span>.</p>
+<p>Con las dos, <span class="math inline">\(f \in \Theta(n^2)\)</span>: crece exactamente como <span class="math inline">\(n^2\)</span>. No hacía falta buscar las dos constantes a la vez, porque <span class="math inline">\(\Theta\)</span> es por definición la conjunción de <span class="math inline">\(O\)</span> y <span class="math inline">\(\Omega\)</span>, y cada una se demuestra con su propia pareja <span class="citation" data-cites="cormen2022">(<a href="#ref-cormen2022" role="doc-biblioref">Cormen et&nbsp;al. 2022</a>)</span>.</p>
+<p>La pregunta intermedia del enunciado —por qué <span class="math inline">\(c = 4\)</span> con <span class="math inline">\(n_0 = 54\)</span> y <span class="math inline">\(c = 53\)</span> con <span class="math inline">\(n_0 = 3\)</span> son las dos correctas— tiene una respuesta corta: la definición pide que <strong>existan</strong> una constante y un umbral, no los menores. La constante absorbe los factores y el umbral permite ignorar los tamaños pequeños, y uno se puede cambiar por el otro.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Comprobar hasta cien mil no dice nada de cien mil y uno. Para todo <span class="math inline">\(n\)</span> hace falta una <strong>demostración</strong>: el razonamiento algebraico de arriba, en papel o, si se quiere que lo compruebe una máquina, en un asistente de demostración como Lean, Coq o Isabelle. Eso no es una prueba unitaria: una prueba unitaria comprueba ejemplos, y una demostración cubre todos los casos. Las pruebas de este ejercicio son una red contra erratas, no la justificación.</p>
+<p><strong>Errores frecuentes.</strong> Dar un <span class="math inline">\(n_0\)</span> en el que la desigualdad se cumple pero que no es el comienzo de un tramo en el que se cumple siempre. Elegir <span class="math inline">\(c = 3\)</span> para la superior, que no funciona para ningún <span class="math inline">\(n_0\)</span> porque los términos de menor grado nunca desaparecen. Y creer que hay una única pareja correcta.</p>
+</section>
+<section id="método-primerndondegana-de-cruceejercicio" class="level3">
+<h3 class="anchored" data-anchor-id="método-primerndondegana-de-cruceejercicio">2.1.4 Método <code>primerNDondeGana</code> de <code>CruceEjercicio</code></h3>
+<p><strong>Qué se pedía.</strong> Dadas dos funciones de coste como <a href="../../es/contenido/tema1.html#lambdas-e-interfaces-funcionales">lambdas</a>, el primer <span class="math inline">\(n\)</span> entre 1 y un límite en el que la primera es estrictamente menor que la segunda, o <span class="math inline">\(-1\)</span> si no lo hay.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb4-1"><a href="#cb4-1"></a><span class="cf">if</span> <span class="op">(</span>coste1 <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> coste2 <span class="op">==</span> <span class="kw">null</span> <span class="op">||</span> limite <span class="op">&lt;</span> <span class="dv">1</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2"></a>    <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalArgumentException</span><span class="op">(</span><span class="st">"Hacen falta dos funciones y un limite de al menos 1"</span><span class="op">);</span></span>
+<span id="cb4-3"><a href="#cb4-3"></a><span class="op">}</span></span>
+<span id="cb4-4"><a href="#cb4-4"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> n <span class="op">=</span> <span class="dv">1</span><span class="op">;</span> n <span class="op">&lt;=</span> limite<span class="op">;</span> n<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb4-5"><a href="#cb4-5"></a>    <span class="cf">if</span> <span class="op">(</span>coste1<span class="op">.</span><span class="fu">applyAsLong</span><span class="op">(</span>n<span class="op">)</span> <span class="op">&lt;</span> coste2<span class="op">.</span><span class="fu">applyAsLong</span><span class="op">(</span>n<span class="op">))</span> <span class="op">{</span>   <span class="co">// &lt; estricto: un empate no gana</span></span>
+<span id="cb4-6"><a href="#cb4-6"></a>        <span class="cf">return</span> n<span class="op">;</span></span>
+<span id="cb4-7"><a href="#cb4-7"></a>    <span class="op">}</span></span>
+<span id="cb4-8"><a href="#cb4-8"></a><span class="op">}</span></span>
+<span id="cb4-9"><a href="#cb4-9"></a><span class="cf">return</span> <span class="op">-</span><span class="dv">1</span><span class="op">;</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> El contrato pide <code>IllegalArgumentException</code> también para <code>null</code>, y tiene sentido: aquí una función nula es un argumento sin sentido, igual que un límite negativo, y conviene tratarlos igual. El <code>&lt;</code> estricto es la otra decisión: en un empate todavía no gana ninguno.</p>
+<p>El ejercicio existe para ver con números lo que dice la <a href="../../es/contenido/tema2.html#cau-o-grande-sin-n">precaución sobre la O grande sin <span class="math inline">\(n\)</span></a>: un algoritmo de orden peor puede ganar en los tamaños pequeños, y el punto de cruce depende de las constantes.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Con <span class="math inline">\(n^2\)</span> frente a <span class="math inline">\(2n\)</span> devuelve 1, y eso no dice nada útil: el cuadrático gana en <span class="math inline">\(n = 1\)</span>, empata en <span class="math inline">\(n = 2\)</span> y pierde para siempre a partir de 3. El primer cruce puede no tener nada que ver con los tamaños reales del programa. Para elegir algoritmo importa quién gana en el rango de tamaños real, y si hay un <strong>último</strong> cruce a partir del cual el resultado ya no cambia. Lo que pasa a la derecha de ese último cruce es justo lo que describe la notación asintótica.</p>
+<p><strong>Errores frecuentes.</strong> Usar <code>&lt;=</code>, que da por ganador al primer empate. Empezar el bucle en 0, que no está en el rango pedido. Y lanzar <code>NullPointerException</code> para los <code>null</code>, que no es lo que dice el contrato.</p>
+</section>
+<section id="clase-casosejercicio-peor-caso-mejor-caso-y-caso-medio-medidos" class="level3">
+<h3 class="anchored" data-anchor-id="clase-casosejercicio-peor-caso-mejor-caso-y-caso-medio-medidos">2.1.5 Clase <code>CasosEjercicio</code>: peor caso, mejor caso y caso medio, medidos</h3>
+<p><strong>Qué se pedía.</strong> Medir, contando comparaciones de una búsqueda lineal sobre <code>{0, 1, ..., n-1}</code>, el peor caso, el mejor caso y el caso medio, este último suponiendo que el elemento buscado está y que todos son igual de probables.</p>
+<p><strong>La solución.</strong> Un método privado que cuenta y tres que eligen la entrada:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb5-1"><a href="#cb5-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">peorCaso</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span>  <span class="op">{</span> <span class="fu">validar</span><span class="op">(</span>n<span class="op">);</span> <span class="cf">return</span> <span class="fu">comparaciones</span><span class="op">(</span><span class="fu">crecientes</span><span class="op">(</span>n<span class="op">),</span> <span class="op">-</span><span class="dv">1</span><span class="op">);</span> <span class="op">}</span></span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">long</span> <span class="fu">mejorCaso</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span> <span class="op">{</span> <span class="fu">validar</span><span class="op">(</span>n<span class="op">);</span> <span class="cf">return</span> <span class="fu">comparaciones</span><span class="op">(</span><span class="fu">crecientes</span><span class="op">(</span>n<span class="op">),</span> <span class="dv">0</span><span class="op">);</span> <span class="op">}</span></span>
+<span id="cb5-3"><a href="#cb5-3"></a></span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">double</span> <span class="fu">casoMedio</span><span class="op">(</span><span class="dt">int</span> n<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>    <span class="fu">validar</span><span class="op">(</span>n<span class="op">);</span></span>
+<span id="cb5-6"><a href="#cb5-6"></a>    <span class="dt">int</span><span class="op">[]</span> datos <span class="op">=</span> <span class="fu">crecientes</span><span class="op">(</span>n<span class="op">);</span></span>
+<span id="cb5-7"><a href="#cb5-7"></a>    <span class="dt">long</span> total <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb5-8"><a href="#cb5-8"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> buscado <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> buscado <span class="op">&lt;</span> n<span class="op">;</span> buscado<span class="op">++)</span> <span class="op">{</span>   <span class="co">// los n elementos PRESENTES</span></span>
+<span id="cb5-9"><a href="#cb5-9"></a>        total <span class="op">+=</span> <span class="fu">comparaciones</span><span class="op">(</span>datos<span class="op">,</span> buscado<span class="op">);</span></span>
+<span id="cb5-10"><a href="#cb5-10"></a>    <span class="op">}</span></span>
+<span id="cb5-11"><a href="#cb5-11"></a>    <span class="cf">return</span> <span class="op">(</span><span class="dt">double</span><span class="op">)</span> total <span class="op">/</span> n<span class="op">;</span></span>
+<span id="cb5-12"><a href="#cb5-12"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> El peor caso es un elemento ausente, que obliga a mirarlos todos: <span class="math inline">\(n\)</span> comparaciones. El mejor, el primero: una. El caso medio no se adivina, se calcula: buscar el elemento <span class="math inline">\(i\)</span> cuesta <span class="math inline">\(i + 1\)</span> comparaciones, la suma para todos es <span class="math inline">\(n(n+1)/2\)</span> y la media, <span class="math inline">\((n+1)/2\)</span>. Para <span class="math inline">\(n = 1000\)</span>, 500,5.</p>
+<p>El ejercicio separa lo que el <a href="../../es/contenido/tema2.html#imp-casos">tema</a> distingue: los tres casos son <strong>funciones distintas</strong> de <span class="math inline">\(n\)</span>, y decir «la búsqueda lineal es <span class="math inline">\(O(n)\)</span>» sin decir de qué caso se habla es incompleto. El caso medio, además, depende de una hipótesis sobre las entradas, que aquí es explícita.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Es la media ponderada de los dos tipos de búsqueda: con probabilidad 9/10 el elemento está y cuesta, de media, <span class="math inline">\((n+1)/2\)</span>; con probabilidad 1/10 no está y cuesta <span class="math inline">\(n\)</span>. En total, <span class="math inline">\(0{,}9 \cdot (n+1)/2 + 0{,}1 \cdot n = 0{,}55n + 0{,}45\)</span>, que para <span class="math inline">\(n = 1000\)</span> da 550,45. Sigue siendo lineal, pero el número cambia: el caso medio no es una propiedad del algoritmo, sino del algoritmo <strong>más</strong> la distribución de las entradas.</p>
+<p><strong>Errores frecuentes.</strong> Obtener <span class="math inline">\(n/2\)</span> en lugar de <span class="math inline">\((n+1)/2\)</span>, casi siempre por contar desde 0 o por incluir la búsqueda fallida en la media. Hacer la división entera, que convierte 500,5 en 500. Y calcular el caso medio con búsquedas al azar, que da un número distinto en cada ejecución y no se puede comprobar.</p>
+</section>
+<section id="clase-arraycreciente-el-coste-amortizado-contado" class="level3">
+<h3 class="anchored" data-anchor-id="clase-arraycreciente-el-coste-amortizado-contado">2.1.6 Clase <code>ArrayCreciente</code>: el coste amortizado, contado</h3>
+<p><strong>Qué se pedía.</strong> Un array que crece solo, con la estrategia de crecimiento recibida como función (<a href="../../es/contenido/tema1.html#strategy">el patrón Strategy</a> del Tema 1), que cuente las copias que hace al crecer. Con él, comparar sumar una cantidad fija con multiplicar por dos.</p>
+<p><strong>La solución.</strong> Todo el interés está en <code>anadir</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb6-1"><a href="#cb6-1"></a><span class="kw">public</span> <span class="dt">void</span> <span class="fu">anadir</span><span class="op">(</span><span class="dt">int</span> valor<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a>    <span class="cf">if</span> <span class="op">(</span>tamano <span class="op">==</span> elementos<span class="op">.</span><span class="fu">length</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>        <span class="dt">int</span> nueva <span class="op">=</span> crecimiento<span class="op">.</span><span class="fu">applyAsInt</span><span class="op">(</span>elementos<span class="op">.</span><span class="fu">length</span><span class="op">);</span></span>
+<span id="cb6-4"><a href="#cb6-4"></a>        <span class="cf">if</span> <span class="op">(</span>nueva <span class="op">&lt;=</span> elementos<span class="op">.</span><span class="fu">length</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-5"><a href="#cb6-5"></a>            <span class="cf">throw</span> <span class="kw">new</span> <span class="bu">IllegalStateException</span><span class="op">(</span><span class="st">"La estrategia de crecimiento no aumenta la capacidad: "</span></span>
+<span id="cb6-6"><a href="#cb6-6"></a>                    <span class="op">+</span> elementos<span class="op">.</span><span class="fu">length</span> <span class="op">+</span> <span class="st">" -&gt; "</span> <span class="op">+</span> nueva<span class="op">);</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a>        <span class="op">}</span></span>
+<span id="cb6-8"><a href="#cb6-8"></a>        elementos <span class="op">=</span> <span class="bu">Arrays</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>elementos<span class="op">,</span> nueva<span class="op">);</span></span>
+<span id="cb6-9"><a href="#cb6-9"></a>        copias <span class="op">+=</span> tamano<span class="op">;</span>          <span class="co">// se copian los que HAY, no las casillas nuevas</span></span>
+<span id="cb6-10"><a href="#cb6-10"></a>    <span class="op">}</span></span>
+<span id="cb6-11"><a href="#cb6-11"></a>    elementos<span class="op">[</span>tamano<span class="op">]</span> <span class="op">=</span> valor<span class="op">;</span></span>
+<span id="cb6-12"><a href="#cb6-12"></a>    tamano<span class="op">++;</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Se cuenta <code>tamano</code>, que con el array lleno es la capacidad vieja: son los elementos que <code>Arrays.copyOf</code> mueve. Contar <code>nueva</code> sería contar casillas vacías, que no se copian. La comprobación de que la estrategia crece evita un error difícil de relacionar con su causa: sin ella, una estrategia que devuelve la misma capacidad acabaría en un <code>ArrayIndexOutOfBoundsException</code> una línea más abajo.</p>
+<p>Y <code>get</code> comprueba la posición contra el tamaño, no contra la capacidad, con <code>Objects.checkIndex(posicion, tamano)</code>: con capacidad 16 y tres elementos, la posición 5 existe en el array pero no se ha escrito, y devolver su 0 sería mentir.</p>
+<p>Los números son los del <a href="../../es/contenido/tema2.html#tip-amortizado">coste amortizado</a>. Con mil elementos desde capacidad 1, doblando se hacen 1.023 copias (1 + 2 + 4 + … + 512) y la capacidad final es 1.024: algo más de una copia por elemento. Sumando 10 desde capacidad 10 se hacen 49.500 copias: unas cincuenta por elemento, y creciendo con <span class="math inline">\(n\)</span>. La primera estrategia es <span class="math inline">\(O(1)\)</span> amortizado por inserción; la segunda, <span class="math inline">\(O(n)\)</span>.</p>
+<p><strong>La pregunta de «Para pensar».</strong> El factor 1,5 gana memoria. Con el factor 2, justo después de crecer la mitad del array está vacía; con 1,5, como mucho un tercio. Hay además un argumento más fino: con un factor menor que la razón áurea (unos 1,618), la suma de los bloques que se van liberando acaba alcanzando para el siguiente, y el gestor de memoria puede reutilizarlos; con 2 eso nunca ocurre. Lo que se pierde son copias: con factor <span class="math inline">\(k\)</span> el total copiado tiende a <span class="math inline">\(n/(k-1)\)</span>, es decir <span class="math inline">\(n\)</span> con 2 y <span class="math inline">\(2n\)</span> con 1,5. Las dos son lineales; la elección es un compromiso entre memoria desperdiciada y trabajo de copia.</p>
+<p><strong>Errores frecuentes.</strong> Contar <code>nueva</code> en lugar de <code>tamano</code>. Comprobar <code>get</code> contra <code>elementos.length</code>. Escribir el crecimiento dentro de la clase con un <code>if</code> por estrategia, que es exactamente lo que el patrón Strategy evita. Y concluir de la tabla que doblar «es más rápido» sin decir que el orden es distinto.</p>
+</section>
+<section id="método-binariaconinsercion-de-busquedasejercicio" class="level3">
+<h3 class="anchored" data-anchor-id="método-binariaconinsercion-de-busquedasejercicio">2.1.7 Método <code>binariaConInsercion</code> de <code>BusquedasEjercicio</code></h3>
+<p><strong>Qué se pedía.</strong> La <a href="../../es/contenido/tema2.html#búsqueda-lineal-y-binaria">búsqueda binaria</a> con el mismo contrato que <code>Arrays.binarySearch</code>: la posición si el elemento está y, si no, <code>-(punto de inserción) - 1</code>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb7-1"><a href="#cb7-1"></a><span class="dt">int</span> izquierda <span class="op">=</span> <span class="dv">0</span><span class="op">;</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="dt">int</span> derecha <span class="op">=</span> datos<span class="op">.</span><span class="fu">length</span> <span class="op">-</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="cf">while</span> <span class="op">(</span>izquierda <span class="op">&lt;=</span> derecha<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>    <span class="dt">int</span> centro <span class="op">=</span> izquierda <span class="op">+</span> <span class="op">(</span>derecha <span class="op">-</span> izquierda<span class="op">)</span> <span class="op">/</span> <span class="dv">2</span><span class="op">;</span>   <span class="co">// nunca (izquierda + derecha) / 2</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>    <span class="cf">if</span> <span class="op">(</span>datos<span class="op">[</span>centro<span class="op">]</span> <span class="op">&lt;</span> buscado<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>        izquierda <span class="op">=</span> centro <span class="op">+</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="cf">if</span> <span class="op">(</span>datos<span class="op">[</span>centro<span class="op">]</span> <span class="op">&gt;</span> buscado<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-8"><a href="#cb7-8"></a>        derecha <span class="op">=</span> centro <span class="op">-</span> <span class="dv">1</span><span class="op">;</span></span>
+<span id="cb7-9"><a href="#cb7-9"></a>    <span class="op">}</span> <span class="cf">else</span> <span class="op">{</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>        <span class="cf">return</span> centro<span class="op">;</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>    <span class="op">}</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a><span class="op">}</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a><span class="cf">return</span> <span class="op">-</span>izquierda <span class="op">-</span> <span class="dv">1</span><span class="op">;</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> El punto medio se calcula como <code>izquierda + (derecha - izquierda) / 2</code> porque la suma <code>izquierda + derecha</code> desborda el <code>int</code> con arrays de más de <span class="math inline">\(2^{30}\)</span> elementos, sale negativa y el índice revienta. Es la <a href="../../es/contenido/tema2.html#cau-punto-medio">precaución del punto medio</a>, y el fallo estuvo años en la biblioteca de Java porque hacían falta arrays enormes para verlo <span class="citation" data-cites="bloch2006extra">(<a href="#ref-bloch2006extra" role="doc-biblioref">Bloch 2006</a>)</span>.</p>
+<p>Al salir del bucle, <code>izquierda == derecha + 1</code>: todo lo que queda a su izquierda es menor que el buscado y todo lo que queda desde ella, mayor. Es justo el punto de inserción, sin calcular nada más. El <span class="math inline">\(-1\)</span> de la fórmula existe para que el punto 0 no se confunda con «encontrado en la posición 0».</p>
+<p>El método <strong>no</strong> comprueba que el array esté ordenado, y es deliberado: comprobarlo cuesta <span class="math inline">\(O(n)\)</span>, y la razón de ser de la búsqueda binaria es costar <span class="math inline">\(O(\log n)\)</span>. Un método que valida esa precondición en cada llamada deja de ser una búsqueda binaria. La precondición se documenta y la cumple quien llama (<a href="../../es/contenido/tema2.html#cau-binaria-sin-ordenar">la precaución correspondiente</a>).</p>
+<p><strong>La pregunta de «Para pensar».</strong> La prueba debe comprobar lo que el contrato promete, no la coincidencia con la biblioteca. Para cada resultado <span class="math inline">\(r\)</span>: si <span class="math inline">\(r \ge 0\)</span>, <code>datos[r] == buscado</code>; si <span class="math inline">\(r
+&lt; 0\)</span>, con <span class="math inline">\(p = -r - 1\)</span>, que <span class="math inline">\(0 \le p \le n\)</span>, que el buscado no está, que todo lo anterior a <span class="math inline">\(p\)</span> es menor y todo lo que hay desde <span class="math inline">\(p\)</span>, mayor. Esa prueba admite cualquier posición válida entre las iguales y no falla si mañana la biblioteca cambia de implementación. Comprobada para miles de entradas al azar, es una prueba de propiedades.</p>
+<p><strong>Errores frecuentes.</strong> El punto medio con la suma. Devolver <code>-izquierda</code> sin el <span class="math inline">\(-1\)</span>. Escribir <code>while (izquierda &lt; derecha)</code>, que no examina el último elemento que queda. Y comprobar el orden del array dentro del método.</p>
+</section>
+<section id="clase-ordenejercicio-dos-pasadas-estables" class="level3">
+<h3 class="anchored" data-anchor-id="clase-ordenejercicio-dos-pasadas-estables">2.1.8 Clase <code>OrdenEjercicio</code>: dos pasadas estables</h3>
+<p><strong>Qué se pedía.</strong> Ordenar resultados por servicio y, dentro de cada servicio, por instante, de dos formas: con dos ordenaciones sucesivas y con un único comparador compuesto. Y explicar por qué coinciden.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb8-1"><a href="#cb8-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">conDosPasadas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> resultados<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>    <span class="dt">var</span> copia <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span>resultados<span class="op">);</span></span>
+<span id="cb8-3"><a href="#cb8-3"></a>    copia<span class="op">.</span><span class="fu">sort</span><span class="op">(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparing</span><span class="op">(</span>Resultado<span class="op">::</span>instante<span class="op">));</span>          <span class="co">// primero el SECUNDARIO</span></span>
+<span id="cb8-4"><a href="#cb8-4"></a>    copia<span class="op">.</span><span class="fu">sort</span><span class="op">(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparing</span><span class="op">(</span>r <span class="op">-&gt;</span> r<span class="op">.</span><span class="fu">servicio</span><span class="op">().</span><span class="fu">nombre</span><span class="op">()));</span>   <span class="co">// despues el PRINCIPAL</span></span>
+<span id="cb8-5"><a href="#cb8-5"></a>    <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>copia<span class="op">);</span></span>
+<span id="cb8-6"><a href="#cb8-6"></a><span class="op">}</span></span>
+<span id="cb8-7"><a href="#cb8-7"></a></span>
+<span id="cb8-8"><a href="#cb8-8"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">conUnComparador</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> resultados<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb8-9"><a href="#cb8-9"></a>    <span class="dt">var</span> copia <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span>resultados<span class="op">);</span></span>
+<span id="cb8-10"><a href="#cb8-10"></a>    copia<span class="op">.</span><span class="fu">sort</span><span class="op">(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparing</span><span class="op">((</span>Resultado r<span class="op">)</span> <span class="op">-&gt;</span> r<span class="op">.</span><span class="fu">servicio</span><span class="op">().</span><span class="fu">nombre</span><span class="op">())</span></span>
+<span id="cb8-11"><a href="#cb8-11"></a>            <span class="op">.</span><span class="fu">thenComparing</span><span class="op">(</span>Resultado<span class="op">::</span>instante<span class="op">));</span></span>
+<span id="cb8-12"><a href="#cb8-12"></a>    <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>copia<span class="op">);</span></span>
+<span id="cb8-13"><a href="#cb8-13"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Se ordena una copia, porque la lista recibida puede ser inmutable y, aunque no lo sea, un método que reordena lo que le pasan sorprende a quien lo llama. Como <code>Servicio</code> es una <a href="../../es/contenido/tema1.html#imp-interfaz">interfaz</a> sin orden natural, se compara por su nombre.</p>
+<p>Coinciden porque <code>List.sort</code> sobre objetos es <strong>estable</strong>: dos elementos que el comparador considera iguales salen en el mismo orden relativo en que entraron (<a href="../../es/contenido/tema2.html#imp-estabilidad">la estabilidad, en el tema</a>). En la segunda pasada, todos los resultados de un servicio empatan, y la estabilidad los deja en el orden cronológico que fijó la primera. Es lo mismo que hace <code>thenComparing</code> en una sola pasada. Por eso las pasadas van <strong>al revés</strong>: primero el criterio secundario, después el principal.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Con cinco criterios, el comparador compuesto. Cinco pasadas son cinco ordenaciones completas, <span class="math inline">\(5 \cdot O(n \log n)\)</span>, frente a una sola con un comparador que mira los campos que hagan falta: el mismo orden, unas cinco veces menos trabajo. Y, sobre todo, las pasadas hay que escribirlas del criterio menos importante al más importante, que es justo el orden en que nadie piensa; con cinco, el error es casi seguro. Las pasadas solo tienen sentido cuando los criterios llegan en momentos distintos, como cuando el usuario va pulsando columnas de una tabla.</p>
+<p><strong>Errores frecuentes.</strong> Hacer las pasadas en el orden «natural», principal y luego secundario, que deja la lista ordenada solo por instante. Ordenar la lista recibida en lugar de una copia. Y escribir el comparador compuesto con una resta de enteros o de milisegundos en lugar de <code>comparing</code>, que puede desbordar.</p>
+</section>
+<section id="clase-repositoriocontador-el-coste-del-monitor-reproducido" class="level3">
+<h3 class="anchored" data-anchor-id="clase-repositoriocontador-el-coste-del-monitor-reproducido">2.1.9 Clase <code>RepositorioContador</code>: el coste del monitor, reproducido</h3>
+<p><strong>Qué se pedía.</strong> Un repositorio de lista única que cuente las comparaciones que hace <code>historial</code>, y un método que simule <span class="math inline">\(r\)</span> rondas de <span class="math inline">\(s\)</span> servicios y devuelva el total, para reproducir la tabla de <a href="../../es/contenido/tema2.html#el-coste-del-monitor-medido">el coste del monitor, medido</a>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb9-1"><a href="#cb9-1"></a><span class="at">@Override</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a><span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> <span class="fu">historial</span><span class="op">(</span>Servicio servicio<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-3"><a href="#cb9-3"></a>    <span class="dt">var</span> suyos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;</span>Resultado<span class="op">&gt;();</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>    <span class="cf">for</span> <span class="op">(</span><span class="dt">var</span> resultado <span class="op">:</span> datos<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a>        comparaciones<span class="op">++;</span></span>
+<span id="cb9-6"><a href="#cb9-6"></a>        <span class="cf">if</span> <span class="op">(</span>resultado<span class="op">.</span><span class="fu">servicio</span><span class="op">().</span><span class="fu">equals</span><span class="op">(</span>servicio<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>            suyos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>resultado<span class="op">);</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>        <span class="op">}</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>    <span class="op">}</span></span>
+<span id="cb9-10"><a href="#cb9-10"></a>    <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>suyos<span class="op">);</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb10-1"><a href="#cb10-1"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> ronda <span class="op">=</span> <span class="dv">0</span><span class="op">;</span> ronda <span class="op">&lt;</span> rondas<span class="op">;</span> ronda<span class="op">++)</span> <span class="op">{</span></span>
+<span id="cb10-2"><a href="#cb10-2"></a>    <span class="cf">for</span> <span class="op">(</span>Servicio servicio <span class="op">:</span> lista<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb10-3"><a href="#cb10-3"></a>        repositorio<span class="op">.</span><span class="fu">guardar</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">10</span><span class="op">)));</span></span>
+<span id="cb10-4"><a href="#cb10-4"></a>        repositorio<span class="op">.</span><span class="fu">historial</span><span class="op">(</span>servicio<span class="op">);</span>       <span class="co">// primero guardar, despues consultar</span></span>
+<span id="cb10-5"><a href="#cb10-5"></a>    <span class="op">}</span></span>
+<span id="cb10-6"><a href="#cb10-6"></a><span class="op">}</span></span>
+<span id="cb10-7"><a href="#cb10-7"></a><span class="cf">return</span> repositorio<span class="op">.</span><span class="fu">comparaciones</span><span class="op">();</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Se cuenta una comparación por vuelta del bucle, que es una llamada a <code>equals</code>. Y la simulación guarda <strong>antes</strong> de consultar, como el monitor: por eso en la consulta <span class="math inline">\(k\)</span>-ésima hay <span class="math inline">\(k\)</span> resultados, y no <span class="math inline">\(k - 1\)</span>.</p>
+<p>La fórmula sale sola. Con <span class="math inline">\(N = r \cdot s\)</span> resultados en total, la suma es <span class="math inline">\(1 + 2 + \dots + N =
+N(N+1)/2\)</span>, y el término que domina es <span class="math inline">\(r^2 s^2/2\)</span>: el <span class="math inline">\(O(r^2 s^2)\)</span> del tema. Con 2 servicios y 1 ronda salen <span class="math inline">\(1 + 2 = 3\)</span>; con 20 servicios y 100 rondas, <span class="math inline">\(N = 2000\)</span> y el total es 2.001.000. Duplicar las rondas multiplica el total por cuatro.</p>
+<p><strong>La pregunta de «Para pensar».</strong> El contador no debería vivir en el repositorio: medir es una responsabilidad distinta de guardar, y mezclarlas va contra el principio de responsabilidad única. La alternativa es un <strong>decorador</strong> que implementa <code>RepositorioResultados</code>, envuelve al repositorio de verdad y le reenvía cada llamada. No necesita mirar dentro: sabe cuántos resultados se han guardado, porque todos pasan por su <code>guardar</code>, y en cada <code>historial</code> suma ese número. El repositorio queda intacto y el instrumento se añade o se quita sin tocarlo, que es también el principio abierto-cerrado.</p>
+<p><strong>Errores frecuentes.</strong> Consultar antes de guardar, que da <span class="math inline">\(N(N-1)/2\)</span> y no coincide con la tabla. Contar solo las comparaciones que aciertan. Y declarar el contador <code>static</code>, que suma las de todas las instancias y hace que las pruebas dependan del orden en que se ejecutan.</p>
+</section>
+</section>
+<section id="estructuras-de-datos-fundamentales-y-la-java-collections-framework" class="level2">
+<h2 class="anchored" data-anchor-id="estructuras-de-datos-fundamentales-y-la-java-collections-framework">2.2. Estructuras de datos fundamentales y la Java Collections Framework</h2>
+<p>Los cuatro ejercicios de esta sección tienen la misma forma: una estructura de la biblioteca, una pregunta que esa estructura contesta bien y una trampa que la documentación avisa y casi nadie lee. La trampa es lo que se evalúa: el conjunto que se modifica mientras se recorre, la <code>Stack</code> que no conviene usar, la vista que no es una copia, el montículo que no se recorre en orden.</p>
+<section id="clase-palabrasunicas-el-conjunto" class="level3">
+<h3 class="anchored" data-anchor-id="clase-palabrasunicas-el-conjunto">2.2.1 Clase <code>PalabrasUnicas</code>: el conjunto</h3>
+<p><strong>Qué se pedía.</strong> Tres operaciones sobre una lista de palabras —cuántas distintas hay, cuáles en orden de aparición, y la lista sin las cortas— y una explicación de qué falla en <code>sinLasCortasRoto</code>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb11-1"><a href="#cb11-1"></a><span class="kw">public</span> <span class="dt">static</span> <span class="dt">int</span> <span class="fu">cuantasDistintas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>    <span class="cf">return</span> <span class="kw">new</span> <span class="bu">HashSet</span><span class="op">&lt;&gt;(</span>Objects<span class="op">.</span><span class="fu">requireNonNull</span><span class="op">(</span>palabras<span class="op">)).</span><span class="fu">size</span><span class="op">();</span></span>
+<span id="cb11-3"><a href="#cb11-3"></a><span class="op">}</span></span>
+<span id="cb11-4"><a href="#cb11-4"></a></span>
+<span id="cb11-5"><a href="#cb11-5"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">distintasEnOrdenDeAparicion</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a>    <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span><span class="kw">new</span> <span class="bu">LinkedHashSet</span><span class="op">&lt;&gt;(</span>Objects<span class="op">.</span><span class="fu">requireNonNull</span><span class="op">(</span>palabras<span class="op">)));</span></span>
+<span id="cb11-7"><a href="#cb11-7"></a><span class="op">}</span></span>
+<span id="cb11-8"><a href="#cb11-8"></a></span>
+<span id="cb11-9"><a href="#cb11-9"></a><span class="kw">public</span> <span class="dt">static</span> <span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">sinLasCortas</span><span class="op">(</span><span class="bu">List</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> palabras<span class="op">,</span> <span class="dt">int</span> minimo<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a>    <span class="co">// ... validaciones</span></span>
+<span id="cb11-11"><a href="#cb11-11"></a>    <span class="dt">var</span> copia <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;(</span>palabras<span class="op">);</span></span>
+<span id="cb11-12"><a href="#cb11-12"></a>    copia<span class="op">.</span><span class="fu">removeIf</span><span class="op">(</span>palabra <span class="op">-&gt;</span> palabra<span class="op">.</span><span class="fu">length</span><span class="op">()</span> <span class="op">&lt;</span> minimo<span class="op">);</span></span>
+<span id="cb11-13"><a href="#cb11-13"></a>    <span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>copia<span class="op">);</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Las tres caben en una o dos líneas porque cada una elige la estructura que ya hace el trabajo. El constructor de copia de un conjunto mete todos los elementos y la <a href="../../es/contenido/tema2.html#imp-tabla-hash">tabla <em>hash</em></a> descarta los repetidos: <span class="math inline">\(n\)</span> inserciones de coste <span class="math inline">\(O(1)\)</span> esperado. Con una lista y <code>contains</code> serían <span class="math inline">\(O(n^2)\)</span>. Un <code>LinkedHashSet</code> recuerda el orden de inserción, y como un repetido no se vuelve a insertar, la primera aparición fija el sitio. Y <code>removeIf</code> quita lo que cumple la condición con su propio recorrido, en una sola pasada.</p>
+<p>Lo de <code>sinLasCortasRoto</code> es la <a href="../../es/contenido/tema2.html#cau-modificar-mientras-recorres">precaución de modificar mientras se recorre</a>. El <code>for</code> mejorado usa un iterador, y el iterador de <code>ArrayList</code> recuerda cuántas modificaciones tenía la lista al crearse. Un <code>remove</code> por detrás de él lo detecta en el siguiente <code>next()</code> y lanza <code>ConcurrentModificationException</code>. Hay un caso peor: si lo que se quita es el <strong>penúltimo</strong> elemento, <code>hasNext()</code> ya devuelve <code>false</code>, el bucle termina sin excepción y el último elemento no se examina. El método devuelve un resultado incorrecto en silencio.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Un <code>LinkedHashSet</code> no es la elección por omisión porque cuesta más y casi nunca hace falta. Cada entrada lleva dos referencias más —la lista doblemente enlazada que recuerda el orden— y cada inserción y borrado las mantiene: más memoria y algo más de tiempo, con el mismo orden de coste. La regla es pedir la promesa más débil que baste. Si importa el orden de llegada, <code>LinkedHashSet</code>; si no, <code>HashSet</code>; y si importa el orden de los valores, <code>TreeSet</code>.</p>
+<p><strong>Errores frecuentes.</strong> Contar las distintas con una lista y <code>contains</code>. Usar <code>HashSet</code> para el orden de aparición y que las pruebas pasen por casualidad con pocas palabras. Arreglar el bucle roto recorriendo con índices hacia delante, que se salta el elemento siguiente a cada borrado. Y explicar el fallo diciendo solo «lanza una excepción», sin el caso silencioso.</p>
+</section>
+<section id="clase-historialdenavegacion-la-pila" class="level3">
+<h3 class="anchored" data-anchor-id="clase-historialdenavegacion-la-pila">2.2.2 Clase <code>HistorialDeNavegacion</code>: la pila</h3>
+<p><strong>Qué se pedía.</strong> El botón «atrás» de un navegador: visitar, ver la página actual y retroceder, con una <a href="../../es/contenido/tema2.html#imp-pila-cola">pila</a> y eligiendo la pareja de métodos que corresponde.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb12-1"><a href="#cb12-1"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">Deque</span><span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> paginas <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayDeque</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb12-2"><a href="#cb12-2"></a></span>
+<span id="cb12-3"><a href="#cb12-3"></a><span class="kw">public</span> Optional<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">actual</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-4"><a href="#cb12-4"></a>    <span class="cf">return</span> Optional<span class="op">.</span><span class="fu">ofNullable</span><span class="op">(</span>paginas<span class="op">.</span><span class="fu">peekLast</span><span class="op">());</span></span>
+<span id="cb12-5"><a href="#cb12-5"></a><span class="op">}</span></span>
+<span id="cb12-6"><a href="#cb12-6"></a></span>
+<span id="cb12-7"><a href="#cb12-7"></a><span class="kw">public</span> Optional<span class="op">&lt;</span><span class="bu">String</span><span class="op">&gt;</span> <span class="fu">atras</span><span class="op">()</span> <span class="op">{</span></span>
+<span id="cb12-8"><a href="#cb12-8"></a>    <span class="cf">if</span> <span class="op">(</span>paginas<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">&lt;</span> <span class="dv">2</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb12-9"><a href="#cb12-9"></a>        <span class="cf">return</span> Optional<span class="op">.</span><span class="fu">empty</span><span class="op">();</span>       <span class="co">// con una sola pagina no se retrocede</span></span>
+<span id="cb12-10"><a href="#cb12-10"></a>    <span class="op">}</span></span>
+<span id="cb12-11"><a href="#cb12-11"></a>    paginas<span class="op">.</span><span class="fu">pollLast</span><span class="op">();</span></span>
+<span id="cb12-12"><a href="#cb12-12"></a>    <span class="cf">return</span> Optional<span class="op">.</span><span class="fu">of</span><span class="op">(</span>paginas<span class="op">.</span><span class="fu">peekLast</span><span class="op">());</span></span>
+<span id="cb12-13"><a href="#cb12-13"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Se usa <code>ArrayDeque</code> por su interfaz <code>Deque</code>, no <code>Stack</code>, por las razones de la <a href="../../es/contenido/tema2.html#cau-usar-stack">precaución sobre <code>Stack</code></a>: hereda de <code>Vector</code>, sincroniza cada operación sin necesidad y deja insertar en medio de la pila.</p>
+<p>La pareja de métodos es la decisión del ejercicio. Aquí una pila vacía es un caso <strong>esperado</strong> —un navegador recién abierto—, así que se usan los que devuelven un valor especial (<code>peekLast</code>, <code>pollLast</code>) y no los que lanzan (<code>getLast</code>, <code>removeLast</code>). El vacío llega a quien llama como <code>Optional</code>, visible en el tipo. Y la comprobación del tamaño va <strong>antes</strong> de quitar nada, para que «con una sola página no cambia nada» sea literalmente cierto.</p>
+<p><strong>La pregunta de «Para pensar».</strong> En la pila de llamadas de la máquina virtual, no. Ahí sacar de una pila vacía no es un caso que atender, sino la prueba de que el programa está roto. Un <code>Optional</code> obligaría a cada llamador a decidir qué hacer con algo que no debería ocurrir nunca, y casi siempre acabaría ignorado. Lo correcto es la pareja que lanza, para que el error salte donde se produce. La regla: <code>Optional</code> para la ausencia normal, excepción para la ausencia que revela un fallo.</p>
+<p><strong>Errores frecuentes.</strong> Quitar primero y comprobar después, que vacía la pila con una sola página. Usar <code>Stack</code>. Mezclar los extremos —<code>addFirst</code> con <code>peekLast</code>—, que convierte la pila en una cola. Y devolver <code>null</code> en lugar de <code>Optional</code>.</p>
+</section>
+<section id="clase-agenda-el-árbol-de-búsqueda" class="level3">
+<h3 class="anchored" data-anchor-id="clase-agenda-el-árbol-de-búsqueda">2.2.3 Clase <code>Agenda</code>: el árbol de búsqueda</h3>
+<p><strong>Qué se pedía.</strong> Una agenda de un día que conteste qué citas hay en un intervalo y cuál es la siguiente después de una hora, en <span class="math inline">\(O(\log n + k)\)</span> y <span class="math inline">\(O(\log n)\)</span>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb13-1"><a href="#cb13-1"></a><span class="kw">private</span> <span class="dt">final</span> <span class="bu">NavigableMap</span><span class="op">&lt;</span>LocalTime<span class="op">,</span> <span class="bu">String</span><span class="op">&gt;</span> citas <span class="op">=</span> <span class="kw">new</span> <span class="bu">TreeMap</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a></span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="kw">public</span> <span class="bu">List</span><span class="op">&lt;</span>Cita<span class="op">&gt;</span> <span class="fu">entre</span><span class="op">(</span>LocalTime desde<span class="op">,</span> LocalTime hasta<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-4"><a href="#cb13-4"></a>    <span class="co">// ... validacion del intervalo</span></span>
+<span id="cb13-5"><a href="#cb13-5"></a>    <span class="cf">return</span> <span class="fu">comoCitas</span><span class="op">(</span>citas<span class="op">.</span><span class="fu">subMap</span><span class="op">(</span>desde<span class="op">,</span> <span class="kw">true</span><span class="op">,</span> hasta<span class="op">,</span> <span class="kw">false</span><span class="op">));</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a><span class="op">}</span></span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="kw">public</span> Optional<span class="op">&lt;</span>Cita<span class="op">&gt;</span> <span class="fu">siguienteDespuesDe</span><span class="op">(</span>LocalTime hora<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb13-9"><a href="#cb13-9"></a>    <span class="dt">var</span> entrada <span class="op">=</span> citas<span class="op">.</span><span class="fu">higherEntry</span><span class="op">(</span>hora<span class="op">);</span>        <span class="co">// estrictamente mayor</span></span>
+<span id="cb13-10"><a href="#cb13-10"></a>    <span class="cf">return</span> entrada <span class="op">==</span> <span class="kw">null</span> <span class="op">?</span> Optional<span class="op">.</span><span class="fu">empty</span><span class="op">()</span></span>
+<span id="cb13-11"><a href="#cb13-11"></a>                           <span class="op">:</span> Optional<span class="op">.</span><span class="fu">of</span><span class="op">(</span><span class="kw">new</span> <span class="fu">Cita</span><span class="op">(</span>entrada<span class="op">.</span><span class="fu">getKey</span><span class="op">(),</span> entrada<span class="op">.</span><span class="fu">getValue</span><span class="op">()));</span></span>
+<span id="cb13-12"><a href="#cb13-12"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Un <a href="../../es/contenido/tema2.html#imp-arbol-busqueda">árbol de búsqueda</a> guarda las claves en orden, y eso es lo que contestan las dos preguntas. El método <code>subMap</code> baja por el árbol hasta <code>desde</code> en <span class="math inline">\(O(\log n)\)</span> y recorre solo las <span class="math inline">\(k\)</span> citas del intervalo, sin mirar las demás. Y <code>higherEntry</code> es «estrictamente mayor»: <code>ceilingEntry</code> sería «mayor o igual» y devolvería la cita de esa misma hora. El campo se declara como <code>NavigableMap</code>, la interfaz que tiene esos métodos.</p>
+<p>Con un <code>HashMap</code>, <code>entre</code> tendría que recorrer <strong>todas</strong> las citas, quedarse con las del intervalo y ordenarlas, porque la tabla no guarda orden: <span class="math inline">\(O(n + k \log k)\)</span>. Y <code>siguienteDespuesDe</code> sería otro recorrido completo.</p>
+<p><strong>La pregunta de «Para pensar».</strong> La vista no tiene datos propios: cada vez que se recorre, recorre el árbol. Si después de pedirla se añade una cita dentro del intervalo, la vista la muestra. Y al revés, un <code>put</code> sobre la vista escribe en el árbol. La lista que devuelve <code>entre</code> no cambia: es una copia hecha con <code>List.copyOf</code> en el momento de la llamada. Por eso un método público devuelve copias, y las vistas se usan dentro de la clase, donde se sabe cuánto viven.</p>
+<p><strong>Errores frecuentes.</strong> Usar <code>ceilingEntry</code>. Incluir el extremo superior del intervalo cuando el enunciado lo excluye. Devolver la vista directamente desde <code>entre</code>. Y declarar el campo como <code>Map</code>, que obliga a un <em>cast</em> para llegar a <code>subMap</code>.</p>
+</section>
+<section id="clase-resultadosmaslentos-el-montículo" class="level3">
+<h3 class="anchored" data-anchor-id="clase-resultadosmaslentos-el-montículo">2.2.4 Clase <code>ResultadosMasLentos</code>: el montículo</h3>
+<p><strong>Qué se pedía.</strong> Los <span class="math inline">\(k\)</span> resultados de mayor latencia, de mayor a menor, con una <code>PriorityQueue</code>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb14-1"><a href="#cb14-1"></a><span class="dt">var</span> cola <span class="op">=</span> <span class="kw">new</span> <span class="bu">PriorityQueue</span><span class="op">&lt;</span>Resultado<span class="op">&gt;(</span><span class="bu">Comparator</span><span class="op">.</span><span class="fu">comparing</span><span class="op">(</span>Resultado<span class="op">::</span>latencia<span class="op">).</span><span class="fu">reversed</span><span class="op">());</span></span>
+<span id="cb14-2"><a href="#cb14-2"></a>cola<span class="op">.</span><span class="fu">addAll</span><span class="op">(</span>resultados<span class="op">);</span></span>
+<span id="cb14-3"><a href="#cb14-3"></a><span class="dt">var</span> lentos <span class="op">=</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;</span>Resultado<span class="op">&gt;();</span></span>
+<span id="cb14-4"><a href="#cb14-4"></a><span class="cf">while</span> <span class="op">(</span>lentos<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">&lt;</span> k <span class="op">&amp;&amp;</span> <span class="op">!</span>cola<span class="op">.</span><span class="fu">isEmpty</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb14-5"><a href="#cb14-5"></a>    lentos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>cola<span class="op">.</span><span class="fu">poll</span><span class="op">());</span></span>
+<span id="cb14-6"><a href="#cb14-6"></a><span class="op">}</span></span>
+<span id="cb14-7"><a href="#cb14-7"></a><span class="cf">return</span> <span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>lentos<span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> La cola saca el mínimo según su comparador, y aquí el «mínimo» tiene que ser la latencia mayor: de ahí el <code>reversed()</code>. Como <code>Duration</code> es <code>Comparable</code>, no hace falta pasar a milisegundos.</p>
+<p>Lo que se evalúa es la segunda mitad. Los <span class="math inline">\(k\)</span> primeros se <strong>sacan</strong> con <code>poll</code>, no se recorren. El iterador de <code>PriorityQueue</code> recorre el array del <a href="../../es/contenido/tema2.html#imp-monticulo">montículo</a>, donde solo la raíz está en su sitio (<a href="../../es/contenido/tema2.html#cau-iterar-priorityqueue">la precaución de iterar una <code>PriorityQueue</code></a>). Con pocos elementos el recorrido sale ordenado por casualidad, y por eso las pruebas usan suficientes.</p>
+<p><strong>La pregunta de «Para pensar».</strong> El montículo de tamaño <span class="math inline">\(k\)</span> compensa cuando <span class="math inline">\(n\)</span> es muy grande comparado con <span class="math inline">\(k\)</span> y, sobre todo, cuando los resultados no están todos a la vez en memoria. Con un montículo de mínimo de tamaño <span class="math inline">\(k\)</span>, cada resultado nuevo se compara con la raíz —el peor de los guardados— y solo entra si la supera: <span class="math inline">\(O(\log k)\)</span> por elemento y memoria <span class="math inline">\(O(k)\)</span>. Y permite algo que esta versión no permite: trabajar sobre un <strong>flujo</strong>. Los resultados del monitor llegan uno a uno y para siempre; con el montículo de tamaño <span class="math inline">\(k\)</span> el ranking se mantiene al día con memoria constante.</p>
+<p><strong>Errores frecuentes.</strong> Recorrer la cola con un <code>for</code> y quedarse con los <span class="math inline">\(k\)</span> primeros. Olvidar el <code>reversed()</code> y devolver los más rápidos. No comprobar <code>isEmpty()</code> cuando hay menos de <span class="math inline">\(k\)</span> resultados. Y ordenar toda la lista con <code>sort</code>, que resuelve el problema pero no el ejercicio.</p>
+</section>
+</section>
+<section id="criterios-de-selección-de-estructura-según-operación-dominante" class="level2">
+<h2 class="anchored" data-anchor-id="criterios-de-selección-de-estructura-según-operación-dominante">2.3. Criterios de selección de estructura según operación dominante</h2>
+<p>La sección cierra el tema con el método completo: identificar la <a href="../../es/contenido/tema2.html#imp-operacion-dominante">operación dominante</a>, elegir la estructura que la hace barata y <strong>comprobarlo contando</strong>. Los cuatro ejercicios aplican el método a casos cada vez más grandes, del array de enteros al monitor entero.</p>
+<section id="método-hayrepetido-de-repetidosejercicio" class="level3">
+<h3 class="anchored" data-anchor-id="método-hayrepetido-de-repetidosejercicio">2.3.1 Método <code>hayRepetido</code> de <code>RepetidosEjercicio</code></h3>
+<p><strong>Qué se pedía.</strong> La versión lineal de <code>Conteos.hayRepetido</code>, que compara todos los pares, y la tabla con los seis recuentos sobre los tres arrays de <code>DemoConteos</code>.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb15-1"><a href="#cb15-1"></a><span class="bu">Set</span><span class="op">&lt;</span><span class="bu">Integer</span><span class="op">&gt;</span> vistos <span class="op">=</span> <span class="kw">new</span> <span class="bu">HashSet</span><span class="op">&lt;&gt;();</span></span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="cf">for</span> <span class="op">(</span><span class="dt">int</span> dato <span class="op">:</span> datos<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb15-3"><a href="#cb15-3"></a>    operaciones<span class="op">++;</span></span>
+<span id="cb15-4"><a href="#cb15-4"></a>    <span class="cf">if</span> <span class="op">(!</span>vistos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>dato<span class="op">))</span> <span class="op">{</span>               <span class="co">// add devuelve false si ya estaba</span></span>
+<span id="cb15-5"><a href="#cb15-5"></a>        Recuento<span class="op">.</span><span class="fu">anunciar</span><span class="op">(</span><span class="st">"conConjunto"</span><span class="op">,</span> datos<span class="op">.</span><span class="fu">length</span><span class="op">,</span> operaciones<span class="op">,</span> <span class="st">"n como maximo"</span><span class="op">);</span></span>
+<span id="cb15-6"><a href="#cb15-6"></a>        <span class="cf">return</span> <span class="kw">true</span><span class="op">;</span></span>
+<span id="cb15-7"><a href="#cb15-7"></a>    <span class="op">}</span></span>
+<span id="cb15-8"><a href="#cb15-8"></a><span class="op">}</span></span>
+<span id="cb15-9"><a href="#cb15-9"></a>Recuento<span class="op">.</span><span class="fu">anunciar</span><span class="op">(</span><span class="st">"conConjunto"</span><span class="op">,</span> datos<span class="op">.</span><span class="fu">length</span><span class="op">,</span> operaciones<span class="op">,</span> <span class="st">"n"</span><span class="op">);</span></span>
+<span id="cb15-10"><a href="#cb15-10"></a><span class="cf">return</span> <span class="kw">false</span><span class="op">;</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> El método <code>add</code> de un conjunto devuelve <code>false</code> si el elemento ya estaba: una sola consulta a la tabla comprueba e inserta a la vez. Con <code>contains</code> seguido de <code>add</code> se consultaría dos veces.</p>
+<p>La tabla, con los tres arrays de 2000 elementos:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>el array de 2000 elementos</th>
+<th style="text-align: right;"><code>Conteos.hayRepetido</code></th>
+<th style="text-align: right;"><code>RepetidosEjercicio.hayRepetido</code></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>sin repetido</td>
+<td style="text-align: right;">1.999.000</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+<tr class="even">
+<td>con el repetido en medio</td>
+<td style="text-align: right;">1.498.501</td>
+<td style="text-align: right;">1.001</td>
+</tr>
+<tr class="odd">
+<td>con el repetido al principio</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
+</tr>
+</tbody>
+</table>
+<p>Cambiar la estructura ha cambiado el <strong>orden</strong>, no la constante: de <span class="math inline">\(n(n-1)/2\)</span> a <span class="math inline">\(n\)</span>. La tercera fila no lo desmiente: es el mejor caso de la cuadrática, que encuentra el repetido en su primera comparación, y no dice nada de cómo crece el coste.</p>
+<p><strong>La pregunta de «Para pensar».</strong> La versión lenta se prefiere con arrays muy pequeños, de unas decenas de elementos, donde <span class="math inline">\(n^2\)</span> sigue siendo poco y la versión con conjunto paga por cada elemento el <em>boxing</em> a <code>Integer</code>, el cálculo del <em>hash</em> y la reserva de la tabla. También cuando la memoria es lo escaso, porque la cuadrática no gasta nada extra. Y si se puede ordenar el array, hay una vía intermedia: <span class="math inline">\(O(n \log n)\)</span> y comparar vecinos, sin memoria adicional.</p>
+<p><strong>Errores frecuentes.</strong> Usar <code>contains</code> y <code>add</code> por separado. Concluir de la tercera fila que la versión cuadrática «a veces es mejor». Y olvidar que el <span class="math inline">\(O(1)\)</span> de cada <code>add</code> es esperado, no garantizado.</p>
+</section>
+<section id="clase-consumirporelprincipio-por-el-extremo-equivocado" class="level3">
+<h3 class="anchored" data-anchor-id="clase-consumirporelprincipio-por-el-extremo-equivocado">2.3.2 Clase <code>ConsumirPorElPrincipio</code>: por el extremo equivocado</h3>
+<p><strong>Qué se pedía.</strong> Consumir <span class="math inline">\(n\)</span> elementos por el principio de un <code>ArrayList</code> contando los desplazamientos, hacer lo mismo con un <code>ArrayDeque</code>, y comparar.</p>
+<p><strong>La solución.</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb16-1"><a href="#cb16-1"></a><span class="cf">while</span> <span class="op">(!</span>lista<span class="op">.</span><span class="fu">isEmpty</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb16-2"><a href="#cb16-2"></a>    desplazamientos <span class="op">+=</span> lista<span class="op">.</span><span class="fu">size</span><span class="op">()</span> <span class="op">-</span> <span class="dv">1</span><span class="op">;</span>   <span class="co">// remove(0) mueve todos los de detras</span></span>
+<span id="cb16-3"><a href="#cb16-3"></a>    consumidos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>lista<span class="op">.</span><span class="fu">remove</span><span class="op">(</span><span class="dv">0</span><span class="op">));</span></span>
+<span id="cb16-4"><a href="#cb16-4"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb17-1"><a href="#cb17-1"></a><span class="bu">Integer</span> siguiente<span class="op">;</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a><span class="cf">while</span> <span class="op">((</span>siguiente <span class="op">=</span> cola<span class="op">.</span><span class="fu">pollFirst</span><span class="op">())</span> <span class="op">!=</span> <span class="kw">null</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb17-3"><a href="#cb17-3"></a>    consumidos<span class="op">.</span><span class="fu">add</span><span class="op">(</span>siguiente<span class="op">);</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Cada <code>remove(0)</code> mueve una posición a la izquierda todos los elementos que quedan detrás del primero: <code>size() - 1</code>. Sumados para todas las extracciones dan <span class="math inline">\(n(n-1)/2\)</span>, así que un bucle que <strong>se lee</strong> como lineal es cuadrático. Es el error de la tabla de costes de 2.2.2 que más se comete, porque nada en el código lo delata.</p>
+<p>Con <code>ArrayDeque</code>, un array circular, sacar por el principio solo mueve el índice de la cabeza: nada que desplazar, <span class="math inline">\(O(1)\)</span> por elemento. Y se usa <code>pollFirst</code>, que devuelve <code>null</code> al vaciarse, porque vaciarse es lo normal aquí y ese <code>null</code> es la condición de salida.</p>
+<p><strong>La pregunta de «Para pensar».</strong> La notación <span class="math inline">\(O\)</span> esconde la constante, y aquí la constante es muy distinta. Una <code>LinkedList</code> crea un nodo por elemento —un objeto con el valor y dos referencias—, cada inserción es una reserva de memoria, cada extracción deja basura para el recolector, y los nodos quedan dispersos, de modo que recorrerlos falla en la caché del procesador. Un <code>ArrayDeque</code> guarda los elementos en un array contiguo: menos memoria, casi ninguna reserva y accesos que la caché aprovecha. La propia documentación lo dice <span class="citation" data-cites="jdk25collections">(<a href="#ref-jdk25collections" role="doc-biblioref">Oracle 2025</a>)</span>, y el tema lo avisa en la <a href="../../es/contenido/tema2.html#cau-linkedlist-por-defecto">precaución sobre <code>LinkedList</code></a>.</p>
+<p><strong>Errores frecuentes.</strong> Contar <span class="math inline">\(n\)</span> desplazamientos por extracción en lugar de los que quedan detrás. Usar <code>removeFirst</code> y un <code>try</code> para detectar el final. Y medir con el cronómetro en lugar de contar, que con tamaños pequeños no enseña la diferencia.</p>
+</section>
+<section id="clase-telefonos-tabla-o-árbol" class="level3">
+<h3 class="anchored" data-anchor-id="clase-telefonos-tabla-o-árbol">2.3.3 Clase <code>Telefonos</code>: tabla o árbol</h3>
+<p><strong>Qué se pedía.</strong> Una guía que conteste el teléfono de un nombre exacto y los nombres que empiezan por un prefijo, eligiendo <strong>una</strong> estructura y justificándola.</p>
+<p><strong>La solución.</strong> Un <code>TreeMap</code>, y el prefijo con <code>tailMap</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb18"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb18-1"><a href="#cb18-1"></a><span class="cf">for</span> <span class="op">(</span><span class="bu">String</span> nombre <span class="op">:</span> guia<span class="op">.</span><span class="fu">tailMap</span><span class="op">(</span>prefijo<span class="op">,</span> <span class="kw">true</span><span class="op">).</span><span class="fu">keySet</span><span class="op">())</span> <span class="op">{</span></span>
+<span id="cb18-2"><a href="#cb18-2"></a>    <span class="cf">if</span> <span class="op">(!</span>nombre<span class="op">.</span><span class="fu">startsWith</span><span class="op">(</span>prefijo<span class="op">))</span> <span class="op">{</span></span>
+<span id="cb18-3"><a href="#cb18-3"></a>        <span class="cf">break</span><span class="op">;</span>                 <span class="co">// ya no habra mas: los del prefijo son consecutivos</span></span>
+<span id="cb18-4"><a href="#cb18-4"></a>    <span class="op">}</span></span>
+<span id="cb18-5"><a href="#cb18-5"></a>    nombres<span class="op">.</span><span class="fu">add</span><span class="op">(</span>nombre<span class="op">);</span></span>
+<span id="cb18-6"><a href="#cb18-6"></a><span class="op">}</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Un <code>HashMap</code> contestaría la primera pregunta en <span class="math inline">\(O(1)\)</span> esperado, pero la segunda le costaría recorrer todas las claves y ordenarlas. En el árbol, la primera cuesta <span class="math inline">\(O(\log n)\)</span> y la segunda <span class="math inline">\(O(\log n + k)\)</span>: bajar hasta el primer nombre mayor o igual que el prefijo y recorrer los <span class="math inline">\(k\)</span> que coinciden. Funciona porque, en orden alfabético, todos los nombres con un prefijo común forman un <strong>tramo contiguo</strong>: el orden de las claves es el índice. Por eso el <code>break</code> es imprescindible; sin él el recorrido seguiría hasta el final y la segunda pregunta volvería a ser <span class="math inline">\(O(n)\)</span>.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Probablemente no mantendría las dos. Con un millón de nombres, <span class="math inline">\(\log_2 n\)</span> son unas 20 comparaciones: la búsqueda exacta en el árbol ya es rapidísima, y pasar a <span class="math inline">\(O(1)\)</span> ahorra poco. A cambio, dos estructuras doblan la memoria y obligan a que cada alta, cambio y baja toque las dos, con el riesgo de que dejen de coincidir. Merece la pena solo si una medición muestra que la búsqueda exacta es el cuello de botella.</p>
+<p><strong>Errores frecuentes.</strong> Olvidar el <code>break</code>. Usar <code>HashMap</code> y filtrar. Usar <code>subMap(prefijo, prefijo + "z")</code>, que falla con nombres que tienen caracteres posteriores a la <code>z</code>, como acentos. Y justificar la elección por la primera pregunta sola.</p>
+</section>
+<section id="clase-comparativarepositorios-el-método-aplicado-al-monitor" class="level3">
+<h3 class="anchored" data-anchor-id="clase-comparativarepositorios-el-método-aplicado-al-monitor">2.3.4 Clase <code>ComparativaRepositorios</code>: el método, aplicado al monitor</h3>
+<p><strong>Qué se pedía.</strong> Contar los resultados que examina <code>historial</code> con la lista única y con un índice por servicio sobre la misma carga, dar las dos fórmulas y concluir.</p>
+<p><strong>La solución.</strong> La versión con índice, que es la nueva:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb19"><pre class="sourceCode numberSource java number-lines code-with-copy"><code class="sourceCode java"><span id="cb19-1"><a href="#cb19-1"></a>porServicio<span class="op">.</span><span class="fu">computeIfAbsent</span><span class="op">(</span>servicio<span class="op">,</span> s <span class="op">-&gt;</span> <span class="kw">new</span> <span class="bu">ArrayList</span><span class="op">&lt;&gt;())</span></span>
+<span id="cb19-2"><a href="#cb19-2"></a>        <span class="op">.</span><span class="fu">add</span><span class="op">(</span>Resultado<span class="op">.</span><span class="fu">activo</span><span class="op">(</span>servicio<span class="op">,</span> <span class="bu">Duration</span><span class="op">.</span><span class="fu">ofMillis</span><span class="op">(</span><span class="dv">10</span><span class="op">)));</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a><span class="bu">List</span><span class="op">&lt;</span>Resultado<span class="op">&gt;</span> suyos <span class="op">=</span> porServicio<span class="op">.</span><span class="fu">get</span><span class="op">(</span>servicio<span class="op">);</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a>examinados <span class="op">+=</span> suyos<span class="op">.</span><span class="fu">size</span><span class="op">();</span>        <span class="co">// lo que se examina es lo que se copia</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a><span class="bu">List</span><span class="op">.</span><span class="fu">copyOf</span><span class="op">(</span>suyos<span class="op">);</span></span></code></pre></div><button title="Copiar al portapapeles" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por qué así.</strong> Con índice, encontrar la lista del servicio es <span class="math inline">\(O(1)\)</span> esperado y no examina nada; lo que se examina es lo que se copia, que son solo los de ese servicio.</p>
+<p>Las fórmulas, con <span class="math inline">\(r\)</span> rondas, <span class="math inline">\(s\)</span> servicios y <span class="math inline">\(N = r \cdot s\)</span>:</p>
+<ul>
+<li><strong>Lista única:</strong> <span class="math inline">\(1 + 2 + \dots + N = N(N+1)/2\)</span>, que es <span class="math inline">\(O(r^2 s^2)\)</span>.</li>
+<li><strong>Índice:</strong> en la ronda <span class="math inline">\(j\)</span> cada servicio tiene <span class="math inline">\(j\)</span> resultados, y son <span class="math inline">\(s\)</span> servicios, así que <span class="math inline">\(s
+\cdot r(r+1)/2\)</span>, que es <span class="math inline">\(O(r^2 s)\)</span>.</li>
+</ul>
+<p>Con 20 servicios, la tabla del enunciado lo confirma: 2.001.000 frente a 101.000 con 100 rondas, y 128.008.000 frente a 6.408.000 con 800. El cociente tiende a <span class="math inline">\(s = 20\)</span>.</p>
+<p>La conclusión tiene dos partes. El índice elimina el factor <span class="math inline">\(s\)</span>, porque cada consulta deja de mirar los resultados de los demás servicios. Pero <strong>sigue siendo cuadrático en las rondas</strong>, porque <code>historial</code> devuelve el historial entero, que crece cada ronda, y se pide cada ronda. El problema de fondo no es cómo se busca, sino que se pide y se copia todo cada vez. Se arregla cambiando la pregunta —pedir solo los últimos <span class="math inline">\(k\)</span> resultados, que es lo que necesita una política de alerta— y no la estructura. Es lo que explica <a href="../../es/contenido/tema2.html#cuándo-la-estructura-no-es-el-problema">cuándo la estructura no es el problema</a>.</p>
+<p><strong>La pregunta de «Para pensar».</strong> Todo lo que dice la tabla se podía calcular antes: las dos fórmulas salen de contar en papel, y de ellas se deduce que el cociente tiende a <span class="math inline">\(s\)</span> y que las dos columnas son cuadráticas en <span class="math inline">\(r\)</span>. El tema lo programó y lo midió igualmente porque una fórmula solo es tan buena como el modelo del que sale, y medir es la forma de comprobar que el modelo no se ha dejado nada, por ejemplo un coste oculto en el <code>equals</code> o en la copia. Y porque un número medido convence a quien no ha seguido la cuenta. La medición no sustituye al análisis: lo confirma.</p>
+<p><strong>Errores frecuentes.</strong> Contar en la versión con índice una operación por consulta, como si <code>historial</code> fuera <span class="math inline">\(O(1)\)</span>, olvidando la copia. Concluir que el índice «resuelve» el problema. Y dar las fórmulas sin comprobarlas contra la tabla.</p>
+</section>
+</section>
+<section id="qué-llevarte-de-este-tema" class="level2">
+<h2 class="anchored" data-anchor-id="qué-llevarte-de-este-tema">Qué llevarte de este tema</h2>
+<p>Si de las diecisiete soluciones hubiera que quedarse con cinco frases:</p>
+<ol type="1">
+<li><strong>El coste se cuenta, no se adivina.</strong> Primero el recuento exacto, después el orden. Dos bucles anidados pueden ser lineales, y un bucle que se lee como lineal puede ser cuadrático (2.1.2, 2.1.9, 2.3.2).</li>
+<li><strong>El orden no lo es todo.</strong> <span class="math inline">\(O(n)\)</span> dice cómo crece el coste, no cuánto es. La constante decide entre dos versiones del mismo orden, y el rango de tamaños reales decide entre dos órdenes (2.1.1, 2.1.4, 2.3.2).</li>
+<li><strong>El caso medio depende de las entradas.</strong> Peor, mejor y medio son funciones distintas, y el caso medio cambia si cambia la distribución, sin que cambie el algoritmo (2.1.5, 2.1.6).</li>
+<li><strong>Cada estructura contesta bien unas preguntas.</strong> Elegir es identificar la operación dominante y buscar la estructura que la hace barata, sin olvidar las trampas que la documentación avisa (2.2.1 a 2.2.4, 2.3.3).</li>
+<li><strong>A veces el problema es la pregunta.</strong> Un índice quita un factor; cambiar lo que se pide puede quitar el orden entero. Antes de optimizar cómo se busca, conviene preguntarse si hace falta buscar todo (2.3.4).</li>
+</ol>
+<p>Y una observación sobre el conjunto: casi todos los números de estos ejercicios se podían saber <strong>antes</strong> de programar, con lápiz y papel. Programar y contar sirve para comprobar el modelo, no para sustituirlo. Es la forma de trabajar del tratado clásico sobre ordenación y búsqueda, que analiza cada algoritmo contando sus operaciones antes de ejecutarlo <span class="citation" data-cites="knuth1997">(<a href="#ref-knuth1997" role="doc-biblioref">Knuth 1998</a>)</span>.</p>
+</section>
+<section id="referencias" class="level2">
+<h2 class="anchored" data-anchor-id="referencias">Referencias</h2>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-bloch2006extra" class="csl-entry" role="listitem">
+Bloch, Joshua. 2006. <span>«Extra, Extra — Read All About It: Nearly All Binary Searches and Mergesorts are Broken»</span>. Google Research Blog. <a href="https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/">https://research.google/blog/extra-extra-read-all-about-it-nearly-all-binary-searches-and-mergesorts-are-broken/</a>.
+</div>
+<div id="ref-cormen2022" class="csl-entry" role="listitem">
+Cormen, Thomas H., Charles E. Leiserson, Ronald L. Rivest, y Clifford Stein. 2022. <em>Introduction to Algorithms</em>. 4.ª ed. Cambridge, MA: MIT Press.
+</div>
+<div id="ref-knuth1997" class="csl-entry" role="listitem">
+Knuth, Donald E. 1998. <span>«The Art of Computer Programming, Volume 3: Sorting and Searching»</span>. Reading, MA: Addison-Wesley.
+</div>
+<div id="ref-jdk25collections" class="csl-entry" role="listitem">
+Oracle. 2025. <span>«Java Platform, Standard Edition 25 API Specification: Package <span>java.util</span>»</span>. Documentación oficial. <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/package-summary.html">https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/package-summary.html</a>.
+</div>
+</div>
 
 
+</section>
 
 </main> <!-- /main -->
 <script id="quarto-html-after-body" type="application/javascript">
